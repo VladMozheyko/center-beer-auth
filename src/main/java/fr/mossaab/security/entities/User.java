@@ -1,16 +1,19 @@
 package fr.mossaab.security.entities;
 
 import fr.mossaab.security.enums.Role;
+import fr.mossaab.security.enums.WorkerRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 @Builder
@@ -31,7 +34,16 @@ public class User implements UserDetails { // make our app User a spring securit
     private String lastname;
     private String email;
     private String password;
-
+    private String activationCode;
+    private String phoneNumber;
+    @OneToOne(mappedBy = "user")
+    @JoinColumn(name = "file_data_id", referencedColumnName = "id")
+    private FileData fileData;
+    @Enumerated(EnumType.STRING)
+    private WorkerRole workerRoles;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @Temporal(TemporalType.DATE)
+    private Date dateOfBirth;
     @Enumerated(EnumType.STRING)
     private Role role;
 
