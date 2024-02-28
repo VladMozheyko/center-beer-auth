@@ -42,7 +42,7 @@ public class SecurityConfiguration {
         http.cors(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(unauthorizedEntryPoint)
+                        /*.authenticationEntryPoint(unauthorizedEntryPoint)*/
                         .accessDeniedHandler(accessDeniedHandler))
                 .authorizeHttpRequests(request ->
                         request
