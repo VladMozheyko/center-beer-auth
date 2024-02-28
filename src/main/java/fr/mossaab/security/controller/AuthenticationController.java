@@ -313,7 +313,7 @@ public class AuthenticationController {
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE,jwtCookie.toString())
                     .header(HttpHeaders.SET_COOKIE,refreshTokenCookie.toString())
-                    .body(authenticationResponse);
+                    .body(response);
         }
         response.put("status", "error");
         response.put("notify", "Неверные данные");
