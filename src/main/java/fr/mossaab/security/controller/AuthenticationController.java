@@ -80,14 +80,26 @@ public class AuthenticationController {
         answer.put("last_name", userService.getUser(token).getLastname());
         answer.put("photo", userService.getUser(token).getFileData().getName());
         response.put("answer", answer);*/
+        /*FileData findfile = fileDataRepository.findAll()
+                .stream()
+                .filter(fileData -> fileData.getUser().getId() == 5)
+                .findFirst()*/
         Map<String, Object> response = new HashMap<>();
         Map<String, Object> answer = new HashMap<>();
+        List<FileData> allFileData = fileDataRepository.findAll();
+        String fileDataPath = null;
+        for (FileData fileData : allFileData) {
+            if (fileData.getUser().getId() == refreshTokenRepository.findByToken(cookie).orElse(null).getUser().getId()) {
+                fileDataPath = fileData.getName() ;
+                break;
+            }
+        }
         response.put("status", "success");
         answer.put("role", refreshTokenRepository.findByToken(cookie).orElse(null).getUser().getRole().toString());
         answer.put("type_of_worker", refreshTokenRepository.findByToken(cookie).orElse(null).getUser().getWorkerRoles().toString());
         answer.put("first_name", refreshTokenRepository.findByToken(cookie).orElse(null).getUser().getFirstname());
         answer.put("last_name", refreshTokenRepository.findByToken(cookie).orElse(null).getUser().getLastname());
-        answer.put("photo", fileDataRepository.findByUserId(refreshTokenRepository.findByToken(cookie).orElse(null).getUser().getId()).orElse(null).getName());
+        answer.put("photo", fileDataPath);
         response.put("answer", answer);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -140,13 +152,21 @@ public class AuthenticationController {
         Map<String, Object> answer = new HashMap<>();
         response.put("status", "success");
         response.put("notify", "Профиль получен");
+        List<FileData> allFileData = fileDataRepository.findAll();
+        String fileDataPath = null;
+        for (FileData fileData : allFileData) {
+            if (fileData.getUser().getId() == refreshTokenRepository.findByToken(cookie).orElse(null).getUser().getId()) {
+                fileDataPath = fileData.getName() ;
+                break;
+            }
+        }
         answer.put("phone", refreshTokenRepository.findByToken(cookie).orElse(null).getUser().getPhoneNumber());
         answer.put("date_of_birth", refreshTokenRepository.findByToken(cookie).orElse(null).getUser().getDateOfBirth().toString());
         answer.put("type_of_worker", refreshTokenRepository.findByToken(cookie).orElse(null).getUser().getWorkerRoles().toString());
         answer.put("first_name", refreshTokenRepository.findByToken(cookie).orElse(null).getUser().getFirstname());
         answer.put("last_name", refreshTokenRepository.findByToken(cookie).orElse(null).getUser().getLastname());
         answer.put("email", refreshTokenRepository.findByToken(cookie).orElse(null).getUser().getEmail());
-        answer.put("photo", fileDataRepository.findByUserId(refreshTokenRepository.findByToken(cookie).orElse(null).getUser().getId()).orElse(null).getName());
+        answer.put("photo", fileDataPath);
         response.put("answer", answer);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -347,7 +367,15 @@ public class AuthenticationController {
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
             user.setDateOfBirth(format.parse(editProfileDto.getDateOfBirth()));
             userRepository.save(user);
-            String fileDataPath = fileDataRepository.findByUserId(refreshTokenRepository.findByToken(cookie).orElse(null).getUser().getId()).orElse(null).getName();
+            List<FileData> allFileData = fileDataRepository.findAll();
+            String fileDataPath = null;
+            for (FileData fileData : allFileData) {
+                if (fileData.getUser().getId() == refreshTokenRepository.findByToken(cookie).orElse(null).getUser().getId()) {
+                    fileDataPath = fileData.getName() ;
+                    break;
+                }
+            }
+            //String fileDataPath = fileDataRepository.findByUserId(refreshTokenRepository.findByToken(cookie).orElse(null).getUser().getId()).orElse(null).getName();
             fileDataRepository.deleteByName(fileDataPath);
             FileData uploadImage = storageService.uploadImageToFileSystemAvatarUser(image,user);
             fileDataRepository.save(uploadImage);

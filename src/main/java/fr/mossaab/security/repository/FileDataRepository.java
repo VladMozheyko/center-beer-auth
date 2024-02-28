@@ -11,8 +11,8 @@ import java.util.Optional;
 
 public interface FileDataRepository extends JpaRepository<FileData,Long> {
     Optional<FileData> findByName(String fileName);
-    @Query("SELECT f FROM FileData f WHERE f.user.id = :userId")
-    Optional<FileData> findByUserId(@Param("userId") Long userId);
+    /*@Query("SELECT f FROM FileData f WHERE f.user.id = :userId")
+    Optional<FileData> findByUserId(@Param("userId") Long userId);*/
     @Modifying
     @Transactional
     void deleteByName(String fileName);
