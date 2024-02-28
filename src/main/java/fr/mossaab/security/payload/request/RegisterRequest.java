@@ -27,7 +27,6 @@ public class RegisterRequest {
     //@StrongPassword
     private String password;
     //@NotNull
-    private Role role;
     private String workerRole;
     private String dateOfBirth;
     private String phoneNumber;

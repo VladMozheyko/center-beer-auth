@@ -1,5 +1,6 @@
 package fr.mossaab.security.service.impl;
 
+import fr.mossaab.security.enums.Role;
 import fr.mossaab.security.enums.TokenType;
 import fr.mossaab.security.enums.WorkerRole;
 import fr.mossaab.security.payload.request.AuthenticationRequest;
@@ -56,7 +57,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .lastname(request.getLastname())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole())
+                .role(Role.USER)
                 .dateOfBirth(format.parse(request.getDateOfBirth()))
                 .workerRoles(WorkerRole.valueOf(request.getWorkerRole()))
                 .phoneNumber(request.getPhoneNumber())
