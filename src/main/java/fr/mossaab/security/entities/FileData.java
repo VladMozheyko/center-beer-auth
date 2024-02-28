@@ -1,10 +1,7 @@
 package fr.mossaab.security.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -13,6 +10,8 @@ import org.hibernate.annotations.OnDeleteAction;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
 @Builder
 public class FileData {
 
