@@ -308,6 +308,7 @@ public class AuthenticationController {
             ResponseCookie jwtCookie = jwtService.generateJwtCookie(authenticationResponse.getAccessToken());
             ResponseCookie refreshTokenCookie = refreshTokenService.generateRefreshTokenCookie(authenticationResponse.getRefreshToken());
             response.put("accessToken", refreshTokenCookie.getValue().toString());
+            response.put("tokenType","Bearer");
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE,jwtCookie.toString())
                     .header(HttpHeaders.SET_COOKIE,refreshTokenCookie.toString())
