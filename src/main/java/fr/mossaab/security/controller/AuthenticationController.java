@@ -281,7 +281,6 @@ public class AuthenticationController {
         response.put("answer", "login success");
         errors.put("email", "");
         errors.put("password", "");
-        errors.put("activationCode", "");
         Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
 
         if (userOptional.isEmpty()) {
@@ -293,9 +292,6 @@ public class AuthenticationController {
             }
         }
         User user = userOptional.get();
-        if(user.getActivationCode() != null) {
-            errors.put("activationCode", "Пользователь не подтвержден");
-        }
         int count = 0;
         for (Map.Entry<String, String> entry : errors.entrySet()) {
             String key = entry.getKey();
@@ -305,11 +301,13 @@ public class AuthenticationController {
                 count++;
             }
         }
-        if (count == 3) {
+        if (count == 2) {
+
             response.put("errors", errors);
             AuthenticationResponse authenticationResponse = authenticationService.authenticate(request);
             ResponseCookie jwtCookie = jwtService.generateJwtCookie(authenticationResponse.getAccessToken());
             ResponseCookie refreshTokenCookie = refreshTokenService.generateRefreshTokenCookie(authenticationResponse.getRefreshToken());
+            response.put("accessToken", refreshTokenCookie.getValue().toString());
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE,jwtCookie.toString())
                     .header(HttpHeaders.SET_COOKIE,refreshTokenCookie.toString())
