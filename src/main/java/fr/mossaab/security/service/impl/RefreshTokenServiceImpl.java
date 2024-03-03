@@ -88,8 +88,8 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         return ResponseCookie.from(refreshTokenName, token)
                 .path("/")
                 .maxAge(refreshExpiration/1000) // 15 days in seconds
-                .httpOnly(true)
-                .secure(true)
+                .httpOnly(false)
+                .secure(false)
                 .sameSite("Strict")
                 .build();
     }
