@@ -52,8 +52,9 @@ public class BoilerCreateService {
     private AdvantageRepository advantageRepository;
     @Autowired
     private AcceptableValueRepository acceptableValueRepository;
-    @Autowired
+    /*@Autowired
     private JdbcTemplate jdbcTemplate;
+    */
 
     /*public void resetAutoIncrement() {
         typeRepository.deleteAll();
@@ -86,7 +87,6 @@ public class BoilerCreateService {
 
     public void CreateBoilers() {
         if (CheckRepos()) {
-
             // Типы котлов
             //------------------------------------------------------------------------------------------------------
             Type t1 = new Type("TOIVO", "Котлы настенные газовые", "image_toivo.png");
@@ -401,8 +401,12 @@ public class BoilerCreateService {
             Characteristic c78 = new Characteristic(
                     "Номинальная частота",
                     u23);
+            Characteristic c79 = new Characteristic(
+                    "Располо- жение патрубков",
+                    u19);
             // TODO ждем ответа по пункту Время нагрева * (∆45°C) документа Passport_FRM_A5+3mm_new.pdf
 
+            c79.setSeries(List.of(s10));
             c1.setSeries(List.of(s1));
             c2.setSeries(List.of(s1, s2, s3));
             c3.setSeries(List.of(s1, s2, s3, s4, s5, s7));
@@ -539,9 +543,9 @@ public class BoilerCreateService {
             Boiler b15 = new Boiler("24D", s8);
             Boiler b16 = new Boiler("QM4", s9);
             Boiler b17 = new Boiler("QM24", s9);
+
             Boiler b18 = new Boiler("KMU10I", s10);
             Boiler b19 = new Boiler("KMU15I", s10);
-
             Boiler b20 = new Boiler("VRM30", s11);
             Boiler b21 = new Boiler("VRM100", s11);
             Boiler b22 = new Boiler("VRM30D", s12);
@@ -1079,10 +1083,6 @@ public class BoilerCreateService {
                     v121, v122, v123, v124, v125, v126, v127, v128));
 
             // Допустимые значения b7-b8
-                 /*
-                Boiler b7 = new Boiler("S10", s4);
-                Boiler b8 = new Boiler("S12", s4);
-                 * */
             //------------------------------------------------------------------------------------------------------
 
             Value v129 = new Value(c20, 20.0);
@@ -1180,10 +1180,6 @@ public class BoilerCreateService {
                     v141, v142, v143, v144, v145, v146, v147, v148, v149, v150, v151, v152, v153, v154, v155, v156, v157, v158));
 
             // Допустимые значения b9-b10
-                 /*
-                Boiler b9 = new Boiler("S10EM", s5);
-                Boiler b10 = new Boiler("S12EM", s5);
-                 * */
             //------------------------------------------------------------------------------------------------------
 
             Value v159 = new Value(c20, 24.0);
@@ -1280,10 +1276,6 @@ public class BoilerCreateService {
                     v179, v180, v181, v182, v183, v184, v185, v186, v187, v188));
 
             // Допустимые значения b11-b12
-                 /*
-                Boiler b11 = new Boiler("S13ST", s6);
-                Boiler b12 = new Boiler("S16ST", s6);
-                 * */
             //------------------------------------------------------------------------------------------------------
             Value v189 = new Value(c31, "открытая");
             v189.setBoilers(List.of(b11));
@@ -1390,6 +1382,133 @@ public class BoilerCreateService {
             acceptableValueService.addAll(List.of(v189, v190, v191, v192, v193, v194, v195, v196, v197, v198, v199,
                     v200, v201, v202, v203, v204, v205, v206, v207, v208, v209, v210, v211, v212, v213, v214, v215,
                     v216, v217, v218, v219, v220, v221, v222));
+
+            // Допустимые значения b28-b29
+            //----------------------------------------------------------------------------------------------------------
+            Value v223 = new Value(c64, 200.0);
+            v223.setBoilers(List.of(b28));
+            Value v224 = new Value(c64, 300.0);
+            v224.setBoilers(List.of(b29));
+
+            Value v225 = new Value(c19, 510.0, 1645.0);
+            v225.setBoilers(List.of(b28));
+            Value v226 = new Value(c19, 510.0, 1722.0);
+            v226.setBoilers(List.of(b29));
+
+            Value v227 = new Value(c65, 58.5, 66.2);
+            v227.setBoilers(List.of(b28));
+            Value v228 = new Value(c65, 81.5, 90.5);
+            v228.setBoilers(List.of(b29));
+
+            Value v229 = new Value(c70, 280.0);
+            v229.setBoilers(List.of(b28));
+            Value v230 = new Value(c70, 420.0);
+            v230.setBoilers(List.of(b29));
+
+            Value v233 = new Value(c68, 3.0);
+            v233.setBoilers(List.of(b28, b29));
+
+            // Допустимые значения b20-b29
+            //----------------------------------------------------------------------------------------------------------
+            Value v234 = new Value(c69, "IPX4");
+            v234.setBoilers(List.of(b20, b21, b22, b23, b24, b25, b26, b27, b28, b29));
+
+            Value v232 = new Value(c67, "220V-240V, 50HZ");
+            v232.setBoilers(List.of(b18, b19, b20, b21, b22, b23, b24, b25, b26, b27, b28, b29));
+
+            Value v231 = new Value(c66, 0.8);
+            v231.setBoilers(List.of(b18, b19, b20, b21, b22, b23, b24, b25, b26, b27, b28, b29));
+
+            // Допустимые значения b24-b27
+            //----------------------------------------------------------------------------------------------------------
+            Value v235 = new Value(c68, 2.0);
+            v235.setBoilers(List.of(b24, b25, b26, b27));
+
+            Value v242 = new Value(c70, 47.0);
+            v242.setBoilers(List.of(b20, b22, b24, b26));
+            Value v243 = new Value(c70, 126.0);
+            v243.setBoilers(List.of(b25, b27));
+
+            Value v240 = new Value(c65, 17.2, 20.2);
+            v240.setBoilers(List.of(b24, b26));
+            Value v241 = new Value(c65, 30.2, 33.4);
+            v241.setBoilers(List.of(b25, b27));
+
+            Value v238 = new Value(c19, "Ш 458 В 635 Г 248");
+            v238.setBoilers(List.of(b24, b26));
+            Value v239 = new Value(c19, "Ш 563 В 940 Г 297");
+            v239.setBoilers(List.of(b25, b27));
+
+            Value v236 = new Value(c64, 30.0);
+            v236.setBoilers(List.of(b20, b22, b24, b26));
+            Value v237 = new Value(c64, 80.0);
+            v237.setBoilers(List.of(b25, b27));
+
+            // Допустимые значения b18-b24
+            //----------------------------------------------------------------------------------------------------------
+            Value v244 = new Value(c68, 1.5);
+            v244.setBoilers(List.of(b18, b19, b20, b21, b22, b23));
+
+            // Допустимые значения b22-b24
+            //----------------------------------------------------------------------------------------------------------
+            Value v249 = new Value(c70, 156.0);
+            v249.setBoilers(List.of(b21, b23));
+
+            Value v250 = new Value(c65, 13.0, 15.2);
+            v250.setBoilers(List.of(b22));
+            Value v251 = new Value(c65, 29.0, 33.2);
+            v251.setBoilers(List.of(b23));
+
+            Value v252 = new Value(c19, 390.0, 520.0);
+            v252.setBoilers(List.of(b28));
+            Value v253 = new Value(c19, 460.0, 940.0);
+            v253.setBoilers(List.of(b29));
+
+            Value v254 = new Value(c64, 100.0);
+            v254.setBoilers(List.of(b21, b23));
+
+            // Допустимые значения b20-b21
+            //----------------------------------------------------------------------------------------------------------
+            Value v255 = new Value(c65, 12.8, 15.1);
+            v255.setBoilers(List.of(b20));
+            Value v256 = new Value(c65, 26.8, 30.5);
+            v256.setBoilers(List.of(b21));
+
+            Value v257 = new Value(c19, 340.0, 624.0);
+            v257.setBoilers(List.of(b20));
+            Value v258 = new Value(c19, 410.0, 1106.0);
+            v258.setBoilers(List.of(b21));
+
+            // Допустимые значения b18-b19
+            //----------------------------------------------------------------------------------------------------------
+            Value v259 = new Value(c79, "Верхнее");
+            v259.setBoilers(List.of(b18, b19));
+
+            Value v260 = new Value(c70, 21.0);
+            v260.setBoilers(List.of(b18));
+            Value v261 = new Value(c70, 32.0);
+            v261.setBoilers(List.of(b19));
+
+            Value v262 = new Value(c65, 10.0, 10.5);
+            v262.setBoilers(List.of(b18));
+            Value v263 = new Value(c65, 11.0, 12.2);
+            v263.setBoilers(List.of(b19));
+
+            Value v264 = new Value(c19, 280.0, 360.0);
+            v264.setBoilers(List.of(b18));
+            Value v265 = new Value(c19, 280.0, 475.0);
+            v265.setBoilers(List.of(b19));
+
+            Value v266 = new Value(c64, 10.0);
+            v266.setBoilers(List.of(b18));
+            Value v267 = new Value(c64, 15.0);
+            v267.setBoilers(List.of(b19));
+
+            acceptableValueService.addAll(List.of(v223, v224, v225, v226, v227, v228, v229, v230, v231, v232, v233, v234,
+                    v235, v236, v237, v238, v239, v240, v241, v242, v243, v244, v249, v250, v251, v252, v253, v254, v255,
+                    v256, v257, v258, v259, v260, v261, v262, v263, v264, v265, v266
+            ));
+
         }
     }
 }

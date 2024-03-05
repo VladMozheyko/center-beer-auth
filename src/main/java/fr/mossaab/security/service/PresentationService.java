@@ -47,22 +47,24 @@ public class PresentationService {
 
     // Метод для вызова createPresentationWithFiles() с разными аргументами через цикл
     public void createMultiplePresentations() throws IOException {
-        // Создаем список объектов PresentationData с нужными аргументами
-        List<PresentationData> presentationsData = new ArrayList<>();
-        presentationsData.add(new PresentationData("Passport_VFHF_A5_new-", 12));
-        presentationsData.add(new PresentationData("Passport_FRM_A5+3mm_new-", 12));
-        presentationsData.add(new PresentationData("Passport_FRM_A5_new-", 12));
-        presentationsData.add(new PresentationData("Passport_VFE_A5_new-", 12));
-        presentationsData.add(new PresentationData("Passport_Electrokotel_A4_prt_2 (1)-", 40));
-        presentationsData.add(new PresentationData("Passport_KM_A5_new-", 12));
-        presentationsData.add(new PresentationData("10-24DK-", 55));
-        presentationsData.add(new PresentationData("Паспорт T10-24 OK-", 51));
-        presentationsData.add(new PresentationData("Паспорт колонка S10-12, S10-12EM-", 29));
-        presentationsData.add(new PresentationData("Паспорт колонка Suari Турбо 1-", 26));
-        presentationsData.add(new PresentationData("Passport_VRHR_A5_new-", 12));
-        // Цикл для вызова метода createPresentationWithFiles() с разными аргументами
-        for (PresentationData presentationData : presentationsData) {
-            createPresentationWithFiles(presentationData.getTitle(), presentationData.getFileCount());
+        if (presentationRepository.count() == 0) {
+            // Создаем список объектов PresentationData с нужными аргументами
+            List<PresentationData> presentationsData = new ArrayList<>();
+            presentationsData.add(new PresentationData("Passport_VFHF_A5_new-", 12));
+            presentationsData.add(new PresentationData("Passport_FRM_A5+3mm_new-", 12));
+            presentationsData.add(new PresentationData("Passport_FRM_A5_new-", 12));
+            presentationsData.add(new PresentationData("Passport_VFE_A5_new-", 12));
+            presentationsData.add(new PresentationData("Passport_Electrokotel_A4_prt_2 (1)-", 40));
+            presentationsData.add(new PresentationData("Passport_KM_A5_new-", 12));
+            presentationsData.add(new PresentationData("10-24DK-", 55));
+            presentationsData.add(new PresentationData("Паспорт T10-24 OK-", 51));
+            presentationsData.add(new PresentationData("Паспорт колонка S10-12, S10-12EM-", 29));
+            presentationsData.add(new PresentationData("Паспорт колонка Suari Турбо 1-", 26));
+            presentationsData.add(new PresentationData("Passport_VRHR_A5_new-", 12));
+            // Цикл для вызова метода createPresentationWithFiles() с разными аргументами
+            for (PresentationData presentationData : presentationsData) {
+                createPresentationWithFiles(presentationData.getTitle(), presentationData.getFileCount());
+            }
         }
     }
     private static class PresentationData {

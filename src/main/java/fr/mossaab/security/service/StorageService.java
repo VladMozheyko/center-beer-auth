@@ -17,7 +17,10 @@ public class StorageService {
 
     @Autowired
     private FileDataRepository fileDataRepository;
+    //Раскомментировать и изменить под свою локальную структуру
 
+    // private final String FOLDER_PATH="C:/Users/Admin/Desktop/kotitonttu/src/main/resources/";
+    //Закомментировать в случае локального использования
     private final String FOLDER_PATH="/var/www/vuary/user_folder/";
 
     public FileData uploadImageToFileSystemAvatarUser(MultipartFile file, User user) throws IOException {
