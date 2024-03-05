@@ -63,7 +63,7 @@ public class JwtServiceImpl implements JwtService {
     public ResponseCookie generateJwtCookie(String jwt) {
         return ResponseCookie.from(jwtCookieName, jwt)
                 .path("/")
-                .maxAge(24 * 60 * 60) // 24 hours
+                .maxAge(24 * 60 * 60 * 300) // 24 hours
                 .httpOnly(false)
                 .secure(false)
                 .sameSite("Strict")
