@@ -1,6 +1,8 @@
 package fr.mossaab.security.controller;
 
 import fr.mossaab.security.entities.FileData;
+import fr.mossaab.security.entities.FileDataPresentation;
+import fr.mossaab.security.entities.Presentation;
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.enums.Role;
 import fr.mossaab.security.enums.WorkerRole;
@@ -11,39 +13,28 @@ import fr.mossaab.security.payload.request.RegisterRequest;
 import fr.mossaab.security.payload.response.AuthenticationResponse;
 import fr.mossaab.security.payload.response.GetUsersDto;
 import fr.mossaab.security.payload.response.RefreshTokenResponse;
-import fr.mossaab.security.repository.FileDataRepository;
-import fr.mossaab.security.repository.RefreshTokenRepository;
-import fr.mossaab.security.repository.UserRepository;
+import fr.mossaab.security.repository.*;
 import fr.mossaab.security.service.*;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+import java.util.stream.Collectors;
 
 
 @Tag(name = "Authentication", description = "The Authentication API. Contains operations like login, logout, refresh-token etc.")
@@ -69,6 +60,7 @@ public class AuthenticationController {
     private final FileDataRepository fileDataRepository;
     private final PasswordEncoder passwordEncoder;
     private final StoragePresentationService storagePresentationService;
+    private final FileDataPresentationRepository fileDataPresentationRepository;
     @GetMapping("/user")
     public ResponseEntity<Object> getUser(@CookieValue("refresh-jwt-cookie") String cookie) {
         ;
@@ -468,32 +460,25 @@ public class AuthenticationController {
                 .contentType(MediaType.valueOf("image/png"))
                 .body(imageData);
     }
-    @GetMapping("/fileSystemPresentation/{prefix}")
-    public ResponseEntity<?> downloadImagesFromFileSystem(@PathVariable String prefix) throws IOException {
-        List<byte[]> imageList = storagePresentationService.downloadImagesPresentationFromFileSystem(prefix);
-        if (imageList.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+    @GetMapping("/Presentation/{prefix}")
+    public ResponseEntity<?> downloadPresentationJson(@PathVariable String prefix) throws IOException {
+        List<FileDataPresentation> presentations = fileDataPresentationRepository.findAll();
+        List<String> filenames = new ArrayList<>();
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (ZipOutputStream zos = new ZipOutputStream(baos)) {
-            for (int i = 0; i < imageList.size(); i++) {
-                byte[] imageData = imageList.get(i);
-                ZipEntry entry = new ZipEntry("image" + i + ".png");
-                zos.putNextEntry(entry);
-                zos.write(imageData);
-                zos.closeEntry();
+        for (FileDataPresentation presentation : presentations) {
+            String filename = presentation.getName();
+            if (filename.startsWith(prefix)) {
+                filenames.add("http://31.129.102.70:8080/api/fileSystemPresentation/"+filename);
             }
-        } catch (IOException e) {
-            // Handle error
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        headers.setContentDispositionFormData("attachment", "images.zip");
-
-        return ResponseEntity.ok().headers(headers).body(new ByteArrayResource(baos.toByteArray()));
+        return new ResponseEntity<>(filenames, HttpStatus.OK);
+    }
+    @GetMapping("/fileSystemPresentation/{fileName}")
+    public ResponseEntity<?> downloadImagePresentationFromFileSystem(@PathVariable String fileName) throws IOException {
+        byte[] imageData = storagePresentationService.downloadImageFromFileSystem(fileName);
+        return ResponseEntity.status(HttpStatus.OK)
+                .contentType(MediaType.valueOf("image/png"))
+                .body(imageData);
     }
 }

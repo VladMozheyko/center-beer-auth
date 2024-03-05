@@ -1,5 +1,6 @@
 package fr.mossaab.security.service;
 
+import fr.mossaab.security.entities.FileData;
 import fr.mossaab.security.entities.FileDataPresentation;
 import fr.mossaab.security.entities.Presentation;
 import fr.mossaab.security.repository.FileDataPresentationRepository;
@@ -11,12 +12,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class StoragePresentationService {
     //Раскомментировать и изменить под свою локальную структуру
 
-    /*private final String FOLDER_PATH = "C:/Users/Admin/Desktop/pre/";*/
+    //private final String FOLDER_PATH = "C:/Users/Admin/Desktop/pre/";
+
     //Закомментировать в случае локального использования
     private final String FOLDER_PATH="/var/www/vuary/";
     @Autowired
@@ -36,17 +39,10 @@ public class StoragePresentationService {
         return fileDataPresentation;
     }
 
-    public List<byte[]> downloadImagesPresentationFromFileSystem(String prefix) throws IOException {
-        List<FileDataPresentation> allFileDataPresentations = fileDataPresentationRepository.findAll();
-        List<byte[]> imagesList = new ArrayList<>();
-        for (FileDataPresentation fileDataPresentation : allFileDataPresentations) {
-            String fileName = fileDataPresentation.getName();
-            if (fileName.startsWith(prefix)) {
-                String filePath = fileDataPresentation.getFilePath();
-                byte[] imageBytes = Files.readAllBytes(new File(filePath).toPath());
-                imagesList.add(imageBytes);
-            }
-        }
-        return imagesList;
+    public byte[] downloadImageFromFileSystem(String fileName) throws IOException {
+        Optional<FileDataPresentation> fileData = fileDataPresentationRepository.findByName(fileName);
+        String filePath=fileData.get().getFilePath();
+        byte[] images = Files.readAllBytes(new File(filePath).toPath());
+        return images;
     }
 }
