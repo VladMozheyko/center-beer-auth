@@ -61,6 +61,8 @@ public class AuthenticationController {
     private final PasswordEncoder passwordEncoder;
     private final StoragePresentationService storagePresentationService;
     private final FileDataPresentationRepository fileDataPresentationRepository;
+    private final ImageForSeriesRepository imageForSeriesRepository;
+    private final StorageSeriesService storageSeriesService;
     @GetMapping("/user")
     public ResponseEntity<Object> getUser(@CookieValue("refresh-jwt-cookie") String cookie) {
         ;
@@ -476,6 +478,13 @@ public class AuthenticationController {
     }
     @GetMapping("/fileSystemPresentation/{fileName}")
     public ResponseEntity<?> downloadImagePresentationFromFileSystem(@PathVariable String fileName) throws IOException {
+        byte[] imageData = storagePresentationService.downloadImageFromFileSystem(fileName);
+        return ResponseEntity.status(HttpStatus.OK)
+                .contentType(MediaType.valueOf("image/png"))
+                .body(imageData);
+    }
+    @GetMapping("/fileSystemSeries/{fileName}")
+    public ResponseEntity<?> downloadImageSeriesFromFileSystem(@PathVariable String fileName) throws IOException {
         byte[] imageData = storagePresentationService.downloadImageFromFileSystem(fileName);
         return ResponseEntity.status(HttpStatus.OK)
                 .contentType(MediaType.valueOf("image/png"))
