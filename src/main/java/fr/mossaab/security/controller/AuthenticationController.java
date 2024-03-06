@@ -485,7 +485,7 @@ public class AuthenticationController {
     }
     @GetMapping("/fileSystemSeries/{fileName}")
     public ResponseEntity<?> downloadImageSeriesFromFileSystem(@PathVariable String fileName) throws IOException {
-        byte[] imageData = storagePresentationService.downloadImageFromFileSystem(fileName);
+        byte[] imageData = storageSeriesService.downloadImageFromFileSystem(fileName);
         return ResponseEntity.status(HttpStatus.OK)
                 .contentType(MediaType.valueOf("image/png"))
                 .body(imageData);
