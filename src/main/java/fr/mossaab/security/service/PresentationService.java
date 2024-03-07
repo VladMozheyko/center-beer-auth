@@ -58,9 +58,9 @@ public class PresentationService {
             presentationsData.add(new PresentationData("Passport_KM_A5_new-", 12));
             presentationsData.add(new PresentationData("10-24DK-", 55));
             presentationsData.add(new PresentationData("Паспорт_T10-24_OK-", 51));
-            presentationsData.add(new PresentationData("Паспорт_колонка_S10-12, S10-12EM-", 29));
+            presentationsData.add(new PresentationData("Паспорт_колонка_S10_12_S10_12EM-", 29));
             presentationsData.add(new PresentationData("Паспорт_колонка_Suari_Турбо_1-", 26));
-            presentationsData.add(new PresentationData("Паспорт_колонка_S10_12_S10_12EM-", 12));
+            presentationsData.add(new PresentationData("Passport_VRHR_A5_new-", 12));
             // Цикл для вызова метода createPresentationWithFiles() с разными аргументами
             for (PresentationData presentationData : presentationsData) {
                 createPresentationWithFiles(presentationData.getTitle(), presentationData.getFileCount());
