@@ -15,6 +15,7 @@ import fr.mossaab.security.payload.response.GetUsersDto;
 import fr.mossaab.security.payload.response.RefreshTokenResponse;
 import fr.mossaab.security.repository.*;
 import fr.mossaab.security.service.*;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -65,6 +66,20 @@ public class AuthenticationController {
     private final StorageSeriesService storageSeriesService;
     private final StorageTypeService storageTypeService;
     private final StorageAdvantageService storageAdvantageService;
+    private final PresentationRepository presentationRepository;
+    @Operation(summary = "Получение названий всех презентаций", description = "Этот эндпоинт позволяет получить названия всех презентаций в формате JSON.")
+    @GetMapping("/presentations")
+    public ResponseEntity<List<String>> getAllPresentationNames() {
+        List<Presentation> presentations = presentationRepository.findAll();
+        List<String> presentationNames = new ArrayList<>();
+
+        for (Presentation presentation : presentations) {
+            presentationNames.add(presentation.getTitle());
+        }
+
+        return ResponseEntity.ok().body(presentationNames);
+    }
+    @Operation(summary = "Получить данные пользователя", description = "Этот эндпоинт возвращает данные пользователя на основе предоставленного куки.")
     @GetMapping("/user")
     public ResponseEntity<Object> getUser(@CookieValue("refresh-jwt-cookie") String cookie) {
         ;
@@ -101,6 +116,8 @@ public class AuthenticationController {
         response.put("answer", answer);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+    @Operation(summary = "Получить всех пользователей", description = "Этот эндпоинт возвращает список всех пользователей с пагинацией.")
+
     @GetMapping("/allUsers")
     public ResponseEntity<Object> getAllUsers(@RequestParam(defaultValue = "0") int page,
                                               @RequestParam(defaultValue = "10") int size) {
@@ -144,6 +161,7 @@ public class AuthenticationController {
         response.put("first", page == 0);
         return ResponseEntity.ok(response);
     }
+    @Operation(summary = "Получить профиль", description = "Этот эндпоинт возвращает профиль пользователя на основе предоставленного куки.")
     @GetMapping("/profile")
     public ResponseEntity<Object> getProfile(@CookieValue("refresh-jwt-cookie") String cookie) {
         Map<String, Object> response = new HashMap<>();
@@ -177,7 +195,7 @@ public class AuthenticationController {
         Matcher matcher = VALID_PHONE_NUMBER_REGEX.matcher(phoneNumber);
         return matcher.matches();
     }
-
+    @Operation(summary = "Регистрация пользователя", description = "Этот эндпоинт позволяет пользователю зарегистрироваться.")
     @PostMapping(value = "/register", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<Object> register(@RequestPart RegisterRequest request,@RequestPart(required = false) MultipartFile image) throws IOException, ParseException {
         Map<String, Object> response = new HashMap<>();
@@ -256,7 +274,7 @@ public class AuthenticationController {
         response.put("errors", errors);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
+    @Operation(summary = "Вход пользователя", description = "Этот эндпоинт позволяет пользователю войти в систему.")
     @PostMapping("/login")
     /*@Operation(
             responses = {
@@ -320,6 +338,7 @@ public class AuthenticationController {
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+    @Operation(summary = "Редактирование профиля", description = "Этот эндпоинт позволяет пользователю изменить свой профиль.")
     @PostMapping("/editProfile")
     public ResponseEntity<Object> editProfile(@CookieValue("refresh-jwt-cookie") String cookie, @RequestPart EditProfileDto editProfileDto, @RequestPart MultipartFile image) throws ParseException, IOException {
         User user = refreshTokenRepository.findByToken(cookie).orElse(null).getUser();
@@ -386,6 +405,7 @@ public class AuthenticationController {
         response.put("errors", errors);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+    @Operation(summary = "Активация пользователя", description = "Этот эндпоинт позволяет активировать пользователя.")
     @PostMapping("/activate")
     public ResponseEntity<Object> activateUser(@RequestBody Map<String, String> requestBody) {
         Map<String, Object> response = new HashMap<>();
@@ -423,11 +443,12 @@ public class AuthenticationController {
         response.put("errors", errors);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+    @Operation(summary = "Обновление токена", description = "Этот эндпоинт позволяет обновить токен.")
     @PostMapping("/refresh-token")
     public ResponseEntity<RefreshTokenResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
         return ResponseEntity.ok(refreshTokenService.generateNewToken(request));
     }
-
+    @Operation(summary = "Обновление токена через куки", description = "Этот эндпоинт позволяет обновить токен с использованием куки.")
     @PostMapping("/refresh-token-cookie")
     public ResponseEntity<Void> refreshTokenCookie(HttpServletRequest request) {
         String refreshToken = refreshTokenService.getRefreshTokenFromCookies(request);
@@ -438,11 +459,13 @@ public class AuthenticationController {
                 .header(HttpHeaders.SET_COOKIE, NewJwtCookie.toString())
                 .build();
     }
+    @Operation(summary = "Получение аутентификации", description = "Этот эндпоинт позволяет получить аутентификацию.")
     @GetMapping("/info")
     public Authentication getAuthentication(@RequestBody AuthenticationRequest request){
         return     authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(),request.getPassword()));
     }
+    @Operation(summary = "Выход из системы", description = "Этот эндпоинт позволяет пользователю выйти из системы.")
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request){
         String refreshToken = refreshTokenService.getRefreshTokenFromCookies(request);
@@ -457,6 +480,7 @@ public class AuthenticationController {
                 .build();
 
     }
+    @Operation(summary = "Загрузка изображения аватарки пользователя из файловой системы", description = "Этот эндпоинт позволяет загрузить изображение аватарки пользователя из файловой системы.")
     @GetMapping("/fileSystem/{fileName}")
     public ResponseEntity<?> downloadImageFromFileSystem(@PathVariable String fileName) throws IOException {
         byte[] imageData = storageService.downloadImageFromFileSystem(fileName);
@@ -464,6 +488,7 @@ public class AuthenticationController {
                 .contentType(MediaType.valueOf("image/png"))
                 .body(imageData);
     }
+    @Operation(summary = "Загрузка презентации JSON - список ссылок на фото", description = "Этот эндпоинт позволяет загрузить презентацию JSON - список ссылок на фото.")
     @GetMapping("/Presentation/{prefix}")
     public ResponseEntity<?> downloadPresentationJson(@PathVariable String prefix) throws IOException {
         List<FileDataPresentation> presentations = fileDataPresentationRepository.findAll();
@@ -478,6 +503,7 @@ public class AuthenticationController {
 
         return new ResponseEntity<>(filenames, HttpStatus.OK);
     }
+    @Operation(summary = "Загрузка изображения из файловой системы для презентации", description = "Этот эндпоинт позволяет загрузить изображение из файловой системы для презентации.")
     @GetMapping("/fileSystemPresentation/{fileName}")
     public ResponseEntity<?> downloadImagePresentationFromFileSystem(@PathVariable String fileName) throws IOException {
         byte[] imageData = storagePresentationService.downloadImageFromFileSystem(fileName);
@@ -485,6 +511,7 @@ public class AuthenticationController {
                 .contentType(MediaType.valueOf("image/png"))
                 .body(imageData);
     }
+    @Operation(summary = "Загрузка изображения из файловой системы для типов", description = "Этот эндпоинт позволяет загрузить изображение из файловой системы для типов.")
     @GetMapping("/fileSystemTypes/{fileName}")
     public ResponseEntity<?> downloadImageTypesFromFileSystem(@PathVariable String fileName) throws IOException {
         byte[] imageData = storageTypeService.downloadImageFromFileSystem(fileName);
@@ -492,6 +519,7 @@ public class AuthenticationController {
                 .contentType(MediaType.valueOf("image/png"))
                 .body(imageData);
     }
+    @Operation(summary = "Загрузка изображения из файловой системы для преимуществ", description = "Этот эндпоинт позволяет загрузить изображение из файловой системы для преимуществ.")
     @GetMapping("/fileSystemAdvantages/{fileName}")
     public ResponseEntity<?> downloadImageAdvantagesFromFileSystem(@PathVariable String fileName) throws IOException {
         byte[] imageData = storageAdvantageService.downloadImageFromFileSystem(fileName);
@@ -499,7 +527,7 @@ public class AuthenticationController {
                 .contentType(MediaType.valueOf("image/png"))
                 .body(imageData);
     }
-
+    @Operation(summary = "Загрузка изображения из файловой системы для серии", description = "Этот эндпоинт позволяет загрузить изображение из файловой системы для серии.")
     @GetMapping("/fileSystemSeries/{fileName}")
     public ResponseEntity<?> downloadImageSeriesFromFileSystem(@PathVariable String fileName) throws IOException {
         byte[] imageData = storageSeriesService.downloadImageFromFileSystem(fileName);
