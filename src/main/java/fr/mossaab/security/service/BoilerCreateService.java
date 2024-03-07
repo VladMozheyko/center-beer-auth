@@ -146,23 +146,23 @@ public class BoilerCreateService {
 
             // Серии котлов
             //------------------------------------------------------------------------------------------------------
-            Series s1 = new Series(
+            Series s1 = new Series("T10O-T24O",
                     "Одноконтурные котелы, с закрытой камерой сгорания, без трехходового клапана, модели (T10O-T24O)", k1);
-            Series s2 = new Series(
+            Series s2 = new Series("T10OK-T24OK",
                     "Одноконтурные котелы, с закрытой камерой сгорания, с трёхходовым клапаном, модели (T10OK-T24OK)", k2);
-            Series s3 = new Series("Двухконтурные котелы, с закрытой камерой сгорания, модели (T10DK-T24DK)", k3);
-            Series s4 = new Series("Классические модели, с механической регулировкой, модели (S10-S12)", k4);
-            Series s5 = new Series("Классические модели, с электронной модуляцией пламени, модели (S10EM-S12EM)", k5);
-            Series s6 = new Series("Полутурбо, дымоход в комплекте, модели (S13ST-S16ST)", k6);
-            Series s7 = new Series("Турбо, дымоход в комплекте, модели (S12FT)", k7);
-            Series s8 = new Series("Стандарт, модели (LT4-24D)", k8);
-            Series s9 = new Series("Миникотельные, модели (QM4-24)", k9);
-            Series s10 = new Series("Малый литраж, модели (KMU10I KMU15I KMU30I)", k10);
-            Series s11 = new Series("Круглые эконом, модели (VRM30 VRM50 VRM80 VRM100)", k11);
-            Series s12 = new Series("Круглые комфорт, модели (VRM30D VRM50D VRM80D VRM100D)", k12);
-            Series s13 = new Series("Плоские комфорт, модели (VFM30D VFM50D VFM80D)", k13);
-            Series s14 = new Series("Плоские премиум, модели (VFE30WE VFE50WE VFE80WE)", k14);
-            Series s15 = new Series("Большой литраж, модели (FRM200 FRM300)", k15);
+            Series s3 = new Series("T10DK-T24DK","Двухконтурные котелы, с закрытой камерой сгорания, модели (T10DK-T24DK)", k3);
+            Series s4 = new Series("S10-S12","Классические модели, с механической регулировкой, модели (S10-S12)", k4);
+            Series s5 = new Series("S10EM-S12EM","Классические модели, с электронной модуляцией пламени, модели (S10EM-S12EM)", k5);
+            Series s6 = new Series("S13ST-S16ST","Полутурбо, дымоход в комплекте, модели (S13ST-S16ST)", k6);
+            Series s7 = new Series("S12FT","Турбо, дымоход в комплекте, модели (S12FT)", k7);
+            Series s8 = new Series("LT4-24D","Стандарт, модели (LT4-24D)", k8);
+            Series s9 = new Series("QM4-24","Миникотельные, модели (QM4-24)", k9);
+            Series s10 = new Series("KMU10I KMU15I KMU30I","Малый литраж, модели (KMU10I KMU15I KMU30I)", k10);
+            Series s11 = new Series("VRM30 VRM50 VRM80 VRM100","Круглые эконом, модели (VRM30 VRM50 VRM80 VRM100)", k11);
+            Series s12 = new Series("VRM30D VRM50D VRM80D VRM100D","Круглые комфорт, модели (VRM30D VRM50D VRM80D VRM100D)", k12);
+            Series s13 = new Series("VFM30D VFM50D VFM80D","Плоские комфорт, модели (VFM30D VFM50D VFM80D)", k13);
+            Series s14 = new Series("VFE30WE VFE50WE VFE80WE","Плоские премиум, модели (VFE30WE VFE50WE VFE80WE)", k14);
+            Series s15 = new Series("FRM200 FRM300","Большой литраж, модели (FRM200 FRM300)", k15);
 
             seriesService.addAll(List.of(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15));
 

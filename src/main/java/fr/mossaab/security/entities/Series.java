@@ -18,7 +18,7 @@ public class Series {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    private String title;
     private String description;
 
     @ManyToOne
@@ -41,12 +41,13 @@ public class Series {
     private List<Boiler> boilers = new ArrayList<>();
 
     public Series() {
-        this("null", new Kind());
+        this("null","null", new Kind());
     }
 
-    public Series(String description, Kind kind) {
+    public Series(String title,String description, Kind kind) {
         this.id = null;
         this.description = description;
         this.kind = kind;
+        this.title = title;
     }
 }

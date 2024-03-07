@@ -63,6 +63,8 @@ public class AuthenticationController {
     private final FileDataPresentationRepository fileDataPresentationRepository;
     private final ImageForSeriesRepository imageForSeriesRepository;
     private final StorageSeriesService storageSeriesService;
+    private final StorageTypeService storageTypeService;
+    private final StorageAdvantageService storageAdvantageService;
     @GetMapping("/user")
     public ResponseEntity<Object> getUser(@CookieValue("refresh-jwt-cookie") String cookie) {
         ;
@@ -483,6 +485,21 @@ public class AuthenticationController {
                 .contentType(MediaType.valueOf("image/png"))
                 .body(imageData);
     }
+    @GetMapping("/fileSystemTypes/{fileName}")
+    public ResponseEntity<?> downloadImageTypesFromFileSystem(@PathVariable String fileName) throws IOException {
+        byte[] imageData = storageTypeService.downloadImageFromFileSystem(fileName);
+        return ResponseEntity.status(HttpStatus.OK)
+                .contentType(MediaType.valueOf("image/png"))
+                .body(imageData);
+    }
+    @GetMapping("/fileSystemAdvantages/{fileName}")
+    public ResponseEntity<?> downloadImageAdvantagesFromFileSystem(@PathVariable String fileName) throws IOException {
+        byte[] imageData = storageAdvantageService.downloadImageFromFileSystem(fileName);
+        return ResponseEntity.status(HttpStatus.OK)
+                .contentType(MediaType.valueOf("image/png"))
+                .body(imageData);
+    }
+
     @GetMapping("/fileSystemSeries/{fileName}")
     public ResponseEntity<?> downloadImageSeriesFromFileSystem(@PathVariable String fileName) throws IOException {
         byte[] imageData = storageSeriesService.downloadImageFromFileSystem(fileName);

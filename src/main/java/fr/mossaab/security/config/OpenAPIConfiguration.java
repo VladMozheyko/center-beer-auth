@@ -21,8 +21,8 @@ import org.springframework.context.annotation.Configuration;
 @OpenAPIDefinition(
         info = @Info(
                 contact = @Contact(
-                        name = "Mossaab",
-                        email = "frifita1@gmail.com"
+                        name = "Alexandr",
+                        email = "kichmarev@list.ru"
                 ),
                 title = "Spring Security 6+ APP",
                 description = "Spring Boot 3+ Spring Security 6+ example",
@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Configuration;
         servers = {
                 @Server(
                         description = "Development",
-                        url = "http://localhost:8086"
+                        url = "http://31.129.102.70:8080"
 
                 )
         },
