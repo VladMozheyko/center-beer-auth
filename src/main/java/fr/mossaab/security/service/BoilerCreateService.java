@@ -176,7 +176,7 @@ public class BoilerCreateService {
             ImageForSeries i6 = new ImageForSeries("S13ST_01.jpg", "image/*", "/var/www/vuary/Series/S13ST_01.jpg", s6);
             ImageForSeries i7 = new ImageForSeries("S12FT_01.jpg", "image/*", "/var/www/vuary/Series/S12FT_01.jpg", s7);
             ImageForSeries i8 = new ImageForSeries("kotitonttu-57.jpg", "image/*", "/var/www/vuary/Series/kotitonttu-57.jpg", s8);
-            ImageForSeries i9 = new ImageForSeries("QM-4_06.jpg", "image/*", "/var/www/vuary/Series/QM-4_06.jpg", s9);
+            ImageForSeries i9 = new ImageForSeries("QM-4_06_2.jpg", "image/*", "/var/www/vuary/Series/QM-4_06_2.jpg", s9);
             ImageForSeries i10 = new ImageForSeries("KMU-10_1.jpg", "image/*", "/var/www/vuary/Series/KMU-10_1.jpg", s10);
             ImageForSeries i11 = new ImageForSeries("VRM-50_1.jpg", "image/*", "/var/www/vuary/Series/VRM-50_1.jpg", s11);
             ImageForSeries i12 = new ImageForSeries("VRM-50D_01.jpg", "image/*", "/var/www/vuary/Series/VRM-50D_01.jpg", s12);
