@@ -20,7 +20,7 @@ public class Value {
     private Long id;
 
     @ManyToOne
-    @JsonIgnore
+    //@JsonIgnore
     private Characteristic characteristic;
 
     private String sValue;
