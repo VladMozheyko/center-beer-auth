@@ -594,10 +594,10 @@ public class BoilerCreateService {
             Advantage ad30 = new Advantage("Жаропрочная эмаль", "Heat_resistant_enamel.png", CategoryOfAdvantage.COMFORT);
             Advantage ad31 = new Advantage("Высокая ремонтопригодность", "High_maintainability.png", CategoryOfAdvantage.COMFORT);
             Advantage ad32 = new Advantage("Защита от перегрева", "Double_overheat_protection.png", CategoryOfAdvantage.PROTECTION);
-            Advantage ad33 = new Advantage("Защита от избыточного давления", "Pressure_safety_valve_protects_against_excess_water", CategoryOfAdvantage.PROTECTION);
-            Advantage ad34 = new Advantage("Термостат – защита от перегрева, отключает подачу газа", "Thermostat_protection_against_overheating_disconne", CategoryOfAdvantage.PROTECTION);
+            Advantage ad33 = new Advantage("Защита от избыточного давления", "Pressure_safety_valve_protects_against_excess_water.png", CategoryOfAdvantage.PROTECTION);
+            //Advantage ad34 = new Advantage("Термостат – защита от перегрева, отключает подачу газа", "Thermostat_protection_against_overheating_disconne", CategoryOfAdvantage.PROTECTION);
             Advantage ad35 = new Advantage("Электрод ионизации – отключение подачи газа при отсутствии пламени на горелке", "Ionization_electrode_shutdown_gas_supply_when_there_is_no_flame_on_the_burner.png", CategoryOfAdvantage.PROTECTION);
-            Advantage ad36 = new Advantage("Датчик контроля тяги – защита при недостаточной или обратной тяге", "Traction_control_sensor_protection_in_case_of_insuffi", CategoryOfAdvantage.PROTECTION);
+            Advantage ad36 = new Advantage("Датчик контроля тяги – защита при недостаточной или обратной тяге", "Traction_control_sensor_protection_in_case_of_insuffi.png", CategoryOfAdvantage.PROTECTION);
             Advantage ad37 = new Advantage("Датчик протока – контроль напора воды", "Flow_switch.png", CategoryOfAdvantage.PROTECTION);
             Advantage ad38 = new Advantage("Обратный клапан – защита системы от замерзания", "Check_valve_protection_anti_freeze_systems.png", CategoryOfAdvantage.PROTECTION);
             Advantage ad39 = new Advantage("Защита от утечки тока", "Residual_current_device_included.png", CategoryOfAdvantage.PROTECTION);
@@ -652,7 +652,7 @@ public class BoilerCreateService {
             ad31.setSeries(List.of(s1, s2, s3, s4, s5, s6, s7));
             ad32.setSeries(List.of(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15));
             ad33.setSeries(List.of(s1, s2, s3, s4, s5, s6, s7));
-            ad34.setSeries(List.of(s4, s5, s6, s7));
+            //ad34.setSeries(List.of(s4, s5, s6, s7));
             ad35.setSeries(List.of(s4, s5, s6, s7));
             ad36.setSeries(List.of(s4, s5, s6, s7));
             ad37.setSeries(List.of(s5, s6, s7));
@@ -677,7 +677,7 @@ public class BoilerCreateService {
 
 
             advantageService.addAll(List.of(ad1, ad2, ad3, ad4, ad5, ad6, ad7, ad8, ad9, ad10, ad11, ad12, ad13, ad14, ad15,
-                    ad16, ad17, ad18, ad19, ad20, ad21, ad22, ad23, ad24, ad25, ad26, ad27, ad28, ad29, ad30, ad31, ad32, ad33, ad34, ad35,
+                    ad16, ad17, ad18, ad19, ad20, ad21, ad22, ad23, ad24, ad25, ad26, ad27, ad28, ad29, ad30, ad31, ad32, ad33, ad35,
                     ad36, ad37, ad38, ad39, ad40, ad41, ad42));
 
             // Допустимые значения b1-b2

@@ -115,7 +115,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .build();
     }
     @Override
-    public boolean activateUser(String code) {
+    public synchronized boolean activateUser(String code) {
         User userEntity = userRepository.findByActivationCode(code);
         if (userEntity == null) {
             throw new NullPointerException("Пользователь с таким кодом активации не найден ");
