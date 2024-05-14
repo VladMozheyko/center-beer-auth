@@ -42,7 +42,7 @@ spring.datasource.password=Eq13034513!
 spring.datasource.username=root
 spring.datasource.password=sasha
 ```
-3) Создать в консоли или через графический интерфейс посредством приложения "MySQL Workbench" новую путсую схему с названием "vuary" согласно строке :
+3) Создать в консоли или через графический интерфейс посредством приложения "MySQL Workbench" новую пустую схему с названием "vuary" согласно настройке :
    
 ```properties
 spring.datasource.url=jdbc:mysql://127.0.0.1:3306/vuary?serverTimezone=Europe/Moscow
