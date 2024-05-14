@@ -70,7 +70,7 @@ The application will be available at http://localhost:8086.
 
 ![register](register.PNG)
 
-For detailed documentation and testing of the APIs, access the Swagger UI by visiting:
+Для получения подробной документации и тестирования API перейдите в Swagger UI, пройдя по ссылке:
 ```
 http://localhost:8086/swagger-ui.html
 ```
