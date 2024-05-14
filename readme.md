@@ -28,6 +28,17 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
 Чтобы начать работу с этим проектом, вам нужно будет установить следующее на своем локальном компьютере:
 - JDK 17+
 - Maven 3+
+В файле application.properties поменять username и password MySQL c глобального на свой локальный:
+это
+```properties
+spring.datasource.username=kotitonttu
+spring.datasource.password=Eq13034513!
+```
+заменить например на это:
+```properties
+#spring.datasource.username=root
+#spring.datasource.password=sasha
+```
 ## Перезапуск удаленного сервера
 1. Открыть окошко с командой одновременно нажмите клавишу Windows и кнопку R
 2. Наберите в строке cmd, а затем зажмите комбинацию Ctrl+Shift+Enter
