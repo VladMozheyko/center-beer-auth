@@ -47,7 +47,7 @@ tail -f log.txt
 ctrl + c
 exit
 ```
-## Build and run the Project
+# Build and run the Project
 - Build the project: `mvn clean install`
 - Run the project: `mvn spring-boot:run`
 
