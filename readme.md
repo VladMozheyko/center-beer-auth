@@ -36,7 +36,6 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
 spring.datasource.username=kotitonttu
 spring.datasource.password=Eq13034513!
 ```
-заменить например на это:
 
 ```properties
 #Заменить например на это:
