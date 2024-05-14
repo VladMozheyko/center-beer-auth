@@ -31,21 +31,21 @@
 4. Потом попросит пароль, вводим: Qq13037613!
 5. Перезапускаем сервер:
 ```
-1) cd kotitonttu
-2) sh shutdown.sh
-3) tail -f log.txt
-4) ctrl + c
-5) cd ~
-6) rm -r kotitonttu
-7) git clone https://github.com/Kichmarevitmo/kotitonttu.git
-8) cd kotitonttu
-9) mvn wrapper:wrapper
-10) ./mvnw spring-boot:run
-11) ctrl + c
-12) sh startup.sh
-13) tail -f log.txt
-14) ctrl + c
-15) exit
+cd kotitonttu
+sh shutdown.sh
+tail -f log.txt
+ctrl + c
+cd ~
+rm -r kotitonttu
+git clone https://github.com/Kichmarevitmo/kotitonttu.git
+cd kotitonttu
+mvn wrapper:wrapper
+./mvnw spring-boot:run
+ctrl + c
+sh startup.sh
+tail -f log.txt
+ctrl + c
+exit
 ```
 ## Build and run the Project
 - Build the project: `mvn clean install`
