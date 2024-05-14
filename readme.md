@@ -56,6 +56,8 @@ spring.datasource.url=jdbc:mysql://127.0.0.1:3306/vuary?serverTimezone=Europe/Mo
 ```
 ![mysqlcreateschema](mysqlcreateschema.png)
 
+4) Запустить сервер через уже настроенную конфигурацию "SecurityApplication"
+
 ## Перезапуск удаленного сервера
 1. Открыть окошко с командой одновременно нажмите клавишу Windows и кнопку R
 2. Наберите в строке cmd, а затем зажмите комбинацию Ctrl+Shift+Enter
