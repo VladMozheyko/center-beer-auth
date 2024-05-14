@@ -4,25 +4,29 @@
 
 Этот репозиторий демонстрирует проект, который демонстрирует реализацию 
 JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6. 
-Проект включает в себя следующие функциональности:
+<details>
+  <summary>Проект включает в себя следующие функциональности:</summary>
 
-- Регистрация пользователя и вход в систему с аутентификацией по JWT
-- Токен обновления хранится в базе данных
-- Авторизация на основе ролей с разрешениями
-- Настроенная обработка отказа в доступе
-- Интеграция документации OpenAPI (Swagger)
+  - Регистрация пользователя и вход в систему с аутентификацией по JWT
+  - Токен обновления хранится в базе данных
+  - Авторизация на основе ролей с разрешениями
+  - Настроенная обработка отказа в доступе
+  - Интеграция документации OpenAPI (Swagger)
+</details>
 
-## Стек технологий
+<details>
+  <summary>Стек технологий</summary>
 
-- ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3-green) Spring Boot 3
-- ![Spring Security](https://img.shields.io/badge/Spring%20Security-blue) Spring Security
-- ![Spring Data JPA](https://img.shields.io/badge/Spring%20Data%20JPA-orange) Spring Data JPA
-- ![Пользовательская валидация Spring Boot](https://img.shields.io/badge/Custom%20Validation-yellow) Пользовательская валидация Spring Boot
-- ![JWT](https://img.shields.io/badge/JWT-red) JSON Web Tokens (JWT)
-- ![BCrypt](https://img.shields.io/badge/BCrypt-purple) BCrypt
-- ![Maven](https://img.shields.io/badge/Maven-blueviolet) Maven
-- ![OpenAPI](https://img.shields.io/badge/OpenAPI-lightgrey) OpenAPI (SpringDoc Impl)
-- ![Lombok](https://img.shields.io/badge/Lombok-darkblue) Lombok
+  - ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3-green) Spring Boot 3
+  - ![Spring Security](https://img.shields.io/badge/Spring%20Security-blue) Spring Security
+  - ![Spring Data JPA](https://img.shields.io/badge/Spring%20Data%20JPA-orange) Spring Data JPA
+  - ![Пользовательская валидация Spring Boot](https://img.shields.io/badge/Custom%20Validation-yellow) Пользовательская валидация Spring Boot
+  - ![JWT](https://img.shields.io/badge/JWT-red) JSON Web Tokens (JWT)
+  - ![BCrypt](https://img.shields.io/badge/BCrypt-purple) BCrypt
+  - ![Maven](https://img.shields.io/badge/Maven-blueviolet) Maven
+  - ![OpenAPI](https://img.shields.io/badge/OpenAPI-lightgrey) OpenAPI (SpringDoc Impl)
+  - ![Lombok](https://img.shields.io/badge/Lombok-darkblue) Lombok
+</details>
 
 ## Локальное начало работы
 1) Чтобы начать работу с этим проектом, вам нужно будет установить следующее на своем локальном компьютере:
