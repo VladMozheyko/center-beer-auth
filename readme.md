@@ -27,42 +27,36 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
   - ![OpenAPI](https://img.shields.io/badge/OpenAPI-lightgrey) OpenAPI (SpringDoc Impl)
   - ![Lombok](https://img.shields.io/badge/Lombok-darkblue) Lombok
 </details>
+
 <details>
- <summary>Локальное начало работы</summary>
-1) Чтобы начать работу с этим проектом, вам нужно будет установить следующее на своем локальном компьютере:
-- JDK 17+ (указано в файле pom.xml)
-```xml
-<properties>
-<java.version>17</java.version>
-</properties>
-```
-- IDE (желателньо IntelliJ IDEA)
-- SDK, которую я использую:
-![register](sdk.png)  
+  <summary>Локальное начало работы</summary>
+
+  1) Чтобы начать работу с этим проектом, вам нужно будет установить следующее на своем локальном компьютере:
+     - JDK 17+ (указано в файле pom.xml)
+     - IDE (желательно IntelliJ IDEA)
+     - SDK, которую я использую:
+       ![register](sdk.png)
   
-2) В файле application.properties поменять username и password MySQL c глобального на свой локальный:
-
-```properties
-#Это:
-spring.datasource.username=kotitonttu
-spring.datasource.password=Eq13034513!
-```
-
-```properties
-#Заменить например на это:
-spring.datasource.username=root
-spring.datasource.password=sasha
-```
-3) Создать в консоли или через графический интерфейс посредством приложения "MySQL Workbench" новую пустую схему с названием "vuary" согласно настройке :
-   
-```properties
-spring.datasource.url=jdbc:mysql://127.0.0.1:3306/vuary?serverTimezone=Europe/Moscow
-```
-![mysqlcreateschema](mysqlcreateschema.png)
-
-4) Запустить сервер через уже настроенную конфигурацию "SecurityApplication"
-   
+  2) В файле application.properties поменять username и password MySQL c глобального на свой локальный:
+     ```properties
+     #Это:
+     spring.datasource.username=kotitonttu
+     spring.datasource.password=Eq13034513!
+     ```
+     ```properties
+     #Заменить например на это:
+     spring.datasource.username=root
+     spring.datasource.password=sasha
+     ```
+  3) Создать в консоли или через графический интерфейс посредством приложения "MySQL Workbench" новую пустую схему с названием "vuary" согласно настройке:
+     ```properties
+     spring.datasource.url=jdbc:mysql://127.0.0.1:3306/vuary?serverTimezone=Europe/Moscow
+     ```
+     ![mysqlcreateschema](mysqlcreateschema.png)
+  
+  4) Запустить сервер через уже настроенную конфигурацию "SecurityApplication"
 </details>
+
 
 ## Перезапуск удаленного сервера
 1. Открыть окошко с командой одновременно нажмите клавишу Windows и кнопку R
