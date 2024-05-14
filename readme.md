@@ -1,4 +1,4 @@
-# Kotitonttu: серверная часть приложения для отопительных систем
+# Kotitonttu <img src="./logo.png" alt="Логотип" width="30" align="center">: серверная часть приложения для отопительных систем
 ![logo](logo.png)
 
 ## Реализация JWT с Spring Boot 3 и Spring Security 6
