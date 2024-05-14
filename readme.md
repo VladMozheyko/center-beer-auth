@@ -1,4 +1,5 @@
-# Реализация JWT с Spring Boot 3 и Spring Security 6
+# Kotitonttu: Серверная часть приложения для отопительных систем 
+## Реализация JWT с Spring Boot 3 и Spring Security 6
 
 Этот репозиторий демонстрирует проект, который демонстрирует реализацию 
 JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6. 
