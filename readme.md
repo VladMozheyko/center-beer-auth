@@ -42,7 +42,7 @@ ssh root@31.129.102.70
 ```bash
 Qq13037613!
 ```
-6. Перезапускаем сервер:
+5. Перезапускаем сервер:
 ```bash
 cd kotitonttu
 sh shutdown.sh
