@@ -25,11 +25,11 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
 - ![Lombok](https://img.shields.io/badge/Lombok-darkblue) Lombok
 
 ## Начало работы
-Чтобы начать работу с этим проектом, вам нужно будет установить следующее на своем локальном компьютере:
+1) Чтобы начать работу с этим проектом, вам нужно будет установить следующее на своем локальном компьютере:
 - JDK 17+
 - Maven 3+
   
-В файле application.properties поменять username и password MySQL c глобального на свой локальный:
+2) В файле application.properties поменять username и password MySQL c глобального на свой локальный:
 
 ```properties
 #Это:
@@ -41,6 +41,11 @@ spring.datasource.password=Eq13034513!
 #Заменить например на это:
 spring.datasource.username=root
 spring.datasource.password=sasha
+```
+3) Создать в консоли или через графический интерфейс посредством приложения "MySQL Workbench" новую путсую схему с названием "vuary" согласно строке :
+   
+```properties
+spring.datasource.url=jdbc:mysql://127.0.0.1:3306/vuary?serverTimezone=Europe/Moscow
 ```
 
 ## Перезапуск удаленного сервера
