@@ -2,6 +2,7 @@
 <p align="center">
   <img src="./logo.png" alt="Логотип">
 </p>
+
 ## Реализация JWT с Spring Boot 3 и Spring Security 6
 
 Этот репозиторий демонстрирует проект, который демонстрирует реализацию 
