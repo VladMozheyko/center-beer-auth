@@ -24,34 +24,28 @@
 Чтобы начать работу с этим проектом, вам нужно будет установить следующее на своем локальном компьютере:
 - JDK 17+
 - Maven 3+
-## Configure Spring Datasource, JPA, App properties
-1. Clone the repository
-2. Open src/main/resources/application.yml
+## Перезапуск удаленного сервера
+1. Открыть окошко с командой одновременно нажмите клавишу Windows и кнопку R
+2. Наберите в строке cmd, а затем зажмите комбинацию Ctrl+Shift+Enter
+3. Входим на сервер через команду: ssh root@31.129.102.70
+4. Потом попросит пароль, вводим: Qq13037613!
+5. Перезапускаем сервер:
 ```
-spring:
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/db_security
-    username: postgres
-    password: ${POSTGRES_PASSWORD}
-  jpa:
-    hibernate:
-      ddl-auto: create
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-    database: postgresql
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-server:
-  port: 8086
-application:
-  security:
-    jwt:
-      secret-key: 586B633834416E396D7436753879382F423F4428482B4C6250655367566B5970
-      expiration: 86400000 # a day
-      refresh-token:
-        expiration: 604800000 # 7 days
+1) cd kotitonttu
+2) sh shutdown.sh
+3) tail -f log.txt
+4) ctrl + c
+5) cd ~
+6) rm -r kotitonttu
+7) git clone https://github.com/Kichmarevitmo/kotitonttu.git
+8) cd kotitonttu
+9) mvn wrapper:wrapper
+10) ./mvnw spring-boot:run
+11) ctrl + c
+12) sh startup.sh
+13) tail -f log.txt
+14) ctrl + c
+15) exit
 ```
 ## Build and run the Project
 - Build the project: `mvn clean install`
