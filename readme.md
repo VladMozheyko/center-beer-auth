@@ -47,6 +47,7 @@ spring.datasource.password=sasha
 ```properties
 spring.datasource.url=jdbc:mysql://127.0.0.1:3306/vuary?serverTimezone=Europe/Moscow
 ```
+![mysqlcreateschema](mysqlcreateschema.png)
 
 ## Перезапуск удаленного сервера
 1. Открыть окошко с командой одновременно нажмите клавишу Windows и кнопку R
