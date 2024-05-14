@@ -63,7 +63,7 @@ exit
 
 The application will be available at http://localhost:8086.
 
-# Тестирование посредством Postman 
+# Локальное тестирование посредством Postman 
 ## User registration endpoint
 
 `POST http://localhost:8086/api/v1/auth/register`
