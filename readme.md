@@ -27,8 +27,8 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
   - ![OpenAPI](https://img.shields.io/badge/OpenAPI-lightgrey) OpenAPI (SpringDoc Impl)
   - ![Lombok](https://img.shields.io/badge/Lombok-darkblue) Lombok
 </details>
-
-## Локальное начало работы
+<details>
+ <summary>Локальное начало работы</summary>
 1) Чтобы начать работу с этим проектом, вам нужно будет установить следующее на своем локальном компьютере:
 - JDK 17+ (указано в файле pom.xml)
 ```xml
@@ -61,6 +61,8 @@ spring.datasource.url=jdbc:mysql://127.0.0.1:3306/vuary?serverTimezone=Europe/Mo
 ![mysqlcreateschema](mysqlcreateschema.png)
 
 4) Запустить сервер через уже настроенную конфигурацию "SecurityApplication"
+   
+</details>
 
 ## Перезапуск удаленного сервера
 1. Открыть окошко с командой одновременно нажмите клавишу Windows и кнопку R
