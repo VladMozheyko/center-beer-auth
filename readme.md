@@ -12,15 +12,15 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
 
 ## Стек технологий
 
-- Spring Boot 3
-- Spring Security
-- Spring Data JPA
-- Пользовательская валидация Spring Boot
-- JSON Web Tokens(JWT)
-- BCrypt
-- Maven
-- OpenAPI(SpringDoc Impl)
-- Lombok
+- ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3-green) Spring Boot 3
+- ![Spring Security](https://img.shields.io/badge/Spring%20Security-blue) Spring Security
+- ![Spring Data JPA](https://img.shields.io/badge/Spring%20Data%20JPA-orange) Spring Data JPA
+- ![Пользовательская валидация Spring Boot](https://img.shields.io/badge/Custom%20Validation-yellow) Пользовательская валидация Spring Boot
+- ![JWT](https://img.shields.io/badge/JWT-red) JSON Web Tokens (JWT)
+- ![BCrypt](https://img.shields.io/badge/BCrypt-purple) BCrypt
+- ![Maven](https://img.shields.io/badge/Maven-blueviolet) Maven
+- ![OpenAPI](https://img.shields.io/badge/OpenAPI-lightgrey) OpenAPI (SpringDoc Impl)
+- ![Lombok](https://img.shields.io/badge/Lombok-darkblue) Lombok
 
 ## Начало работы
 Чтобы начать работу с этим проектом, вам нужно будет установить следующее на своем локальном компьютере:
