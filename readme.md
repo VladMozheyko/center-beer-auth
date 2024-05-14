@@ -24,7 +24,7 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
 - ![OpenAPI](https://img.shields.io/badge/OpenAPI-lightgrey) OpenAPI (SpringDoc Impl)
 - ![Lombok](https://img.shields.io/badge/Lombok-darkblue) Lombok
 
-## Начало работы
+## Локальное начало работы
 1) Чтобы начать работу с этим проектом, вам нужно будет установить следующее на своем локальном компьютере:
 - JDK 17+
 - Maven 3+
