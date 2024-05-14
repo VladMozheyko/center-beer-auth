@@ -26,8 +26,15 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
 
 ## Локальное начало работы
 1) Чтобы начать работу с этим проектом, вам нужно будет установить следующее на своем локальном компьютере:
-- JDK 17+
-- Maven 3+
+- JDK 17+ (указано в файле pom.xml)
+```xml
+<properties>
+<java.version>17</java.version>
+</properties>
+```
+- IDE (желателньо IntelliJ IDEA)
+- SDK, которую я использую:
+![register](sdk.png)  
   
 2) В файле application.properties поменять username и password MySQL c глобального на свой локальный:
 
