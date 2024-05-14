@@ -57,36 +57,39 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
   4) Запустить сервер через уже настроенную конфигурацию "SecurityApplication"
 </details>
 
+<details>
+  <summary>Перезапуск удаленного сервера</summary>
 
-## Перезапуск удаленного сервера
-1. Открыть окошко с командой одновременно нажмите клавишу Windows и кнопку R
-2. Наберите в строке cmd, а затем зажмите комбинацию Ctrl+Shift+Enter
-3. Входим на сервер через команду:
-```bash
-ssh root@31.129.102.70
-```
-4. Потом попросит пароль, вводим:
-```bash
-Qq13037613!
-```
-5. Перезапускаем сервер:
-```bash
-cd kotitonttu
-sh shutdown.sh
-tail -f log.txt
-ctrl + c
-cd ~
-rm -r kotitonttu
-git clone https://github.com/Kichmarevitmo/kotitonttu.git
-cd kotitonttu
-mvn wrapper:wrapper
-./mvnw spring-boot:run
-ctrl + c
-sh startup.sh
-tail -f log.txt
-ctrl + c
-exit
-```
+  1. Открыть окошко с командой одновременно нажмите клавишу Windows и кнопку R
+  2. Наберите в строке cmd, а затем зажмите комбинацию Ctrl+Shift+Enter
+  3. Входим на сервер через команду:
+     ```bash
+     ssh root@31.129.102.70
+     ```
+  4. Потом попросит пароль, вводим:
+     ```bash
+     Qq13037613!
+     ```
+  5. Перезапускаем сервер:
+     ```bash
+     cd kotitonttu
+     sh shutdown.sh
+     tail -f log.txt
+     ctrl + c
+     cd ~
+     rm -r kotitonttu
+     git clone https://github.com/Kichmarevitmo/kotitonttu.git
+     cd kotitonttu
+     mvn wrapper:wrapper
+     ./mvnw spring-boot:run
+     ctrl + c
+     sh startup.sh
+     tail -f log.txt
+     ctrl + c
+     exit
+     ```
+</details>
+
 # Build and run the Project
 - Build the project: `mvn clean install`
 - Run the project: `mvn spring-boot:run`
