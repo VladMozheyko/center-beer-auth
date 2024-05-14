@@ -1,27 +1,27 @@
-# JWT Implementation with Spring Boot 3 and Spring Security 6
+# Реализация JWT с Spring Boot 3 и Spring Security 6
 
-This repository showcases a project that demonstrates the implementation of JSON Web Tokens (JWT) with Spring Boot 3 and Spring Security 6. The project includes the following functionalities:
+Этот репозиторий демонстрирует проект, который демонстрирует реализацию JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6. Проект включает в себя следующие функциональности:
 
-- User Registration and Login with JWT Authentication
-- Refresh Token stored in db
-- Role-Based Authorization with authorities
-- Customized Access Denied Handling
-- OpenAPI Documentation Integration (Swagger)
+- Регистрация пользователя и вход в систему с аутентификацией по JWT
+- Токен обновления хранится в базе данных
+- Авторизация на основе ролей с разрешениями
+- Настроенная обработка отказа в доступе
+- Интеграция документации OpenAPI (Swagger)
 
-# Technologies
+# Стек технологий
 
-- Spring Boot 3.1
+- Spring Boot 3
 - Spring Security
 - Spring Data JPA
-- Spring Boot custom Validation
+- Пользовательская валидация Spring Boot
 - JSON Web Tokens(JWT)
 - BCrypt
 - Maven
 - OpenAPI(SpringDoc Impl)
 - Lombok
 
-# Getting Started
-To get started with this project, you will need to have the following installed on your local machine:
+# Начало работы
+Чтобы начать работу с этим проектом, вам нужно будет установить следующее на своем локальном компьютере:
 - JDK 17+
 - Maven 3+
 ## Configure Spring Datasource, JPA, App properties
