@@ -30,17 +30,18 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
 - Maven 3+
   
 В файле application.properties поменять username и password MySQL c глобального на свой локальный:
-это
 
 ```properties
+#Это:
 spring.datasource.username=kotitonttu
 spring.datasource.password=Eq13034513!
 ```
 заменить например на это:
 
 ```properties
-#spring.datasource.username=root
-#spring.datasource.password=sasha
+#Заменить например на это:
+spring.datasource.username=root
+spring.datasource.password=sasha
 ```
 
 ## Перезапуск удаленного сервера
