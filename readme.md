@@ -90,12 +90,6 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
      ```
 </details>
 
-# Build and run the Project
-- Build the project: `mvn clean install`
-- Run the project: `mvn spring-boot:run`
-
-The application will be available at http://localhost:8086.
-
 # Локальное тестирование посредством Postman 
 ## Этот endpoint позволяет пользователю зарегистрироваться (не забыть почистить cookies) и изменить путь сохранения с глобального на локальный в классе StorageService.
 
@@ -126,7 +120,8 @@ The application will be available at http://localhost:8086.
 }
 ```
 
-Для получения подробной документации и тестирования API перейдите в Swagger UI, пройдя по ссылке:
+Для получения подробной документации локально и тестирования API перейдите в Swagger UI, пройдя по ссылке, предварительно изменив ip адресс удаленного сервера на localhost:
 ```
-http://localhost:8086/swagger-ui.html
+http://localhost:8080/swagger-ui.html
 ```
+![swagger](swagger.png)
