@@ -116,6 +116,15 @@ The application will be available at http://localhost:8086.
 "workerRole" : "SELLER"
 }
 ```
+## Этот эндпоинт позволяет активировать пользователя для того, чтобы можно было войти в систему.
+`POST http://localhost:8080/api/activate`
+## Пример тестирования:
+![api_activate](api_activate.png)
+```json
+{
+    "code": "1802"
+}
+```
 
 Для получения подробной документации и тестирования API перейдите в Swagger UI, пройдя по ссылке:
 ```
