@@ -97,7 +97,8 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
 The application will be available at http://localhost:8086.
 
 # Локальное тестирование посредством Postman 
-## Этот endpoint позволяет пользователю зарегистрироваться.
+## Этот endpoint позволяет пользователю зарегистрироваться (не забыть почистить cookies) и изменить путь сохранения с глобального на локальный в классе StorageService.
+
 
 `POST http://localhost:8080/api/register`
 
