@@ -101,8 +101,9 @@ The application will be available at http://localhost:8086.
 
 
 `POST http://localhost:8080/api/register`
-
+## Фрагмент класса:
 ![storage_service](storage_service.png)
+## Пример тестирования:
 ![api_register](api_register.png)
 
 Для получения подробной документации и тестирования API перейдите в Swagger UI, пройдя по ссылке:
