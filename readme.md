@@ -105,6 +105,17 @@ The application will be available at http://localhost:8086.
 ![storage_service](storage_service.png)
 ## Пример тестирования:
 ![api_register](api_register.png)
+```json
+{
+"firstname": "Sasha",
+"lastname": "Kichmarev",
+"email": "kichmarev@list.ru",
+"password": "Sasha123!",
+"phoneNumber":"+78005553555",
+"dateOfBirth" : "2000-01-01",
+"workerRole" : "SELLER"
+}
+```
 
 Для получения подробной документации и тестирования API перейдите в Swagger UI, пройдя по ссылке:
 ```
