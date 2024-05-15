@@ -4,18 +4,15 @@
 
 Этот репозиторий демонстрирует проект, который демонстрирует реализацию 
 JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6. 
-<details>
-  <summary>Функциональность проекта</summary>
+## Функциональность проекта
 
   - Регистрация пользователя и вход в систему с аутентификацией по JWT
   - Токен обновления хранится в базе данных
   - Авторизация на основе ролей с разрешениями
   - Настроенная обработка отказа в доступе
   - Интеграция документации OpenAPI (Swagger)
-</details>
-
-<details>
-  <summary>Стек технологий</summary>
+    
+## Стек технологий
 
   - ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3-green) Spring Boot 3
   - ![Spring Security](https://img.shields.io/badge/Spring%20Security-blue) Spring Security
@@ -26,10 +23,8 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
   - ![Maven](https://img.shields.io/badge/Maven-blueviolet) Maven
   - ![OpenAPI](https://img.shields.io/badge/OpenAPI-lightgrey) OpenAPI (SpringDoc Impl)
   - ![Lombok](https://img.shields.io/badge/Lombok-darkblue) Lombok
-</details>
 
-<details>
-  <summary>Локальное начало работы</summary>
+## Локальное начало работы
 
   1) Чтобы начать работу с этим проектом, вам нужно будет установить следующее на своем локальном компьютере:
      - JDK 17+ (указано в файле pom.xml)
@@ -55,10 +50,8 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
      ![mysqlcreateschema](mysqlcreateschema.png)
   
   4) Запустить сервер через уже настроенную конфигурацию "SecurityApplication"
-</details>
 
-<details>
-  <summary>Перезапуск удаленного сервера</summary>
+ ## Перезапуск удаленного сервера
 
   1. Открыть окошко с командой одновременно нажмите клавишу Windows и кнопку R
   2. Наберите в строке cmd, а затем зажмите комбинацию Ctrl+Shift+Enter
@@ -88,7 +81,6 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
      ctrl + c
      exit
      ```
-</details>
 
 # Локальное тестирование посредством Postman 
 ## Этот endpoint позволяет пользователю зарегистрироваться (не забыть почистить cookies) и изменить путь сохранения с глобального на локальный в классе StorageService.
