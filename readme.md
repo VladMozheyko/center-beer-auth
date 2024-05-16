@@ -102,7 +102,7 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
 "workerRole" : "SELLER"
 }
 ```
-## Этот эндпоинт позволяет активировать пользователя для того, чтобы можно было потом войти в систему.
+## Этот endpoint позволяет активировать пользователя для того, чтобы можно было потом войти в систему.
 `POST http://localhost:8080/api/activate`
 ## Пример тестирования:
 ![api_activate](api_activate.png)
@@ -111,7 +111,7 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
     "code": "1802"
 }
 ```
-## Этот эндпоинт позволяет пользователю войти в систему.
+## Этот endpoint позволяет пользователю войти в систему.
 `POST http://localhost:8080/api/login`
 ## Пример тестирования:
 ![api_login](api_login.png)
