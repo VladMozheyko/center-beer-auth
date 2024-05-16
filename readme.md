@@ -122,7 +122,7 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
 }
 ```
 
-## Этот эндпоинт позволяет обновить токен через json запрос.
+## Этот endpoint позволяет обновить токен через json запрос.
 `POST http://localhost:8080/api/refresh-token`
 ## Пример тестирования:
 ![api_refresh_token](api_refresh_token.png)
