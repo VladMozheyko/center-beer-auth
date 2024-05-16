@@ -122,6 +122,16 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
 }
 ```
 
+## Этот эндпоинт позволяет обновить токен через json запрос.
+`POST http://localhost:8080/api/refresh-token`
+## Пример тестирования:
+![api_refresh_token](api_refresh_token.png)
+```json
+{
+    "refreshToken": "NGJkZjMwYmEtMzlkOS00ODA2LWE3N2QtYWYxMWY1MzQ0MjRh"
+}
+```
+
 Для получения подробной документации локально и тестирования API перейдите в Swagger UI, пройдя по ссылке, предварительно изменив ip адресс удаленного сервера на localhost в классе OpenAPIConfiguration:
 ```
 http://localhost:8080/swagger-ui.html
