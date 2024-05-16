@@ -137,6 +137,10 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
 ## Пример тестирования:
 ![api_refresh_token_cookie](api_refresh_token_cookie.png)
 
+## Этот эндпоинт позволяет пользователю выйти из системы.
+`POST http://localhost:8080/api/logout`
+## Пример тестирования:
+![api_logout](api_logout.png)
 
 Для получения подробной документации локально и тестирования API перейдите в Swagger UI, пройдя по ссылке, предварительно изменив ip адресс удаленного сервера на localhost в классе OpenAPIConfiguration:
 ```
