@@ -132,6 +132,12 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
 }
 ```
 
+## Этот endpoint позволяет обновить токен с использованием куки.
+`POST http://localhost:8080/api/refresh-token-cookie`
+## Пример тестирования:
+![api_refresh_token_cookie](api_refresh_token_cookie.png)
+
+
 Для получения подробной документации локально и тестирования API перейдите в Swagger UI, пройдя по ссылке, предварительно изменив ip адресс удаленного сервера на localhost в классе OpenAPIConfiguration:
 ```
 http://localhost:8080/swagger-ui.html
