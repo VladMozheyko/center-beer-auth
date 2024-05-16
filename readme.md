@@ -147,7 +147,7 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
 ## Пример тестирования:
 ![api_profile](api_profile.png)
 
-## Этот эндпоинт возвращает данные пользователя на основе предоставленного куки.
+## Этот endpoint возвращает данные пользователя на основе предоставленного куки.
 `GET http://localhost:8080/api/user`
 ## Пример тестирования:
 ![api_user](api_user.png)
