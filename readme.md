@@ -142,6 +142,16 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
 ## Пример тестирования:
 ![api_logout](api_logout.png)
 
+## Этот endpoint возвращает профиль пользователя на основе предоставленного куки.
+`GET http://localhost:8080/api/profile`
+## Пример тестирования:
+![api_profile](api_profile.png)
+
+## Этот эндпоинт возвращает данные пользователя на основе предоставленного куки.
+`GET http://localhost:8080/api/user`
+## Пример тестирования:
+![api_user](api_user.png)
+
 Для получения подробной документации локально и тестирования API перейдите в Swagger UI, пройдя по ссылке, предварительно изменив ip адресс удаленного сервера на localhost в классе OpenAPIConfiguration:
 ```
 http://localhost:8080/swagger-ui.html
