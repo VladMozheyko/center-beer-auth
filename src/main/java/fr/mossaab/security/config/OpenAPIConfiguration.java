@@ -17,6 +17,9 @@ import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Конфигурационный класс OpenAPIConfiguration для настройки OpenAPI и Swagger.
+ */
 @Configuration
 @OpenAPIDefinition(
         info = @Info(
@@ -25,14 +28,13 @@ import org.springframework.context.annotation.Configuration;
                         email = "kichmarev@list.ru"
                 ),
                 title = "Spring Security 6+ APP",
-                description = "Spring Boot 3+ Spring Security 6+ example",
+                description = "Пример Spring Boot 3+ Spring Security 6+",
                 version = "0.0.1-SNAPSHOT"
         ),
         servers = {
                 @Server(
                         description = "Development",
                         url = "http://31.129.102.70:8080"
-
                 )
         },
         security = {
@@ -43,18 +45,25 @@ import org.springframework.context.annotation.Configuration;
 )
 @SecurityScheme(
         name = "bearerAuth",
-        description = "JWT auth description",
+        description = "Описание аутентификации JWT",
         scheme = "bearer",
         type = SecuritySchemeType.HTTP,
         bearerFormat = "JWT",
         in = SecuritySchemeIn.HEADER
 )
-
 public class OpenAPIConfiguration {
+
+        /**
+         * Создает OpenApiCustomizer для настройки схемы модели ErrorResponse.
+         *
+         * @return OpenApiCustomizer для настройки схемы модели ErrorResponse
+         */
         @Bean
         public OpenApiCustomizer schemaCustomizer() {
+                // Разрешение схемы модели ErrorResponse
                 ResolvedSchema resolvedSchema = ModelConverters.getInstance()
                         .resolveAsResolvedSchema(new AnnotatedType(ErrorResponse.class));
+                // Создание и настройка OpenApiCustomizer для установки схемы модели ErrorResponse
                 return openApi -> openApi
                         .schema(resolvedSchema.schema.getName(), resolvedSchema.schema);
         }

@@ -4,8 +4,17 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data @NoArgsConstructor @AllArgsConstructor
+/**
+ * Запрос на обновление токена.
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class RefreshTokenRequest {
+
+    /**
+     * Токен обновления.
+     */
     private String refreshToken;
 
 }

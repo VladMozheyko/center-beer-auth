@@ -16,68 +16,145 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Сущность пользователя, реализующая интерфейс UserDetails для интеграции с Spring Security.
+ */
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
 @Entity
 @Table(name = "_user")
-public class User implements UserDetails { // make our app User a spring security User
-/*
-    we have two options : implements the UserDetails interface or create a user class that extends User spring class which also
-    implements UserDetails
- */
+public class User implements UserDetails {
+
+    /**
+     * Уникальный идентификатор пользователя.
+     */
     @Id
     @GeneratedValue
     private Long id;
+
+    /**
+     * Имя пользователя.
+     */
     private String firstname;
+
+    /**
+     * Фамилия пользователя.
+     */
     private String lastname;
+
+    /**
+     * Электронная почта пользователя.
+     */
     private String email;
+
+    /**
+     * Пароль пользователя.
+     */
     private String password;
+
+    /**
+     * Код активации пользователя.
+     */
     private String activationCode;
+
+    /**
+     * Номер телефона пользователя.
+     */
     private String phoneNumber;
+
+    /**
+     * Данные файла, связанные с пользователем.
+     */
     @OneToOne(mappedBy = "user")
     @JoinColumn(name = "file_data_id", referencedColumnName = "id")
     private FileData fileData;
+
+    /**
+     * Роли работника.
+     */
     @Enumerated(EnumType.STRING)
     private WorkerRole workerRoles;
+
+    /**
+     * Дата рождения пользователя.
+     */
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Temporal(TemporalType.DATE)
     private Date dateOfBirth;
+
+    /**
+     * Роль пользователя.
+     */
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    // we should return a list of roles
+    /**
+     * Получение списка ролей пользователя.
+     *
+     * @return Список ролей пользователя.
+     */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return role.getAuthorities();
     }
 
+    /**
+     * Получение пароля пользователя.
+     *
+     * @return Пароль пользователя.
+     */
     @Override
     public String getPassword() {
         return password;
     }
 
+    /**
+     * Получение имени пользователя.
+     *
+     * @return Имя пользователя.
+     */
     @Override
     public String getUsername() {
         return email;
     }
 
+    /**
+     * Проверка на истечение срока действия учетной записи.
+     *
+     * @return Всегда возвращает true.
+     */
     @Override
     public boolean isAccountNonExpired() {
         return true;
     }
 
+    /**
+     * Проверка на блокировку учетной записи пользователя.
+     *
+     * @return Всегда возвращает true.
+     */
     @Override
     public boolean isAccountNonLocked() {
         return true;
     }
 
+    /**
+     * Проверка учетных данных пользователя на истечение срока действия.
+     *
+     * @return Всегда возвращает true.
+     */
     @Override
     public boolean isCredentialsNonExpired() {
         return true;
     }
 
+    /**
+     * Проверка, активен ли пользователь.
+     *
+     * @return Всегда возвращает true.
+     */
     @Override
     public boolean isEnabled() {
         return true;

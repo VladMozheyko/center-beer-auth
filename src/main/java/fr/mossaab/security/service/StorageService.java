@@ -1,4 +1,5 @@
 package fr.mossaab.security.service;
+
 import fr.mossaab.security.entities.FileData;
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.repository.FileDataRepository;
@@ -11,18 +12,29 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Optional;
 import java.util.UUID;
+
+/**
+ * Сервис для работы с хранилищем файлов.
+ */
 @Service
 public class StorageService {
 
-
     @Autowired
     private FileDataRepository fileDataRepository;
-    //Раскомментировать и изменить под свою локальную структуру
 
+    // Раскомментируйте и измените под свою локальную структуру
     // private final String FOLDER_PATH="C:/Users/Admin/Desktop/kotitonttu/src/main/resources/";
-    //Закомментировать в случае локального использования
+    // Закомментируйте в случае локального использования
     private final String FOLDER_PATH="/var/www/vuary/user_folder/";
 
+    /**
+     * Загружает изображение пользователя в файловую систему.
+     *
+     * @param file Загружаемый файл
+     * @param user Пользователь, которому принадлежит изображение
+     * @return Данные о загруженном файле
+     * @throws IOException Если происходит ошибка ввода-вывода при загрузке файла
+     */
     public FileData uploadImageToFileSystemAvatarUser(MultipartFile file, User user) throws IOException {
         String fileName = UUID.randomUUID().toString();
 
@@ -38,6 +50,13 @@ public class StorageService {
 
         return fileData;
     }
+
+    /**
+     * Загружает изображение по умолчанию в файловую систему.
+     *
+     * @return Данные о загруженном файле
+     * @throws IOException Если происходит ошибка ввода-вывода при загрузке файла
+     */
     public FileData uploadImageToFileSystemDefaultAvatar() throws IOException {
         String fileName = "defaultAvatar.png";
 
@@ -50,13 +69,16 @@ public class StorageService {
         return fileData;
     }
 
+    /**
+     * Загружает изображение из файловой системы.
+     *
+     * @param fileName Имя файла для загрузки
+     * @return Байтовый массив изображения
+     * @throws IOException Если происходит ошибка ввода-вывода при чтении файла
+     */
     public byte[] downloadImageFromFileSystem(String fileName) throws IOException {
         Optional<FileData> fileData = fileDataRepository.findByName(fileName);
         String filePath=fileData.get().getFilePath();
-        byte[] images = Files.readAllBytes(new File(filePath).toPath());
-        return images;
+        return Files.readAllBytes(new File(filePath).toPath());
     }
-
-
-
 }

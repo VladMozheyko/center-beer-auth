@@ -26,8 +26,12 @@ import java.text.SimpleDateFormat;
 import java.util.Objects;
 import java.util.Random;
 
-
-@Service @Transactional
+/**
+ * Реализация интерфейса AuthenticationService.
+ * Обеспечивает аутентификацию пользователей и их регистрацию.
+ */
+@Service
+@Transactional
 @RequiredArgsConstructor
 public class AuthenticationServiceImpl implements AuthenticationService {
 
@@ -37,6 +41,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshTokenService;
     private final MailSender mailSender;
+
+    /**
+     * Генерирует активационный код для пользователя.
+     *
+     * @return Сгенерированный активационный код.
+     */
     private String generateActivationCode() {
         int length = 4;
         String digits = "0123456789";
@@ -49,6 +59,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         return code.toString();
     }
+
+    /**
+     * Регистрирует нового пользователя.
+     *
+     * @param request Запрос на регистрацию.
+     * @return Ответ с данными пользователя и токенами.
+     * @throws ParseException В случае ошибки парсинга даты.
+     */
     @Override
     public AuthenticationResponse register(RegisterRequest request) throws ParseException {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
@@ -89,14 +107,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .id(user.getId())
                 .refreshToken(refreshToken.getToken())
                 .roles(roles)
-                .tokenType( TokenType.BEARER.name())
+                .tokenType(TokenType.BEARER.name())
                 .build();
     }
 
+    /**
+     * Аутентифицирует пользователя.
+     *
+     * @param request Запрос на аутентификацию.
+     * @return Ответ с данными пользователя и токенами.
+     */
     @Override
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(),request.getPassword()));
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
 
         var user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new IllegalArgumentException("Invalid email or password."));
         var roles = user.getRole().getAuthorities()
@@ -111,9 +135,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .email(user.getEmail())
                 .id(user.getId())
                 .refreshToken(refreshToken.getToken())
-                .tokenType( TokenType.BEARER.name())
+                .tokenType(TokenType.BEARER.name())
                 .build();
     }
+
+    /**
+     * Активирует пользователя по активационному коду.
+     *
+     * @param code Активационный код пользователя.
+     * @return true, если пользователь успешно активирован, иначе false.
+     */
     @Override
     public synchronized boolean activateUser(String code) {
         User userEntity = userRepository.findByActivationCode(code);

@@ -22,51 +22,72 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
+/**
+ * Контроллер авторизации для работы с защищенными ресурсами.
+ */
 @RestController
 @RequestMapping("/api/v1")
 @PreAuthorize("hasAnyRole('ADMIN','USER')")
 @RequiredArgsConstructor
-@Tag(name = "Authorization", description = "The Authorization API. Contains a secure hello method")
+@Tag(name = "Authorization", description = "API авторизации. Содержит защищенный метод приветствия")
 public class AuthorizationController {
 
-
+    /**
+     * GET-метод для получения приветствия с ролью ADMIN и правами на чтение.
+     *
+     * @return Ответ с приветствием и статусом 200 OK.
+     */
     @GetMapping("/admin/resource")
     @PreAuthorize("hasAuthority('READ_PRIVILEGE') and hasRole('ADMIN')")
     @Operation(
-            description = "This endpoint require a valid JWT, ADMIN role with READ_PRIVILEGE",
-            summary = "Hello secured endpoint",
+            description = "Этот конечный пункт требует действительного JWT, роли ADMIN с READ_PRIVILEGE",
+            summary = "Защищенный конечный пункт приветствия",
             responses = {
                     @ApiResponse(
-                            description = "Success",
+                            description = "Успешно",
                             responseCode = "200"
                     ),
                     @ApiResponse(
-                            description = "Unauthorized / Invalid Token",
+                            description = "Несанкционированно / Неверный токен",
                             responseCode = "401"
                     )
             }
     )
     public ResponseEntity<String> sayHelloWithRoleAdminAndReadAuthority() {
-        return ResponseEntity.ok("Hello, you have access to a protected resource that requires admin role and read authority.");
+        return ResponseEntity.ok("Привет, у вас есть доступ к защищенному ресурсу, требующему роль администратора и права на чтение.");
     }
 
+    /**
+     * DELETE-метод для получения приветствия с ролью ADMIN и правами на удаление.
+     *
+     * @return Ответ с приветствием и статусом 200 OK.
+     */
     @DeleteMapping("/admin/resource")
     @PreAuthorize("hasAuthority('DELETE_PRIVILEGE') and hasRole('ADMIN')")
     public ResponseEntity<String> sayHelloWithRoleAdminAndDeleteAuthority() {
-        return ResponseEntity.ok("Hello, you have access to a protected resource that requires admin role and delete authority.");
+        return ResponseEntity.ok("Привет, у вас есть доступ к защищенному ресурсу, требующему роль администратора и права на удаление.");
     }
 
+    /**
+     * POST-метод для получения приветствия с ролью USER и правами на создание.
+     *
+     * @return Ответ с приветствием и статусом 200 OK.
+     */
     @PostMapping("/user/resource")
     @PreAuthorize("hasAuthority('WRITE_PRIVILEGE') and hasAnyRole('ADMIN','USER')")
     public ResponseEntity<String> sayHelloWithRoleUserAndCreateAuthority() {
-        return ResponseEntity.ok("Hello, you have access to a protected resource that requires user role and write authority.");
+        return ResponseEntity.ok("Привет, у вас есть доступ к защищенному ресурсу, требующему роль пользователя и права на создание.");
     }
 
+    /**
+     * PUT-метод для получения приветствия с ролью USER и правами на обновление.
+     *
+     * @return Ответ с приветствием и статусом 200 OK.
+     */
     @PutMapping("/user/resource")
     @PreAuthorize("hasAuthority('UPDATE_PRIVILEGE') and hasAnyRole('ADMIN','USER')")
     public ResponseEntity<String> sayHelloWithRoleUserAndUpdateAuthority() {
-        return ResponseEntity.ok("Hello, you have access to a protected resource that requires user role and update authority.");
+        return ResponseEntity.ok("Привет, у вас есть доступ к защищенному ресурсу, требующему роль пользователя и права на обновление.");
     }
 
 }

@@ -8,39 +8,49 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 import java.util.Properties;
 
+/**
+ * Конфигурационный класс MailConfig для настройки отправки почты.
+ */
 @Configuration
 public class MailConfig {
+
     @Value("${spring.mail.host}")
-    private String host;
+    private String host; // Хост SMTP-сервера
 
     @Value("${spring.mail.username}")
-    private String username;
+    private String username; // Имя пользователя для аутентификации на SMTP-сервере
 
     @Value("${spring.mail.password}")
-    private String password;
+    private String password; // Пароль для аутентификации на SMTP-сервере
 
     @Value("${spring.mail.port}")
-    private int port;
+    private int port; // Порт SMTP-сервера
 
     @Value("${spring.mail.protocol}")
-    private String protocol;
+    private String protocol; // Протокол (например, SMTP)
 
     @Value("${mail.debug}")
-    private String debug;
+    private String debug; // Флаг отладки для почтовых сообщений
 
+    /**
+     * Создает и настраивает JavaMailSender для отправки почты.
+     *
+     * @return JavaMailSender для отправки почты
+     */
     @Bean
     public JavaMailSender getMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
 
-        mailSender.setHost(host);
-        mailSender.setPort(port);
-        mailSender.setUsername(username);
-        mailSender.setPassword(password);
+        // Настройка свойств JavaMailSenderImpl
+        mailSender.setHost(host); // Установка хоста SMTP-сервера
+        mailSender.setPort(port); // Установка порта SMTP-сервера
+        mailSender.setUsername(username); // Установка имени пользователя для аутентификации
+        mailSender.setPassword(password); // Установка пароля для аутентификации
 
+        // Настройка дополнительных свойств JavaMail
         Properties properties = mailSender.getJavaMailProperties();
-
-        properties.setProperty("mail.transport.protocol", protocol);
-        properties.setProperty("mail.debug", debug);
+        properties.setProperty("mail.transport.protocol", protocol); // Установка протокола
+        properties.setProperty("mail.debug", debug); // Установка флага отладки
 
         return mailSender;
     }

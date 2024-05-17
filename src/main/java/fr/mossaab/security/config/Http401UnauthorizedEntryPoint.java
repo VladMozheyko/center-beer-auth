@@ -17,15 +17,35 @@ import java.io.IOException;
 import java.time.Instant;
 
 
-@Component @Slf4j
+/**
+ * Компонент для обработки случаев неавторизованного доступа (401 Unauthorized).
+ * Логирует ошибку и возвращает клиенту информацию об ошибке в формате JSON.
+ */
+@Component
+@Slf4j
 public class Http401UnauthorizedEntryPoint implements AuthenticationEntryPoint {
+
+    /**
+     * Обрабатывает неавторизованный доступ.
+     *
+     * @param request HTTP запрос.
+     * @param response HTTP ответ.
+     * @param authException Исключение, указывающее на проблему аутентификации.
+     * @throws IOException Если возникает ошибка ввода-вывода.
+     * @throws ServletException Если возникает ошибка сервлета.
+     */
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
             throws IOException, ServletException {
+        // Логируем ошибку неавторизованного доступа с сообщением исключения.
         log.error("Unauthorized error: {}", authException.getMessage());
+
+        // Устанавливаем тип контента ответа как JSON.
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        // Устанавливаем статус ответа как 401 Unauthorized.
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
+        // Создаем тело ответа с информацией об ошибке.
         ErrorResponse body = ErrorResponse.builder()
                 .status(HttpServletResponse.SC_UNAUTHORIZED)
                 .error("Unauthorized")
@@ -33,11 +53,14 @@ public class Http401UnauthorizedEntryPoint implements AuthenticationEntryPoint {
                 .message(authException.getMessage())
                 .path(request.getServletPath())
                 .build();
+
+        // Создаем объект ObjectMapper для сериализации Java объектов в JSON.
         final ObjectMapper mapper = new ObjectMapper();
-        // register the JavaTimeModule, which enables Jackson to support Java 8 and higher date and time types
+        // Регистрируем модуль JavaTimeModule, чтобы Jackson поддерживал типы даты и времени Java 8 и выше.
         mapper.registerModule(new JavaTimeModule());
-        // ask Jackson to serialize dates as strings in the ISO 8601 format
-        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS,false);
+        // Настраиваем Jackson на сериализацию дат как строк в формате ISO 8601.
+        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        // Записываем тело ответа в выходной поток ответа в формате JSON.
         mapper.writeValue(response.getOutputStream(), body);
     }
 }
