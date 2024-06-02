@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@Service
+/*@Service
 public class StoragePresentationService {
     //Раскомментировать и изменить под свою локальную структуру
 
@@ -45,4 +45,4 @@ public class StoragePresentationService {
         byte[] images = Files.readAllBytes(new File(filePath).toPath());
         return images;
     }
-}
+}*/

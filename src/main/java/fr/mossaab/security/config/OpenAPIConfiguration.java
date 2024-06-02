@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.annotations.servers.Server;
 import org.springdoc.core.customizers.OpenApiCustomizer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -31,12 +32,7 @@ import org.springframework.context.annotation.Configuration;
                 description = "Пример Spring Boot 3+ Spring Security 6+",
                 version = "0.0.1-SNAPSHOT"
         ),
-        servers = {
-                @Server(
-                        description = "Development",
-                        url = "http://31.129.102.70:8080"
-                )
-        },
+        servers = {},  // Placeholder, will be added dynamically
         security = {
                 @SecurityRequirement(
                         name = "bearerAuth"
@@ -52,6 +48,14 @@ import org.springframework.context.annotation.Configuration;
         in = SecuritySchemeIn.HEADER
 )
 public class OpenAPIConfiguration {
+
+        @Autowired
+        private PathConfig pathConfig;
+
+        @Bean
+        public OpenApiCustomizer openApiCustomizer() {
+                return openApi -> openApi.addServersItem(new io.swagger.v3.oas.models.servers.Server().url(pathConfig.getSwaggerUrlPath()));
+        }
 
         /**
          * Создает OpenApiCustomizer для настройки схемы модели ErrorResponse.

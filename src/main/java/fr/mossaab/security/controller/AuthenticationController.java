@@ -60,7 +60,7 @@ public class AuthenticationController {
     private final RefreshTokenRepository refreshTokenRepository;
     private final FileDataRepository fileDataRepository;
     private final PasswordEncoder passwordEncoder;
-    private final StoragePresentationService storagePresentationService;
+    //private final StoragePresentationService storagePresentationService;
     private final FileDataPresentationRepository fileDataPresentationRepository;
     private final ImageForSeriesRepository imageForSeriesRepository;
     private final StorageSeriesService storageSeriesService;
@@ -503,14 +503,14 @@ public class AuthenticationController {
 
         return new ResponseEntity<>(filenames, HttpStatus.OK);
     }
-    @Operation(summary = "Загрузка изображения из файловой системы для презентации", description = "Этот эндпоинт позволяет загрузить изображение из файловой системы для презентации.")
+    /*@Operation(summary = "Загрузка изображения из файловой системы для презентации", description = "Этот эндпоинт позволяет загрузить изображение из файловой системы для презентации.")
     @GetMapping("/fileSystemPresentation/{fileName}")
     public ResponseEntity<?> downloadImagePresentationFromFileSystem(@PathVariable String fileName) throws IOException {
         byte[] imageData = storagePresentationService.downloadImageFromFileSystem(fileName);
         return ResponseEntity.status(HttpStatus.OK)
                 .contentType(MediaType.valueOf("image/png"))
                 .body(imageData);
-    }
+    }*/
     @Operation(summary = "Загрузка изображения из файловой системы для типов", description = "Этот эндпоинт позволяет загрузить изображение из файловой системы для типов.")
     @GetMapping("/fileSystemTypes/{fileName}")
     public ResponseEntity<?> downloadImageTypesFromFileSystem(@PathVariable String fileName) throws IOException {

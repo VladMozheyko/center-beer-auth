@@ -1,5 +1,6 @@
 package fr.mossaab.security.service;
 
+import fr.mossaab.security.config.PathConfig;
 import fr.mossaab.security.entities.FileData;
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.repository.FileDataRepository;
@@ -22,11 +23,8 @@ public class StorageService {
     @Autowired
     private FileDataRepository fileDataRepository;
 
-    // Раскомментируйте и измените под свою локальную структуру
-    // private final String FOLDER_PATH="C:/Users/Admin/Desktop/kotitonttu/src/main/resources/";
-    // Закомментируйте в случае локального использования
-    private final String FOLDER_PATH="/var/www/vuary/user_folder/";
-
+    @Autowired
+    private PathConfig pathConfig;
     /**
      * Загружает изображение пользователя в файловую систему.
      *
@@ -38,7 +36,7 @@ public class StorageService {
     public FileData uploadImageToFileSystemAvatarUser(MultipartFile file, User user) throws IOException {
         String fileName = UUID.randomUUID().toString();
 
-        String filePath = FOLDER_PATH + fileName + ".png";
+        String filePath = pathConfig.getStorageServiceFolderPath() + fileName + ".png";
 
         FileData fileData=fileDataRepository.save(FileData.builder()
                 .name(fileName + ".png")
@@ -60,7 +58,7 @@ public class StorageService {
     public FileData uploadImageToFileSystemDefaultAvatar() throws IOException {
         String fileName = "defaultAvatar.png";
 
-        String filePath = FOLDER_PATH + fileName + ".png";
+        String filePath = pathConfig.getStorageServiceFolderPath() + fileName + ".png";
 
         FileData fileData=fileDataRepository.save(FileData.builder()
                 .name("defaultAvatar.png")

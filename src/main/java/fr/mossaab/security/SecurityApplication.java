@@ -16,8 +16,6 @@ import java.io.IOException;
 public class SecurityApplication {
     private boolean SchemaIsEmpty = false;
     @Autowired
-    private PresentationService presentationService;
-    @Autowired
     private BoilerCreateService boilerCreateService;
 
     public static void main(String[] args) {
@@ -26,13 +24,8 @@ public class SecurityApplication {
     }
     @PostConstruct
     public void createSamplePresentation() {
-        try {
-            boilerCreateService.CreateBoilers();
-            presentationService.createMultiplePresentations();
-            System.out.println("Пример презентации с файлами успешно создан.");
-        } catch (IOException e) {
-            System.err.println("Ошибка при создании примера презентации: " + e.getMessage());
-        }
+        boilerCreateService.CreateBoilers();
+        System.out.println("Пример презентации с файлами успешно создан.");
     }
 
 
