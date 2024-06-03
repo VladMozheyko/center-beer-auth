@@ -1,7 +1,7 @@
 package fr.mossaab.security.controller;
 
 import fr.mossaab.security.mapper.TypeListMapper;
-import fr.mossaab.security.service.TypeService;
+import fr.mossaab.security.service.api.TypeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

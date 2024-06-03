@@ -2,7 +2,7 @@ package fr.mossaab.security.service.impl;
 
 import fr.mossaab.security.entities.Attribute;
 import fr.mossaab.security.repository.AttributeRepository;
-import fr.mossaab.security.service.AttributeService;
+import fr.mossaab.security.service.api.AttributeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

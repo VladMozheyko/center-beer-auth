@@ -1,8 +1,7 @@
 package fr.mossaab.security.controller;
 
 import fr.mossaab.security.entities.FileData;
-import fr.mossaab.security.entities.FileDataPresentation;
-import fr.mossaab.security.entities.Presentation;
+
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.enums.Role;
 import fr.mossaab.security.enums.WorkerRole;
@@ -14,7 +13,13 @@ import fr.mossaab.security.payload.response.AuthenticationResponse;
 import fr.mossaab.security.payload.response.GetUsersDto;
 import fr.mossaab.security.payload.response.RefreshTokenResponse;
 import fr.mossaab.security.repository.*;
-import fr.mossaab.security.service.*;
+import fr.mossaab.security.service.api.AuthenticationService;
+import fr.mossaab.security.service.api.JwtService;
+import fr.mossaab.security.service.api.RefreshTokenService;
+import fr.mossaab.security.service.impl.StorageAdvantageService;
+import fr.mossaab.security.service.impl.StorageSeriesService;
+import fr.mossaab.security.service.impl.StorageService;
+import fr.mossaab.security.service.impl.StorageTypeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -35,7 +40,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 
 @Tag(name = "Authentication", description = "The Authentication API. Contains operations like login, logout, refresh-token etc.")
@@ -61,13 +65,11 @@ public class AuthenticationController {
     private final FileDataRepository fileDataRepository;
     private final PasswordEncoder passwordEncoder;
     //private final StoragePresentationService storagePresentationService;
-    private final FileDataPresentationRepository fileDataPresentationRepository;
     private final ImageForSeriesRepository imageForSeriesRepository;
     private final StorageSeriesService storageSeriesService;
     private final StorageTypeService storageTypeService;
     private final StorageAdvantageService storageAdvantageService;
-    private final PresentationRepository presentationRepository;
-    @Operation(summary = "Получение названий всех презентаций", description = "Этот эндпоинт позволяет получить названия всех презентаций в формате JSON.")
+   /* @Operation(summary = "Получение названий всех презентаций", description = "Этот эндпоинт позволяет получить названия всех презентаций в формате JSON.")
     @GetMapping("/presentations")
     public ResponseEntity<List<String>> getAllPresentationNames() {
         List<Presentation> presentations = presentationRepository.findAll();
@@ -78,7 +80,7 @@ public class AuthenticationController {
         }
 
         return ResponseEntity.ok().body(presentationNames);
-    }
+    }*/
     @Operation(summary = "Получить данные пользователя", description = "Этот эндпоинт возвращает данные пользователя на основе предоставленного куки.")
     @GetMapping("/user")
     public ResponseEntity<Object> getUser(@CookieValue("refresh-jwt-cookie") String cookie) {
@@ -488,7 +490,7 @@ public class AuthenticationController {
                 .contentType(MediaType.valueOf("image/png"))
                 .body(imageData);
     }
-    @Operation(summary = "Загрузка презентации JSON - список ссылок на фото", description = "Этот эндпоинт позволяет загрузить презентацию JSON - список ссылок на фото.")
+    /*@Operation(summary = "Загрузка презентации JSON - список ссылок на фото", description = "Этот эндпоинт позволяет загрузить презентацию JSON - список ссылок на фото.")
     @GetMapping("/Presentation/{prefix}")
     public ResponseEntity<?> downloadPresentationJson(@PathVariable String prefix) throws IOException {
         List<FileDataPresentation> presentations = fileDataPresentationRepository.findAll();
@@ -503,6 +505,7 @@ public class AuthenticationController {
 
         return new ResponseEntity<>(filenames, HttpStatus.OK);
     }
+    */
     /*@Operation(summary = "Загрузка изображения из файловой системы для презентации", description = "Этот эндпоинт позволяет загрузить изображение из файловой системы для презентации.")
     @GetMapping("/fileSystemPresentation/{fileName}")
     public ResponseEntity<?> downloadImagePresentationFromFileSystem(@PathVariable String fileName) throws IOException {

@@ -1,4 +1,4 @@
-package fr.mossaab.security.service;
+package fr.mossaab.security.service.impl;
 
 import org.springframework.stereotype.Service;
 

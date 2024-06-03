@@ -55,7 +55,7 @@ public class SecurityConfiguration {
                         .accessDeniedHandler(accessDeniedHandler)) // Настройка обработчика ошибок
                 .authorizeHttpRequests(request ->
                         request
-                                .requestMatchers(
+                                .requestMatchers("/passport/**",
                                         "/api/**",
                                         "/v2/api-docs",
                                         "/v3/api-docs",

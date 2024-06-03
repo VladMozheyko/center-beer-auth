@@ -1,10 +1,10 @@
-package fr.mossaab.security.service;
+package fr.mossaab.security.service.impl;
 
 import fr.mossaab.security.entities.*;
 import fr.mossaab.security.enums.CategoryOfAdvantage;
 import fr.mossaab.security.repository.*;
+import fr.mossaab.security.service.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

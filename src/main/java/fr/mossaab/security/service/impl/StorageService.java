@@ -1,4 +1,4 @@
-package fr.mossaab.security.service;
+package fr.mossaab.security.service.impl;
 
 import fr.mossaab.security.config.PathConfig;
 import fr.mossaab.security.entities.FileData;

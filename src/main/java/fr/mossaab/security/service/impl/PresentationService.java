@@ -1,17 +1,4 @@
-package fr.mossaab.security.service;
-
-import ch.qos.logback.core.joran.sanity.Pair;
-import fr.mossaab.security.entities.FileDataPresentation;
-import fr.mossaab.security.entities.Presentation;
-import fr.mossaab.security.repository.PresentationRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+package fr.mossaab.security.service.impl;
 
 /* @Service
 public class PresentationService {

@@ -2,7 +2,7 @@ package fr.mossaab.security.service.impl;
 
 import fr.mossaab.security.entities.Advantage;
 import fr.mossaab.security.repository.AdvantageRepository;
-import fr.mossaab.security.service.AdvantageService;
+import fr.mossaab.security.service.api.AdvantageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

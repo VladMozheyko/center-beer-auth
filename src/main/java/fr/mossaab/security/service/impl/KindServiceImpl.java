@@ -2,12 +2,10 @@ package fr.mossaab.security.service.impl;
 
 import fr.mossaab.security.entities.Kind;
 import fr.mossaab.security.repository.KindRepository;
-import fr.mossaab.security.service.KindService;
+import fr.mossaab.security.service.api.KindService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.swing.plaf.PanelUI;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service

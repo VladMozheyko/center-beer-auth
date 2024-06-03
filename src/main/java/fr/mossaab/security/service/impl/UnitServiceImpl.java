@@ -2,7 +2,7 @@ package fr.mossaab.security.service.impl;
 
 import fr.mossaab.security.entities.Unit;
 import fr.mossaab.security.repository.UnitRepository;
-import fr.mossaab.security.service.UnitService;
+import fr.mossaab.security.service.api.UnitService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

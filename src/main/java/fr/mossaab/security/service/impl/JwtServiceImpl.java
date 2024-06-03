@@ -1,6 +1,6 @@
 package fr.mossaab.security.service.impl;
 
-import fr.mossaab.security.service.JwtService;
+import fr.mossaab.security.service.api.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;

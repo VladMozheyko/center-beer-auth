@@ -8,8 +8,8 @@ import fr.mossaab.security.payload.request.RefreshTokenRequest;
 import fr.mossaab.security.payload.response.RefreshTokenResponse;
 import fr.mossaab.security.repository.RefreshTokenRepository;
 import fr.mossaab.security.repository.UserRepository;
-import fr.mossaab.security.service.JwtService;
-import fr.mossaab.security.service.RefreshTokenService;
+import fr.mossaab.security.service.api.JwtService;
+import fr.mossaab.security.service.api.RefreshTokenService;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,18 +1,4 @@
-package fr.mossaab.security.service;
-
-import fr.mossaab.security.entities.FileData;
-import fr.mossaab.security.entities.FileDataPresentation;
-import fr.mossaab.security.entities.Presentation;
-import fr.mossaab.security.repository.FileDataPresentationRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+package fr.mossaab.security.service.impl;
 
 /*@Service
 public class StoragePresentationService {

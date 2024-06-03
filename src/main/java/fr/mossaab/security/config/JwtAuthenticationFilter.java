@@ -1,6 +1,6 @@
 package fr.mossaab.security.config;
 
-import fr.mossaab.security.service.JwtService;
+import fr.mossaab.security.service.api.JwtService;
 import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

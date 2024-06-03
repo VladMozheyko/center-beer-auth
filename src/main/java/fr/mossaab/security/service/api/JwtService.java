@@ -1,4 +1,4 @@
-package fr.mossaab.security.service;
+package fr.mossaab.security.service.api;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseCookie;

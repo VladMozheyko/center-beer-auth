@@ -2,7 +2,7 @@ package fr.mossaab.security.service.impl;
 
 import fr.mossaab.security.entities.ImageForSeries;
 import fr.mossaab.security.repository.ImageForSeriesRepository;
-import fr.mossaab.security.service.ImageForSeriesService;
+import fr.mossaab.security.service.api.ImageForSeriesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

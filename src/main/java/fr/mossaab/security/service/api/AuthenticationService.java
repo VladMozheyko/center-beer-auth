@@ -1,4 +1,4 @@
-package fr.mossaab.security.service;
+package fr.mossaab.security.service.api;
 
 import fr.mossaab.security.payload.request.AuthenticationRequest;
 import fr.mossaab.security.payload.request.RegisterRequest;

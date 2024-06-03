@@ -3,7 +3,7 @@ package fr.mossaab.security.service.impl;
 
 import fr.mossaab.security.entities.Type;
 import fr.mossaab.security.repository.TypeRepository;
-import fr.mossaab.security.service.TypeService;
+import fr.mossaab.security.service.api.TypeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

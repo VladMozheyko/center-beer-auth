@@ -2,7 +2,7 @@ package fr.mossaab.security.service.impl;
 
 import fr.mossaab.security.entities.Boiler;
 import fr.mossaab.security.repository.BoilerRepository;
-import fr.mossaab.security.service.BoilerService;
+import fr.mossaab.security.service.api.BoilerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

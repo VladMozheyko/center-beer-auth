@@ -2,7 +2,7 @@ package fr.mossaab.security.service.impl;
 
 import fr.mossaab.security.entities.Value;
 import fr.mossaab.security.repository.AcceptableValueRepository;
-import fr.mossaab.security.service.AcceptableValueService;
+import fr.mossaab.security.service.api.AcceptableValueService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

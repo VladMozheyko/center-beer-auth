@@ -1,14 +1,12 @@
-package fr.mossaab.security.service;
+package fr.mossaab.security.service.impl;
 
 import fr.mossaab.security.config.PathConfig;
-import fr.mossaab.security.entities.FileData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Optional;
 
 @Service
 public class StorageTypeService {

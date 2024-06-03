@@ -2,7 +2,7 @@ package fr.mossaab.security.service.impl;
 
 import fr.mossaab.security.entities.Characteristic;
 import fr.mossaab.security.repository.CharacteristicRepository;
-import fr.mossaab.security.service.CharacteristicService;
+import fr.mossaab.security.service.api.CharacteristicService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
