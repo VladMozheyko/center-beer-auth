@@ -30,7 +30,7 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
      - JDK 17+ (указано в файле pom.xml)
      - IDE (желательно IntelliJ IDEA)
      - SDK, которую я использую:
-       ![register](sdk.png)
+       ![register](images_for_readme/sdk.png)
   
   2) В файле application.properties поменять username и password MySQL c глобального на свой локальный:
      ```properties
