@@ -47,7 +47,7 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
      ```properties
      spring.datasource.url=jdbc:mysql://127.0.0.1:3306/vuary?serverTimezone=Europe/Moscow
      ```
-     ![mysqlcreateschema](mysqlcreateschema.png)
+     ![mysqlcreateschema](images_for_readme/mysqlcreateschema.png)
   
   4) Запустить сервер через уже настроенную конфигурацию "SecurityApplication"
 
@@ -112,9 +112,9 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
 
 `POST http://localhost:8080/api/register`
 ## Фрагмент класса:
-![storage_service](storage_service.png)
+![storage_service](images_for_readme/storage_service.png)
 ## Пример тестирования:
-![api_register](api_register.png)
+![api_register](images_for_readme/api_register.png)
 ```json
 {
 "firstname": "Sasha",
@@ -129,7 +129,7 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
 ## Этот endpoint позволяет активировать пользователя для того, чтобы можно было потом войти в систему.
 `POST http://localhost:8080/api/activate`
 ## Пример тестирования:
-![api_activate](api_activate.png)
+![api_activate](images_for_readme/api_activate.png)
 ```json
 {
     "code": "1802"
@@ -138,7 +138,7 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
 ## Этот endpoint позволяет пользователю войти в систему.
 `POST http://localhost:8080/api/login`
 ## Пример тестирования:
-![api_login](api_login.png)
+![api_login](images_for_readme/api_login.png)
 ```json
 {
     "email": "kichmarev@list.ru",
@@ -149,7 +149,7 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
 ## Этот endpoint позволяет обновить токен через json запрос.
 `POST http://localhost:8080/api/refresh-token`
 ## Пример тестирования:
-![api_refresh_token](api_refresh_token.png)
+![api_refresh_token](images_for_readme/api_refresh_token.png)
 ```json
 {
     "refreshToken": "NGJkZjMwYmEtMzlkOS00ODA2LWE3N2QtYWYxMWY1MzQ0MjRh"
@@ -159,28 +159,28 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
 ## Этот endpoint позволяет обновить токен с использованием куки.
 `POST http://localhost:8080/api/refresh-token-cookie`
 ## Пример тестирования:
-![api_refresh_token_cookie](api_refresh_token_cookie.png)
+![api_refresh_token_cookie](images_for_readme/api_refresh_token_cookie.png)
 
 ## Этот endpoint позволяет пользователю выйти из системы.
 `POST http://localhost:8080/api/logout`
 ## Пример тестирования:
-![api_logout](api_logout.png)
+![api_logout](images_for_readme/api_logout.png)
 
 ## Этот endpoint возвращает профиль пользователя на основе предоставленного куки.
 `GET http://localhost:8080/api/profile`
 ## Пример тестирования:
-![api_profile](api_profile.png)
+![api_profile](images_for_readme/api_profile.png)
 
 ## Этот endpoint возвращает данные пользователя на основе предоставленного куки.
 `GET http://localhost:8080/api/user`
 ## Пример тестирования:
-![api_user](api_user.png)
+![api_user](images_for_readme/api_user.png)
 
 Для получения подробной документации локально и тестирования API перейдите в Swagger UI, пройдя по ссылке, предварительно изменив ip адресс удаленного сервера на localhost в классе OpenAPIConfiguration:
 ```
 http://localhost:8080/swagger-ui.html
 ```
-![swagger](swagger.png)
+![swagger](images_for_readme/swagger.png)
 
 ## Чтобы загрузить фотографии на сервер через графический интерфейс в ос Windows, вы можете использовать WinSCP. Вот пошаговое руководство:
 1. Установите WinSCP
@@ -199,4 +199,4 @@ http://localhost:8080/swagger-ui.html
 -  User name: ваше имя пользователя на сервере
 -  Password: ваш пароль на сервере
 -  Пример заполнения в нашем случае:
-![WinSCP](WinSCP.png)
+![WinSCP](images_for_readme/WinSCP.png)
