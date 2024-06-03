@@ -12,6 +12,4 @@ public class PathConfig {
     private String StorageTypeServiceFolderPath;
     @Value("${swagger.url.path}")
     private String swaggerUrlPath;
-    @Value("${storage.passport.service.path}")
-    private String StoragePassportServiceFolderPath;
 }
