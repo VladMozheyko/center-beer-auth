@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@AllArgsConstructor
+@NoArgsConstructor
 public class PassportService {
     @Autowired
     private PassportFileDataRepository passportFileDataRepository;
@@ -29,9 +31,6 @@ public class PassportService {
 
     @Autowired
     private PassportCategoryRepository passportCategoryRepository;
-
-    @Autowired
-    private PathConfig pathConfig;
 
     public PassportFileData uploadImage(PassportTitle passportTitle, String number) throws IOException {
         String str1 = "/var/www/vuary/Инструкции и коды ошибок/";
