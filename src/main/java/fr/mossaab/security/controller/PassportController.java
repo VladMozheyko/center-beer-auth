@@ -7,18 +7,17 @@ import fr.mossaab.security.repository.PassportCategoryRepository;
 import fr.mossaab.security.repository.PassportFileDataRepository;
 import fr.mossaab.security.repository.PassportTitleRepository;
 import fr.mossaab.security.service.impl.PassportService;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -35,7 +34,6 @@ public class PassportController {
     private final PassportFileDataRepository passportFileDataRepository;
     private final PassportService passportService;
     private static final Logger logger = LoggerFactory.getLogger(PassportController.class);
-
     @GetMapping("/categories")
     public List<CategoryWithTitlesDTO> getAllCategoriesWithTitlesAndFiles() {
         List<CategoryWithTitlesDTO> categoryWithTitlesList = new ArrayList<>();
@@ -58,19 +56,42 @@ public class PassportController {
         return categoryWithTitlesList;
     }
 
-    @GetMapping("/image/{fileName}")
-
-    public ResponseEntity<?> getImage(@PathVariable String fileName) throws IOException {
+    @GetMapping("/image")
+    public ResponseEntity<?> getImage(@RequestBody FileNameWrapper fileNameWrapper) throws IOException {
+        String fileName = fileNameWrapper.getFileName();
+        // Логгирование запроса
         logger.info("Received request to get image with fileName: {}", fileName);
+
         try {
+            // Получение данных изображения из сервиса
             byte[] imageData = passportService.downloadImageFromFileSystem(fileName);
+
+            // Логгирование успешного получения данных изображения
             logger.info("Successfully retrieved image data for fileName: {}", fileName);
+
+            // Возвращение ответа с данными изображения
             return ResponseEntity.status(HttpStatus.OK)
                     .contentType(MediaType.valueOf("image/png"))
                     .body(imageData);
         } catch (IOException e) {
+            // Логгирование ошибки при получении данных изображения
             logger.error("Error retrieving image data for fileName: {}", fileName, e);
             throw e;
+        }
+    }
+    @Setter
+    @Getter
+    // Класс-оболочка для имени файла
+    static class FileNameWrapper {
+        private String fileName;
+
+        // Геттер и сеттер для имени файла
+        public String getFileName() {
+            return fileName;
+        }
+
+        public void setFileName(String fileName) {
+            this.fileName = fileName;
         }
     }
     @Setter
