@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping(value = "/passport", produces = "application/json;charset=UTF-8", consumes = "application/json;charset=UTF-8")
+@RequestMapping("/passport")
 @RequiredArgsConstructor
 public class PassportController {
 
