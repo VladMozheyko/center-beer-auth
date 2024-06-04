@@ -10,6 +10,8 @@ import fr.mossaab.security.service.impl.PassportService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +34,7 @@ public class PassportController {
     private final PassportTitleRepository passportTitleRepository;
     private final PassportFileDataRepository passportFileDataRepository;
     private final PassportService passportService;
+    private static final Logger logger = LoggerFactory.getLogger(PassportController.class);
 
     @GetMapping("/categories")
     public List<CategoryWithTitlesDTO> getAllCategoriesWithTitlesAndFiles() {
@@ -57,10 +60,17 @@ public class PassportController {
 
     @GetMapping("/image/{fileName}")
     public ResponseEntity<?> getImage(@PathVariable String fileName) throws IOException {
-        byte[] imageData = passportService.downloadImageFromFileSystem(fileName);
-        return ResponseEntity.status(HttpStatus.OK)
-                .contentType(MediaType.valueOf("image/png"))
-                .body(imageData);
+        logger.info("Received request to get image with fileName: {}", fileName);
+        try {
+            byte[] imageData = passportService.downloadImageFromFileSystem(fileName);
+            logger.info("Successfully retrieved image data for fileName: {}", fileName);
+            return ResponseEntity.status(HttpStatus.OK)
+                    .contentType(MediaType.valueOf("image/png"))
+                    .body(imageData);
+        } catch (IOException e) {
+            logger.error("Error retrieving image data for fileName: {}", fileName, e);
+            throw e;
+        }
     }
     @Setter
     @Getter
