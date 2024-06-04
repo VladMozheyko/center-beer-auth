@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/passport")
+@RequestMapping(value = "/passport", produces = "application/json;charset=UTF-8", consumes = "application/json;charset=UTF-8")
 @RequiredArgsConstructor
 public class PassportController {
 
@@ -59,6 +59,7 @@ public class PassportController {
     }
 
     @GetMapping("/image/{fileName}")
+
     public ResponseEntity<?> getImage(@PathVariable String fileName) throws IOException {
         logger.info("Received request to get image with fileName: {}", fileName);
         try {
