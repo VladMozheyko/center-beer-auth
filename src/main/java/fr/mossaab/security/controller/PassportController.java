@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -57,7 +59,8 @@ public class PassportController {
 
     @GetMapping("/image/{fileName}")
     public ResponseEntity<?> getImage(@PathVariable String fileName) throws IOException {
-        byte[] imageData = passportService.downloadImageFromFileSystem(fileName);
+        String decodedFileName = URLDecoder.decode(fileName, StandardCharsets.UTF_8);
+        byte[] imageData = passportService.downloadImageFromFileSystem(decodedFileName);
         return ResponseEntity.status(HttpStatus.OK)
                 .contentType(MediaType.valueOf("image/png"))
                 .body(imageData);
