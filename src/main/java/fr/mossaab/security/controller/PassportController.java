@@ -7,13 +7,12 @@ import fr.mossaab.security.repository.PassportCategoryRepository;
 import fr.mossaab.security.repository.PassportFileDataRepository;
 import fr.mossaab.security.repository.PassportTitleRepository;
 import fr.mossaab.security.service.impl.PassportService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirements;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,7 +44,7 @@ public class PassportController {
             for (PassportTitle title : titles) {
                 List<PassportFileData> fileDataList = passportFileDataRepository.findByPassportTitle(title);
                 List<String> filePaths = fileDataList.stream()
-                        .map(fileData -> "http://31.129.102.70:8080/image/" + fileData.getName()) // Добавление хоста к каждому имени файла
+                        .map(fileData -> "http://31.129.102.70:8080/passport/image/" + fileData.getName()) // Добавление хоста к каждому имени файла
                         .collect(Collectors.toList()); // Собираем все имена файлов в список
 
                 titleWithFilesList.add(new PassportTitleWithFilesDTO(title.getTitle(), filePaths));
@@ -57,8 +56,11 @@ public class PassportController {
     }
 
     @GetMapping("/image/{fileName}")
-    public byte[] getImage(@PathVariable String fileName) throws IOException {
-        return passportService.downloadImageFromFileSystem(fileName);
+    public ResponseEntity<?> getImage(@PathVariable String fileName) throws IOException {
+        byte[] imageData = passportService.downloadImageFromFileSystem(fileName);
+        return ResponseEntity.status(HttpStatus.OK)
+                .contentType(MediaType.valueOf("image/png"))
+                .body(imageData);
     }
     @Setter
     @Getter

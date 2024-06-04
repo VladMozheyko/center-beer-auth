@@ -1,9 +1,11 @@
 package fr.mossaab.security.service.impl;
 
 import fr.mossaab.security.config.PathConfig;
+import fr.mossaab.security.entities.Error;
 import fr.mossaab.security.entities.PassportCategory;
 import fr.mossaab.security.entities.PassportFileData;
 import fr.mossaab.security.entities.PassportTitle;
+import fr.mossaab.security.repository.ErrorRepository;
 import fr.mossaab.security.repository.PassportCategoryRepository;
 import fr.mossaab.security.repository.PassportFileDataRepository;
 import fr.mossaab.security.repository.PassportTitleRepository;
@@ -31,6 +33,8 @@ public class PassportService {
 
     @Autowired
     private PassportCategoryRepository passportCategoryRepository;
+    @Autowired
+    private ErrorRepository errorRepository;
 
     public PassportFileData uploadImage(PassportTitle passportTitle, String number) throws IOException {
         String str1 = "/var/www/vuary/Инструкции и коды ошибок/";
@@ -55,16 +59,16 @@ public class PassportService {
 
     @Transactional
     public void createAndSavePassportData() throws IOException {
-        if (passportCategoryRepository.count() == 0 && passportTitleRepository.count() == 0 && passportFileDataRepository.count() == 0) {
+        if (passportCategoryRepository.count() == 0 && passportTitleRepository.count() == 0 && passportFileDataRepository.count() == 0 && errorRepository.count() == 0) {
             // Создание категорий
             PassportCategory category1 = new PassportCategory();
-            category1.setTitle("Электрические накопительные водонагреватели");
+            category1.setTitle("Salmi");
             PassportCategory category2 = new PassportCategory();
-            category2.setTitle("Электрические котлы");
+            category2.setTitle("Ainova");
             PassportCategory category3 = new PassportCategory();
-            category3.setTitle("Газовые котлы");
+            category3.setTitle("Toivo");
             PassportCategory category4 = new PassportCategory();
-            category4.setTitle("Газовые колонки");
+            category4.setTitle("Suari");
             passportCategoryRepository.saveAll(List.of(category1, category2, category3, category4));
 
             // Создание заголовков паспортов
@@ -161,6 +165,175 @@ public class PassportService {
             for (int i = 1; i <= 29; i++) {
                 uploadImage(title13, "-" + i);
             }
+
+            /*Error error1 = new Error();
+            error1.setCode("E0");
+            error1.setDescription("Автоматическое восстановление после\n" +
+                    "повышения температуры теплоносителя\n" +
+                    "на 1°С");
+            error1.setCause("Ошибка режима «АНТИЗАМОРОЗКА»");
+            error1.setCategory(category2);
+            errorRepository.save(error1);
+
+            Error error2 = new Error();
+            error2.setCode("E1");
+            error2.setDescription("Нажмите и удерживайте кнопку «Reset»\n" +
+                    "для удаления ошибки");
+            error2.setCause("Ошибка в электрической цепи котла");
+            error2.setCategory(category2);
+            errorRepository.save(error2);
+
+            Error error3 = new Error();
+            error3.setCode("E3");
+            error3.setDescription("Нажмите и удерживайте кнопку «Reset»\n" +
+                    "для удаления ошибки");
+            error3.setCause("Обрыв электрической цепи аварийного\n" +
+                    "датчика температуры");
+            error3.setCategory(category2);
+            errorRepository.save(error3);
+
+            Error error4 = new Error();
+            error4.setCode("E4");
+            error4.setDescription("Нажмите и удерживайте кнопку «Reset»\n" +
+                    "для удаления ошибки");
+            error4.setCause("Перегрев датчика температуры линии\n" +
+                    "подачи");
+            error4.setCategory(category2);
+            errorRepository.save(error4);
+
+            Error error5 = new Error();
+            error5.setCode("E7");
+            error5.setDescription("Автоматическое восстановление");
+            error5.setCause("Ошибка датчика температуры\n" +
+                    "теплоносителя");
+            error5.setCategory(category2);
+            errorRepository.save(error5);
+
+            Error error6 = new Error();
+            error6.setCode("EА");
+            error6.setDescription("Автоматическое восстановление");
+            error6.setCause("Ошибка датчика реле протока.\n" +
+                    "(фактический проток есть, но нет сигнала\n" +
+                    "от датчика)");
+            error6.setCategory(category2);
+            errorRepository.save(error6);
+
+            Error error7 = new Error();
+            error7.setCode("EР");
+            error7.setDescription("Автоматическое восстановление");
+            error7.setCause("Ошибка датчика реле протока\n" +
+                    "(отсутствие циркуляция теплоносителя)");
+            error7.setCategory(category2);
+            errorRepository.save(error7);
+
+            Error error8 = new Error();
+            error8.setCode("Е1");
+            error8.setDescription("Неполадки, связанные с\n" +
+                    "неудачным розжигом. Котел не\n" +
+                    "работает");
+            error8.setCause("Нет подачи газа или не открыт газовый кран;\n" +
+                    "Неисправны электроды розжига;\n" +
+                    "Неисправность газового\n" +
+                    "клапана;\n" +
+                    "Пониженное давление\n" +
+                    "газа;\n" +
+                    "Неисправность датчика\n" +
+                    "контроля пламени;\n" +
+                    "Выход из строя платы\n" +
+                    "управления.");
+            error8.setCategory(category3);
+            errorRepository.save(error8);
+
+            Error error9 = new Error();
+            error9.setCode("Е2");
+            error9.setDescription("Перегрев теплоносителя (≥95°C)");
+            error9.setCause("Неисправность датчика\n" +
+                    "защиты от перегрева;\n" +
+                    "Обрыв соединительного\n" +
+                    "кабеля датчика перегрева;\n" +
+                    "Неисправность системы\n" +
+                    "защиты от перегрева.");
+            error9.setCategory(category3);
+            errorRepository.save(error9);
+
+            Error error10 = new Error();
+            error10.setCode("Е3");
+            error10.setDescription("Неисправность системы\n" +
+                    "дымоудаления");
+            error10.setCause("Неисправность\n" +
+                    "вентилятора;\n" +
+                    "Отказ прессостата (только\n" +
+                    "модели без инверторной\n" +
+                    "турбины);\n" +
+                    "Засорение трубы\n" +
+                    "дымоудаления.");
+            error10.setCategory(category3);
+            errorRepository.save(error10);
+
+            Error error11 = new Error();
+            error11.setCode("Е4");
+            error11.setDescription("Недостаточное давление\n" +
+                    "теплоносителя в контуре\n" +
+                    "отопления.");
+            error11.setCause("Воздушная пробка в\n" +
+                    "системе отопления;\n" +
+                    "Неисправен датчик\n" +
+                    "давления теплоносителя в\n" +
+                    "контуре отопления;");
+            error11.setCategory(category3);
+            errorRepository.save(error11);
+
+            Error error12 = new Error();
+            error12.setCode("Е5");
+            error12.setDescription("Неисправность в напряжении\n" +
+                    "электромагнитного клапана");
+            error12.setCause("Плата управления выдает\n" +
+                    "неправильное напряжение\n" +
+                    "на электромагнитный клапан газового клапана.");
+            error12.setCategory(category3);
+            errorRepository.save(error12);
+
+            Error error13 = new Error();
+            error13.setCode("Е6");
+            error13.setDescription("Повреждение датчика\n" +
+                    "температуры контура ГВС");
+            error13.setCause("Повреждение датчика\n" +
+                    "температуры (обрыв цепи,\n" +
+                    "короткое замыкание);\n" +
+                    "Обрыв соединительного\n" +
+                    "кабеля датчика температуры.");
+            error13.setCategory(category3);
+            errorRepository.save(error13);
+
+            Error error14 = new Error();
+            error14.setCode("Е7");
+            error14.setDescription("Повреждение датчика\n" +
+                    "температуры отопления");
+            error14.setCause("Повреждение датчика\n" +
+                    "температуры (обрыв цепи,\n" +
+                    "короткое замыкание);\n" +
+                    "Обрыв соединительного\n" +
+                    "кабеля датчика температуры.");
+            error14.setCategory(category3);
+            errorRepository.save(error14);
+
+            Error error15 = new Error();
+            error15.setCode("Е8");
+            error15.setDescription("Перегрев (≥ 90°C)");
+            error15.setCause("Неисправность датчика\n" +
+                    "температуры;\n" +
+                    "Неисправность системы\n" +
+                    "защиты от перегрева.");
+            error15.setCategory(category3);
+            errorRepository.save(error15);
+
+            Error error16 = new Error();
+            error16.setCode("Е9");
+            error16.setDescription("Обледенение (≤1°C)");
+            error16.setCause("Система отопления может\n" +
+                    "быть заморожена");
+            error16.setCategory(category3);
+            errorRepository.save(error16);+*/
         }
     }
 }
