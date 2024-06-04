@@ -58,13 +58,13 @@ public class PassportService {
         if (passportCategoryRepository.count() == 0 && passportTitleRepository.count() == 0 && passportFileDataRepository.count() == 0) {
             // Создание категорий
             PassportCategory category1 = new PassportCategory();
-            category1.setTitle("Газовые колонки");
+            category1.setTitle("Электрические накопительные водонагреватели");
             PassportCategory category2 = new PassportCategory();
-            category2.setTitle("Газовые котлы");
+            category2.setTitle("Электрические котлы");
             PassportCategory category3 = new PassportCategory();
-            category3.setTitle("Электрические котлы");
+            category3.setTitle("Газовые котлы");
             PassportCategory category4 = new PassportCategory();
-            category4.setTitle("Электрические накопительные водонагреватели");
+            category4.setTitle("Газовые колонки");
             passportCategoryRepository.saveAll(List.of(category1, category2, category3, category4));
 
             // Создание заголовков паспортов
