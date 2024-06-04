@@ -18,9 +18,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -58,13 +64,35 @@ public class PassportController {
     }
 
     @GetMapping("/image/{fileName}")
-    public ResponseEntity<?> getImage(@PathVariable String fileName) throws IOException {
-        String decodedFileName = URLDecoder.decode(fileName, StandardCharsets.UTF_8);
-        byte[] imageData = passportService.downloadImageFromFileSystem(decodedFileName);
-        return ResponseEntity.status(HttpStatus.OK)
-                .contentType(MediaType.valueOf("image/png"))
-                .body(imageData);
+    public ResponseEntity<?> getImage(@PathVariable String fileName) {
+        try {
+            String decodedFileName = URLDecoder.decode(fileName, StandardCharsets.UTF_8);
+
+            // Получаем путь к файлу изображения
+            Path pathToImage = Paths.get(getClass().getResource("/images/" + decodedFileName).toURI());
+
+            // Читаем данные изображения из файла
+            byte[] imageData;
+            try (InputStream inputStream = new FileInputStream(pathToImage.toFile())) {
+                imageData = inputStream.readAllBytes();
+            }
+
+            // Определяем MIME-тип изображения
+            String mimeType = Files.probeContentType(pathToImage);
+            if (mimeType == null) {
+                mimeType = "application/octet-stream";
+            }
+
+            return ResponseEntity.status(HttpStatus.OK)
+                    .contentType(MediaType.valueOf(mimeType))
+                    .body(imageData);
+
+        } catch (URISyntaxException | IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Ошибка при загрузке изображения: " + e.getMessage());
+        }
     }
+
     @Setter
     @Getter
     // DTO class to hold category name and its titles
