@@ -19,6 +19,7 @@ public class PassportTitle {
     private int id;
 
     private String title;
+    private String ruTitle;
 
     @ManyToOne
     @JoinColumn(name = "CATEGORY_ID")
