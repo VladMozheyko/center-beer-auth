@@ -42,10 +42,14 @@ public class PassportController {
             List<PassportTitle> titles = passportTitleRepository.findAllByCategory(category);
             for (PassportTitle title : titles) {
                 List<PassportFileData> fileDataList = passportFileDataRepository.findByPassportTitle(title);
-                List<String> filePaths = fileDataList.stream()
-                        .map(fileData -> "http://31.129.102.70:8080/passport/image/" + fileData.getName()) // Добавление хоста к каждому имени файла
-                        .collect(Collectors.toList()); // Собираем все имена файлов в список
-
+                // Using a loop to add the host to each file name
+                List<String> filePaths = new ArrayList<>();
+                for (PassportFileData fileData : fileDataList) {
+                    String filePath = "http://31.129.102.70:8080/passport/image/" + fileData.getName();
+                    String ruTitle = title.getRuTitle();
+                    filePaths.add(filePath);
+                    filePaths.add(ruTitle);
+                }
                 List<String> ruTitleNames = new ArrayList<>();
                 for (PassportTitle passportTitle : titles) {
                     ruTitleNames.add(passportTitle.getRuTitle());
@@ -109,4 +113,5 @@ public class PassportController {
 
         // getters and setters
     }
+
 }
