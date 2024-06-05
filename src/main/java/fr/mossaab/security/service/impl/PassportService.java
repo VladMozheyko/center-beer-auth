@@ -127,43 +127,43 @@ public class PassportService {
             passportTitleRepository.saveAll(List.of(title1, title2, title3, title4, title5, title6, title7, title8, title9, title10, title11, title12, title13));
 
             for (int i = 1; i <= 12; i++) {
-                uploadImage(title1, "-" + i);
+                uploadImage(title1, "_" + i);
             }
             for (int i = 1; i <= 12; i++) {
-                uploadImage(title2, "-" + i);
+                uploadImage(title2, "_" + i);
             }
             for (int i = 1; i <= 12; i++) {
-                uploadImage(title3, "-" + i);
+                uploadImage(title3, "_" + i);
             }
             for (int i = 1; i <= 12; i++) {
-                uploadImage(title4, "-" + i);
+                uploadImage(title4, "_" + i);
             }
             for (int i = 1; i <= 12; i++) {
-                uploadImage(title5, "-" + i);
+                uploadImage(title5, "_" + i);
             }
             for (int i = 1; i <= 12; i++) {
-                uploadImage(title6, "-" + i);
+                uploadImage(title6, "_" + i);
             }
             for (int i = 1; i <= 40; i++) {
-                uploadImage(title7, "-" + i);
+                uploadImage(title7, "_" + i);
             }
             for (int i = 1; i <= 32; i++) {
-                uploadImage(title8, "-" + i);
+                uploadImage(title8, "_" + i);
             }
             for (int i = 1; i <= 53; i++) {
-                uploadImage(title9, "-" + i);
+                uploadImage(title9, "_" + i);
             }
             for (int i = 1; i <= 51; i++) {
-                uploadImage(title10, "-" + i);
+                uploadImage(title10, "_" + i);
             }
             for (int i = 1; i <= 55; i++) {
-                uploadImage(title11, "-" + i);
+                uploadImage(title11, "_" + i);
             }
             for (int i = 1; i <= 26; i++) {
-                uploadImage(title12, "-" + i);
+                uploadImage(title12, "_" + i);
             }
             for (int i = 1; i <= 29; i++) {
-                uploadImage(title13, "-" + i);
+                uploadImage(title13, "_" + i);
             }
 
             /*Error error1 = new Error();
