@@ -1,6 +1,7 @@
 package fr.mossaab.security;
 
 import fr.mossaab.security.service.impl.BoilerCreateService;
+import fr.mossaab.security.service.impl.DocumentService;
 import fr.mossaab.security.service.impl.PassportService;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,8 @@ public class SecurityApplication {
     private BoilerCreateService boilerCreateService;
     @Autowired
     private PassportService passportService;
+    @Autowired
+    private DocumentService documentService;
 
     public static void main(String[] args) {
 
@@ -25,6 +28,7 @@ public class SecurityApplication {
     public void createSamplePresentation() throws IOException {
         boilerCreateService.CreateBoilers();
         passportService.createAndSavePassportData();
+        documentService.createAndSaveDocumentData();
         System.out.println("Пример презентации с файлами успешно создан.");
     }
 

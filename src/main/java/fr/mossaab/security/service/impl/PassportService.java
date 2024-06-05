@@ -37,7 +37,7 @@ public class PassportService {
     private ErrorRepository errorRepository;
 
     public PassportFileData uploadImage(PassportTitle passportTitle, String number) throws IOException {
-        String str1 = "/var/www/vuary/Инструкции и коды ошибок/";
+        String str1 = "/var/www/vuary/Guidance_and_error_codes/";
         String str2 = passportTitle.getCategory().getTitle();
         String str3 = passportTitle.getTitle();
         String filePath = str1 +str2+"/"+ str3 + "/" + str3 + number + ".png";
@@ -73,11 +73,11 @@ public class PassportService {
 
             // Создание заголовков паспортов
             PassportTitle title1 = new PassportTitle();
-            title1.setTitle("Паспорт водонагреватель VHRM");
+            title1.setTitle("Passport_VHRM");
             title1.setCategory(category1);
 
             PassportTitle title2 = new PassportTitle();
-            title2.setTitle("Паспорт водонагреватель HVFM");
+            title2.setTitle("Passport_HVFM");
             title2.setCategory(category1);
 
             PassportTitle title3 = new PassportTitle();
@@ -97,31 +97,31 @@ public class PassportService {
             title6.setCategory(category1);
 
             PassportTitle title7 = new PassportTitle();
-            title7.setTitle("Паспорт электрический котел QM");
+            title7.setTitle("Passport_QM");
             title7.setCategory(category2);
 
             PassportTitle title8 = new PassportTitle();
-            title8.setTitle("Паспорт электрический котел LT-D");
+            title8.setTitle("Passport_LT_D");
             title8.setCategory(category2);
 
             PassportTitle title9 = new PassportTitle();
-            title9.setTitle("Паспорт Т30-40DK");
+            title9.setTitle("Passport_Т30_40DK");
             title9.setCategory(category3);
 
             PassportTitle title10 = new PassportTitle();
-            title10.setTitle("Паспорт T10-24 OK");
+            title10.setTitle("Passport_T10_24OK");
             title10.setCategory(category3);
 
             PassportTitle title11 = new PassportTitle();
-            title11.setTitle("10-24DK");
+            title11.setTitle("Passport_10_24DK");
             title11.setCategory(category3);
 
             PassportTitle title12 = new PassportTitle();
-            title12.setTitle("Паспорт колонка Suari ST_FT");
+            title12.setTitle("Passport_ST_FT");
             title12.setCategory(category4);
 
             PassportTitle title13 = new PassportTitle();
-            title13.setTitle("Паспорт колонка S10-12, S10-12EM");
+            title13.setTitle("Passport_S10_12, S10_12EM");
             title13.setCategory(category4);
 
             passportTitleRepository.saveAll(List.of(title1, title2, title3, title4, title5, title6, title7, title8, title9, title10, title11, title12, title13));
