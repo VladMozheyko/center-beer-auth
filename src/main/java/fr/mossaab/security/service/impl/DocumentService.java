@@ -60,25 +60,25 @@ public class DocumentService {
         if (documentCategoryRepository.count() == 0 && documentTitleRepository.count() == 0 && documentFileDataRepository.count() == 0) {
             // Создание категорий
             DocumentCategory category1 = new DocumentCategory();
-            category1.setTitle("Политика обработки персональных данных и соглашения");
+            category1.setTitle("Processing_Policy_and_User_Agreement");
             documentCategoryRepository.saveAll(List.of(category1));
 
             // Создание заголовков документов
             DocumentTitle title1 = new DocumentTitle();
-            title1.setTitle("Политика об обработке персональных данных");
+            title1.setTitle("Personal_Data_Processing_Policy");
             title1.setCategory(category1);
 
             DocumentTitle title2 = new DocumentTitle();
-            title2.setTitle("Пользовательское соглашение");
+            title2.setTitle("User_Agreement");
             title2.setCategory(category1);
 
             documentTitleRepository.saveAll(List.of(title1, title2));
 
             // Загрузка документов
-            for (int i = 1; i <= 12; i++) {
+            for (int i = 1; i <= 4; i++) {
                 uploadDocument(title1, "-" + i);
             }
-            for (int i = 1; i <= 12; i++) {
+            for (int i = 1; i <= 3; i++) {
                 uploadDocument(title2, "-" + i);
             }
         }

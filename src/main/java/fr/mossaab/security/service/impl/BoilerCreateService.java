@@ -168,21 +168,21 @@ public class BoilerCreateService {
 
             // Изображения котлов
             //------------------------------------------------------------------------------------------------------
-            ImageForSeries i1 = new ImageForSeries("T18O_01.jpg", "image/*", "/var/www/vuary/Series/T18O_01.jpg", s1);
-            ImageForSeries i2 = new ImageForSeries("T24OK_01.jpg", "image/*", "/var/www/vuary/Series/T24OK_01.jpg", s2);
-            ImageForSeries i3 = new ImageForSeries("T24DK_01.jpg", "image/*", "/var/www/vuary/Series/T24DK_01.jpg", s3);
-            ImageForSeries i4 = new ImageForSeries("S12_01.jpg", "image/*", "/var/www/vuary/Series/S12_01.jpg", s4);
-            ImageForSeries i5 = new ImageForSeries("S10EM_01.jpg", "image/*", "/var/www/vuary/Series/S10EM_01.jpg", s5);
-            ImageForSeries i6 = new ImageForSeries("S13ST_01.jpg", "image/*", "/var/www/vuary/Series/S13ST_01.jpg", s6);
-            ImageForSeries i7 = new ImageForSeries("S12FT_01.jpg", "image/*", "/var/www/vuary/Series/S12FT_01.jpg", s7);
-            ImageForSeries i8 = new ImageForSeries("kotitonttu-57.jpg", "image/*", "/var/www/vuary/Series/kotitonttu-57.jpg", s8);
-            ImageForSeries i9 = new ImageForSeries("QM-4_06_2.jpg", "image/*", "/var/www/vuary/Series/QM-4_06_2.jpg", s9);
-            ImageForSeries i10 = new ImageForSeries("KMU-10_1.jpg", "image/*", "/var/www/vuary/Series/KMU-10_1.jpg", s10);
-            ImageForSeries i11 = new ImageForSeries("VRM-50_1.jpg", "image/*", "/var/www/vuary/Series/VRM-50_1.jpg", s11);
-            ImageForSeries i12 = new ImageForSeries("VRM-50D_01.jpg", "image/*", "/var/www/vuary/Series/VRM-50D_01.jpg", s12);
-            ImageForSeries i13 = new ImageForSeries("VFM-50D_01.jpg", "image/*", "/var/www/vuary/Series/VFM-50D_01.jpg", s13);
-            ImageForSeries i14 = new ImageForSeries("VFE-50WE_01.jpg", "image/*", "/var/www/vuary/Series/VFE-50WE_01.jpg", s14);
-            ImageForSeries i15 = new ImageForSeries("kotitonttu-26.jpg", "image/*", "/var/www/vuary/Series/kotitonttu-26.jpg", s15);
+            ImageForSeries i1 = new ImageForSeries("T18O_01.png", "image/*", "/var/www/vuary/Series/T18O_01.png", s1);
+            ImageForSeries i2 = new ImageForSeries("T24OK_01.png", "image/*", "/var/www/vuary/Series/T24OK_01.png", s2);
+            ImageForSeries i3 = new ImageForSeries("T24DK_01.png", "image/*", "/var/www/vuary/Series/T24DK_01.png", s3);
+            ImageForSeries i4 = new ImageForSeries("S12_01.png", "image/*", "/var/www/vuary/Series/S12_01.png", s4);
+            ImageForSeries i5 = new ImageForSeries("S10EM_01.png", "image/*", "/var/www/vuary/Series/S10EM_01.png", s5);
+            ImageForSeries i6 = new ImageForSeries("S13ST_01.png", "image/*", "/var/www/vuary/Series/S13ST_01.png", s6);
+            ImageForSeries i7 = new ImageForSeries("S12FT_01.png", "image/*", "/var/www/vuary/Series/S12FT_01.png", s7);
+            ImageForSeries i8 = new ImageForSeries("LT4_24D.png", "image/*", "/var/www/vuary/Series/LT4_24D.png", s8);
+            ImageForSeries i9 = new ImageForSeries("QM-4_06_2.png", "image/*", "/var/www/vuary/Series/QM-4_06_2.png", s9);
+            ImageForSeries i10 = new ImageForSeries("KMU_10_1.png", "image/*", "/var/www/vuary/Series/KMU-10_1.png", s10);
+            ImageForSeries i11 = new ImageForSeries("VRM_50_1.png", "image/*", "/var/www/vuary/Series/VRM-50_1.png", s11);
+            ImageForSeries i12 = new ImageForSeries("VRM_50D_01.png", "image/*", "/var/www/vuary/Series/VRM-50D_01.png", s12);
+            ImageForSeries i13 = new ImageForSeries("VFM_50D_01.png", "image/*", "/var/www/vuary/Series/VFM-50D_01.png", s13);
+            ImageForSeries i14 = new ImageForSeries("VFE_50WE_01.png", "image/*", "/var/www/vuary/Series/VFE-50WE_01.png", s14);
+            ImageForSeries i15 = new ImageForSeries("FRM_200_300.png", "image/*", "/var/www/vuary/Series/FRM_200_300.png", s15);
 
             imageForSeriesService.addAll(List.of(i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15));
 

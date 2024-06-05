@@ -1,6 +1,7 @@
 package fr.mossaab.security;
 
 import fr.mossaab.security.service.impl.BoilerCreateService;
+import fr.mossaab.security.service.impl.CreateServiceCentreService;
 import fr.mossaab.security.service.impl.DocumentService;
 import fr.mossaab.security.service.impl.PassportService;
 import jakarta.annotation.PostConstruct;
@@ -19,6 +20,8 @@ public class SecurityApplication {
     private PassportService passportService;
     @Autowired
     private DocumentService documentService;
+    @Autowired
+    private CreateServiceCentreService createServiceCentreService;
 
     public static void main(String[] args) {
 
@@ -29,6 +32,7 @@ public class SecurityApplication {
         boilerCreateService.CreateBoilers();
         passportService.createAndSavePassportData();
         documentService.createAndSaveDocumentData();
+        createServiceCentreService.CreateServiceCentre();
         System.out.println("Пример презентации с файлами успешно создан.");
     }
 
