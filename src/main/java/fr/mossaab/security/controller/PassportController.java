@@ -46,15 +46,9 @@ public class PassportController {
                 List<String> filePaths = new ArrayList<>();
                 for (PassportFileData fileData : fileDataList) {
                     String filePath = "http://31.129.102.70:8080/passport/image/" + fileData.getName();
-                    String ruTitle = title.getRuTitle();
                     filePaths.add(filePath);
-                    filePaths.add(ruTitle);
                 }
-                List<String> ruTitleNames = new ArrayList<>();
-                for (PassportTitle passportTitle : titles) {
-                    ruTitleNames.add(passportTitle.getRuTitle());
-                }
-                titleWithFilesList.add(new PassportTitleWithFilesDTO(title.getTitle(), filePaths, ruTitleNames));
+                titleWithFilesList.add(new PassportTitleWithFilesDTO(title.getTitle(),title.getRuTitle(), filePaths));
             }
             categoryWithTitlesList.add(new CategoryWithTitlesDTO(category.getTitle(), titleWithFilesList));
         }
@@ -102,13 +96,13 @@ public class PassportController {
     // DTO class to hold title name and its files
     static class PassportTitleWithFilesDTO {
         private String titleName;
+        private String ruTitleName;
         private List<String> files;
-        private List<String> ruTitleName;
 
-        public PassportTitleWithFilesDTO(String titleName, List<String> files, List<String> ruTitleName) {
+        public PassportTitleWithFilesDTO(String titleName,String ruTitleName, List<String> files) {
             this.titleName = titleName;
-            this.files = files;
             this.ruTitleName = ruTitleName;
+            this.files = files;
         }
 
         // getters and setters
