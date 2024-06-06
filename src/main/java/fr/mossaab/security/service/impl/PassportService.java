@@ -74,54 +74,67 @@ public class PassportService {
             // Создание заголовков паспортов
             PassportTitle title1 = new PassportTitle();
             title1.setTitle("Passport_VHRM");
+            title1.setRuTitle("Паспорт водонагреватель VHRM");
             title1.setCategory(category1);
 
             PassportTitle title2 = new PassportTitle();
             title2.setTitle("Passport_HVFM");
+            title2.setRuTitle("Паспорт водонагреватель HVFM");
             title2.setCategory(category1);
 
             PassportTitle title3 = new PassportTitle();
             title3.setTitle("Passport_VFE_A5_new");
+            title3.setRuTitle("Паспорт водонагреватель VFE_A5_new");
             title3.setCategory(category1);
 
             PassportTitle title4 = new PassportTitle();
             title4.setTitle("Passport_KM_A5_new");
+            title4.setRuTitle("Паспорт водонагреватель KM_A5_new");
             title4.setCategory(category1);
 
             PassportTitle title5 = new PassportTitle();
             title5.setTitle("Passport_FRM_A5_new");
+            title5.setRuTitle("Паспорт водонагреватель FRM_A5_new");
             title5.setCategory(category1);
 
             PassportTitle title6 = new PassportTitle();
             title6.setTitle("Passport_FRM_A5_3mm_new");
+            title6.setRuTitle("Паспорт водонагреватель FRM_A5_3mm_new");
             title6.setCategory(category1);
 
             PassportTitle title7 = new PassportTitle();
             title7.setTitle("Passport_QM");
+            title7.setRuTitle("Паспорт электрический котел_QM");
             title7.setCategory(category2);
 
             PassportTitle title8 = new PassportTitle();
             title8.setTitle("Passport_LT_D");
+            title8.setRuTitle("Паспорт электрический котел_LT_D");
             title8.setCategory(category2);
 
             PassportTitle title9 = new PassportTitle();
-            title9.setTitle("Passport_Т30_40DK");
+            title9.setTitle("Passport_Т30-40DK");
+            title9.setRuTitle("Паспорт Т30-40DK");
             title9.setCategory(category3);
 
             PassportTitle title10 = new PassportTitle();
-            title10.setTitle("Passport_T10_24OK");
+            title10.setTitle("Passport_T10-24 OK");
+            title10.setRuTitle("Паспорт T10-24 OK");
             title10.setCategory(category3);
 
             PassportTitle title11 = new PassportTitle();
-            title11.setTitle("Passport_10_24DK");
+            title11.setTitle("Passport_Т10-24DK");
+            title11.setRuTitle("Паспорт Т10-24DK");
             title11.setCategory(category3);
 
             PassportTitle title12 = new PassportTitle();
-            title12.setTitle("Passport_ST_FT");
+            title12.setTitle("Passport_Suari ST_FT");
+            title12.setRuTitle("Паспорт колонка Suari ST_FT");
             title12.setCategory(category4);
 
             PassportTitle title13 = new PassportTitle();
-            title13.setTitle("Passport_S10_12, S10_12EM");
+            title13.setTitle("Passport_S10-12, S10-12EM");
+            title13.setRuTitle("Паспорт колонка S10-12, S10-12EM");
             title13.setCategory(category4);
 
             passportTitleRepository.saveAll(List.of(title1, title2, title3, title4, title5, title6, title7, title8, title9, title10, title11, title12, title13));
