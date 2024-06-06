@@ -50,7 +50,10 @@ public class PassportController {
                 }
                 titleWithFilesList.add(new PassportTitleWithFilesDTO(title.getTitle(),title.getRuTitle(), filePaths));
             }
-            categoryWithTitlesList.add(new CategoryWithTitlesDTO(category.getTitle(), titleWithFilesList));
+            List<ErrorDTO> errorDTOList = category.getErrors().stream()
+                    .map(error -> new ErrorDTO(error.getCode(), error.getCause(), error.getSeries(), error.getDescription()))
+                    .collect(Collectors.toList());
+            categoryWithTitlesList.add(new CategoryWithTitlesDTO(category.getTitle(), titleWithFilesList, errorDTOList));
         }
 
         return categoryWithTitlesList;
@@ -83,10 +86,11 @@ public class PassportController {
     static class CategoryWithTitlesDTO {
         private String categoryName;
         private List<PassportTitleWithFilesDTO> titles;
-
-        public CategoryWithTitlesDTO(String categoryName, List<PassportTitleWithFilesDTO> titles) {
+        private List<ErrorDTO> errors;
+        public CategoryWithTitlesDTO(String categoryName, List<PassportTitleWithFilesDTO> titles, List<ErrorDTO> errors) {
             this.categoryName = categoryName;
             this.titles = titles;
+            this.errors = errors;
         }
 
         // getters and setters
@@ -107,5 +111,19 @@ public class PassportController {
 
         // getters and setters
     }
+    @Setter
+    @Getter
+    static class ErrorDTO {
+        private String code;
+        private String cause;
+        private String series;
+        private String description;
 
+        public ErrorDTO(String code, String cause, String series, String description) {
+            this.code = code;
+            this.cause = cause;
+            this.series = series;
+            this.description = description;
+        }
+    }
 }
