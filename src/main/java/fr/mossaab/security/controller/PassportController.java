@@ -46,7 +46,11 @@ public class PassportController {
                         .map(fileData -> "http://31.129.102.70:8080/passport/image/" + fileData.getName()) // Добавление хоста к каждому имени файла
                         .collect(Collectors.toList()); // Собираем все имена файлов в список
 
-                titleWithFilesList.add(new PassportTitleWithFilesDTO(title.getTitle(), filePaths));
+                List<String> ruTitleNames = new ArrayList<>();
+                for (PassportTitle passportTitle : titles) {
+                    ruTitleNames.add(passportTitle.getRuTitle());
+                }
+                titleWithFilesList.add(new PassportTitleWithFilesDTO(title.getTitle(), filePaths, ruTitleNames));
             }
             categoryWithTitlesList.add(new CategoryWithTitlesDTO(category.getTitle(), titleWithFilesList));
         }
@@ -95,10 +99,12 @@ public class PassportController {
     static class PassportTitleWithFilesDTO {
         private String titleName;
         private List<String> files;
+        private List<String> ruTitleName;
 
-        public PassportTitleWithFilesDTO(String titleName, List<String> files) {
+        public PassportTitleWithFilesDTO(String titleName, List<String> files, List<String> ruTitleName) {
             this.titleName = titleName;
             this.files = files;
+            this.ruTitleName = ruTitleName;
         }
 
         // getters and setters
