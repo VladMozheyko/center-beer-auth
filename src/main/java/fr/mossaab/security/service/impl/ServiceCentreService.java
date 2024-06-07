@@ -17,10 +17,13 @@ public class ServiceCentreService {
         return serviceCentreRepository.findAll();
     }
 
-    public List<ServiceCentre> addServiceCentre(List<ServiceCentre> serviceCentres){
-        return new ArrayList<>(serviceCentreRepository.saveAll(serviceCentres));
+    public void addServiceCentre(ServiceCentre serviceCentres){
+        serviceCentreRepository.save(serviceCentres);
     }
 
+    public void addAllServiceCentre(List<ServiceCentre> serviceCentres){
+        serviceCentreRepository.saveAll(serviceCentres);
+    }
     public void deleteServiceCentreByTitle(String title) {
         serviceCentreRepository.deleteByTitle(title);
     }

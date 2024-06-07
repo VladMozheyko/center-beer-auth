@@ -15,7 +15,7 @@ import lombok.Setter;
 public class ServiceCentre {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id; // пока что интовая айдишка сервисного центра, не думаю, что нужен лонг
+    private int id;
 
 
     private String title;
@@ -28,12 +28,19 @@ public class ServiceCentre {
 
     private String servicedEquipment;
 
-    public ServiceCentre(String title, String city, String address, String phone, String servicedEquipment) {
+    private double latitude;
+
+    private double longitude;
+
+    public ServiceCentre(String title, String city, String address, String phone, String servicedEquipment, double latitude, double longitude) {
         this.title = title;
         this.city = city;
         this.address = address;
         this.phone = phone;
         this.servicedEquipment = servicedEquipment;
+        this.latitude = latitude;
+        this.longitude = longitude;
+
     }
 
     @Override
@@ -45,6 +52,8 @@ public class ServiceCentre {
                 ", address='" + address + '\'' +
                 ", phone='" + phone + '\'' +
                 ", servicedEquipment='" + servicedEquipment + '\'' +
+                ", latitude='" + latitude + '\'' +
+                ", longitude='" + longitude + '\'' +
                 '}';
     }
 }

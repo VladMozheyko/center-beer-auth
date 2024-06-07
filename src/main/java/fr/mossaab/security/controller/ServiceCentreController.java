@@ -13,18 +13,30 @@ public class ServiceCentreController {
 
     @Autowired
     private ServiceCentreService serviceCentreService;
-
+    /**
+     * GET-метод для получения списка ServiceCentre.
+     *
+     * @return Ответ со списком ServiceCentre статусом 200 OK.
+     */
     @GetMapping("/getAll")
     public List<ServiceCentre> getAllServiceCentres() {
         return serviceCentreService.getAllServiceCentres();
     }
-
+    /**
+     * POST-метод для сохранени списка ServiceCentre.
+     *
+     * @return Ответ после добавления со статусом 200 OK.
+     */
     @PostMapping("/add")
-    public List<ServiceCentre> addServiceCentre(@RequestBody List<ServiceCentre> serviceCentres) {
-        return serviceCentreService.addServiceCentre(serviceCentres);
+    public void addServiceCentre(@RequestBody ServiceCentre serviceCentres) {
+        serviceCentreService.addServiceCentre(serviceCentres);
     }
 
-
+    /**
+     * DELETE-метод для удаления ServiceCentre по заголовку.
+     *
+     * @return Ответ после удаления со статусом 200 OK.
+     */
     @DeleteMapping("/{title}")
     public void deleteByName (@PathVariable("title") String title){
         serviceCentreService.deleteServiceCentreByTitle(title);
