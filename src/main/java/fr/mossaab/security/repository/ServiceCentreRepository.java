@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ServiceCentreRepository extends JpaRepository<ServiceCentre, Integer> {
-    void deleteByTitle(String serviceCentreName);
+    void deleteById(int id);
 }

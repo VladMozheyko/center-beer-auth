@@ -37,9 +37,9 @@ public class ServiceCentreController {
      *
      * @return Ответ после удаления со статусом 200 OK.
      */
-    @DeleteMapping("/{title}")
-    public void deleteByName (@PathVariable("title") String title){
-        serviceCentreService.deleteServiceCentreByTitle(title);
+    @DeleteMapping("/{id}")
+    public void deleteById (@PathVariable("id") int id){
+        serviceCentreService.deleteServiceCentreById(id);
         System.out.println("Deleted successfully ");
     }
 

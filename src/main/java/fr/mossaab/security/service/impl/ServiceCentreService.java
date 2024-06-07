@@ -24,7 +24,7 @@ public class ServiceCentreService {
     public void addAllServiceCentre(List<ServiceCentre> serviceCentres){
         serviceCentreRepository.saveAll(serviceCentres);
     }
-    public void deleteServiceCentreByTitle(String title) {
-        serviceCentreRepository.deleteByTitle(title);
+    public void deleteServiceCentreById(int id) {
+        serviceCentreRepository.deleteById(id);
     }
 }
