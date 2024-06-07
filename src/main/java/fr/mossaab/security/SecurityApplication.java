@@ -32,7 +32,7 @@ public class SecurityApplication {
         boilerCreateService.CreateBoilers();
         passportService.createAndSavePassportData();
         documentService.createAndSaveDocumentData();
-//        createServiceCentreService.CreateServiceCentre();
+        createServiceCentreService.CreateServiceCentre();
         System.out.println("Пример презентации с файлами успешно создан.");
     }
 
