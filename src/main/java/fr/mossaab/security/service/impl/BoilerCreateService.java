@@ -142,6 +142,8 @@ public class BoilerCreateService {
             Unit u23 = new Unit("Гц", "Герц");
 
 
+
+
             unitService.addAll(List.of(u1, u2, u3, u4, u5, u6, u7, u8, u9, u10, u11, u12, u13, u14, u15, u16, u17, u18, u19, u20, u21, u22, u23));
 
             // Серии котлов
@@ -404,6 +406,9 @@ public class BoilerCreateService {
             Characteristic c79 = new Characteristic(
                     "Располо- жение патрубков",
                     u19);
+            Characteristic c80 = new Characteristic("Номинальное напряжение", u20);
+
+
             // TODO ждем ответа по пункту Время нагрева * (∆45°C) документа Passport_FRM_A5+3mm_new.pdf
 
             c79.setSeries(List.of(s10));
@@ -425,7 +430,7 @@ public class BoilerCreateService {
             c16.setSeries(List.of(s1, s2, s3));
             c17.setSeries(List.of(s1, s2, s3));
             c18.setSeries(List.of(s1, s2, s3));
-            c19.setSeries(List.of(s1, s2, s3, s4, s5, s10, s11, s12, s13, s14, s15));
+            c19.setSeries(List.of(s1, s2, s3, s4, s5,s8, s10, s11, s12, s13, s14, s15));
             c20.setSeries(List.of(s4, s5, s7));
             c21.setSeries(List.of(s4, s5));
             c22.setSeries(List.of(s4, s5, s7));
@@ -433,7 +438,7 @@ public class BoilerCreateService {
             c24.setSeries(List.of(s4, s5, s7));
             c25.setSeries(List.of(s4, s5, s7));
             c26.setSeries(List.of(s4, s5));
-            c27.setSeries(List.of(s4, s5, s7, s9));
+            c27.setSeries(List.of(s4, s5, s7, s8, s9));
 
             c30.setSeries(List.of(s4, s5));
             c31.setSeries(List.of(s7));
@@ -444,18 +449,18 @@ public class BoilerCreateService {
             c36.setSeries(List.of(s7));
             c37.setSeries(List.of(s7));
             c39.setSeries(List.of(s9));
-            c40.setSeries(List.of(s9));
-            c41.setSeries(List.of(s9));
-            c43.setSeries(List.of(s9));
-            c44.setSeries(List.of(s9));
-            c45.setSeries(List.of(s9));
-            c46.setSeries(List.of(s9));
-            c47.setSeries(List.of(s9));
+            c40.setSeries(List.of(s9,s8));
+            c41.setSeries(List.of(s9,s8));
+            c43.setSeries(List.of(s9,s8));
+            c44.setSeries(List.of(s9,s8));
+            c45.setSeries(List.of(s9,s8));
+            c46.setSeries(List.of(s9,s8));
+            c47.setSeries(List.of(s9,s8));
             c48.setSeries(List.of(s9));
-            c49.setSeries(List.of(s9));
+            c49.setSeries(List.of(s9,s8));
             c50.setSeries(List.of(s9));
             c51.setSeries(List.of(s9));
-            c52.setSeries(List.of(s9));
+            c52.setSeries(List.of(s9,s8));
             c56.setSeries(List.of(s3));
             c57.setSeries(List.of(s3));
             c58.setSeries(List.of(s3));
@@ -478,11 +483,12 @@ public class BoilerCreateService {
             c75.setSeries(List.of(s9));
             c76.setSeries(List.of(s9));
             c77.setSeries(List.of(s9));
-            c78.setSeries(List.of(s9));
+            c78.setSeries(List.of(s9,s8));
+            c80.setSeries(List.of(s8));
 
             characteristicService.addAll(List.of(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19,
                     c20, c21, c22, c23, c24, c25, c26, c27, c30, c31, c32, c33, c34, c35, c36, c37, c39, c40, c41,
-                    c43, c44, c45, c46, c47, c48, c49, c50, c51, c52, c56, c57, c58, c59, c60, c61, c62, c63, c64, c65, c66, c67, c68, c69, c70, c71, c72, c73, c74, c75, c76, c77, c78, c79));
+                    c43, c44, c45, c46, c47, c48, c49, c50, c51, c52, c56, c57, c58, c59, c60, c61, c62, c63, c64, c65, c66, c67, c68, c69, c70, c71, c72, c73, c74, c75, c76, c77, c78, c79,c80));
 
             // Аттрибуты
             //------------------------------------------------------------------------------------------------------
