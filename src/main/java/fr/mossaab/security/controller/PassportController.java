@@ -1,8 +1,10 @@
 package fr.mossaab.security.controller;
 
+import fr.mossaab.security.entities.Error;
 import fr.mossaab.security.entities.PassportCategory;
 import fr.mossaab.security.entities.PassportFileData;
 import fr.mossaab.security.entities.PassportTitle;
+import fr.mossaab.security.entities.SeriesTitle;
 import fr.mossaab.security.repository.PassportCategoryRepository;
 import fr.mossaab.security.repository.PassportFileDataRepository;
 import fr.mossaab.security.repository.PassportTitleRepository;
@@ -31,7 +33,6 @@ public class PassportController {
     private final PassportTitleRepository passportTitleRepository;
     private final PassportFileDataRepository passportFileDataRepository;
     private final PassportService passportService;
-
     @GetMapping("/categories")
     public List<CategoryWithTitlesDTO> getAllCategoriesWithTitlesAndFiles() {
         List<CategoryWithTitlesDTO> categoryWithTitlesList = new ArrayList<>();
@@ -42,18 +43,24 @@ public class PassportController {
             List<PassportTitle> titles = passportTitleRepository.findAllByCategory(category);
             for (PassportTitle title : titles) {
                 List<PassportFileData> fileDataList = passportFileDataRepository.findByPassportTitle(title);
-                // Using a loop to add the host to each file name
+                // Используем цикл для добавления хоста к каждому имени файла
                 List<String> filePaths = new ArrayList<>();
                 for (PassportFileData fileData : fileDataList) {
                     String filePath = "http://31.129.102.70:8080/passport/image/" + fileData.getName();
                     filePaths.add(filePath);
                 }
-                titleWithFilesList.add(new PassportTitleWithFilesDTO(title.getTitle(),title.getRuTitle(), filePaths));
+                titleWithFilesList.add(new PassportTitleWithFilesDTO(title.getTitle(), title.getRuTitle(), filePaths));
             }
-            List<ErrorDTO> errorDTOList = category.getErrors().stream()
-                    .map(error -> new ErrorDTO(error.getCode(), error.getCause(), error.getSeries(), error.getDescription()))
-                    .collect(Collectors.toList());
-            categoryWithTitlesList.add(new CategoryWithTitlesDTO(category.getTitle(), titleWithFilesList, errorDTOList));
+
+            List<SeriesTitleDTO> seriesTitleDTO = new ArrayList<>();
+            List<ErrorDTO> errorDTOList = new ArrayList<>();
+            for (SeriesTitle seriesTitle : category.getSeriesTitles()) {
+                for (Error error : seriesTitle.getErrors()) {
+                    errorDTOList.add(new ErrorDTO(error.getCode(), error.getCause(), error.getDescription()));
+                }
+                seriesTitleDTO.add(new SeriesTitleDTO(seriesTitle.getTitle(),errorDTOList));
+            }
+            categoryWithTitlesList.add(new CategoryWithTitlesDTO(category.getTitle(), titleWithFilesList, seriesTitleDTO));
         }
 
         return categoryWithTitlesList;
@@ -86,11 +93,11 @@ public class PassportController {
     static class CategoryWithTitlesDTO {
         private String categoryName;
         private List<PassportTitleWithFilesDTO> titles;
-        private List<ErrorDTO> errors;
-        public CategoryWithTitlesDTO(String categoryName, List<PassportTitleWithFilesDTO> titles, List<ErrorDTO> errors) {
+        private List<SeriesTitleDTO> seriesTitleDTOS;
+        public CategoryWithTitlesDTO(String categoryName, List<PassportTitleWithFilesDTO> titles, List<SeriesTitleDTO> seriesTitleDTOS) {
             this.categoryName = categoryName;
             this.titles = titles;
-            this.errors = errors;
+            this.seriesTitleDTOS = seriesTitleDTOS;
         }
 
         // getters and setters
@@ -113,16 +120,25 @@ public class PassportController {
     }
     @Setter
     @Getter
+    static class SeriesTitleDTO {
+        private String seriesTitle;
+        private List<ErrorDTO> errors;
+
+        public SeriesTitleDTO(String seriesTitle, List<ErrorDTO> errors) {
+            this.seriesTitle = seriesTitle;
+            this.errors = errors;
+        }
+    }
+    @Setter
+    @Getter
     static class ErrorDTO {
         private String code;
         private String cause;
-        private String series;
         private String description;
 
-        public ErrorDTO(String code, String cause, String series, String description) {
+        public ErrorDTO(String code, String cause, String description) {
             this.code = code;
             this.cause = cause;
-            this.series = series;
             this.description = description;
         }
     }

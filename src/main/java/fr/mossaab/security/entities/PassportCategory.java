@@ -19,10 +19,8 @@ public class PassportCategory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String title;
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
+
+    @OneToMany(mappedBy = "passportCategory", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
-    private List<PassportTitle> passportTitleList;
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
-    private List<Error> errors;
+    private List<SeriesTitle> seriesTitles;
 }

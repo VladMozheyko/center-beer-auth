@@ -9,21 +9,22 @@ import lombok.Setter;
 import java.util.List;
 
 @Entity
-@Table(name = "error")
+@Table(name = "series_title")
 @Getter
 @Setter
-public class Error {
+public class SeriesTitle {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private String code;
-    private String cause;
-    private String series;
-    private String description;
+    private String title;
+
+    @OneToMany(mappedBy = "seriesTitle", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Error> errors;
 
     @ManyToOne
-    @JoinColumn(name = "series_title_id")
+    @JoinColumn(name = "passport_category_id")
     @JsonBackReference
-    private SeriesTitle seriesTitle;
+    private PassportCategory passportCategory;
 }
