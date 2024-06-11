@@ -60,7 +60,7 @@ public class PassportController {
                 }
                 seriesTitleDTO.add(new SeriesTitleDTO(seriesTitle.getTitle(),errorDTOList));
             }
-            categoryWithTitlesList.add(new CategoryWithTitlesDTO(category.getTitle(), titleWithFilesList, seriesTitleDTO));
+            categoryWithTitlesList.add(new CategoryWithTitlesDTO(category.getTitle(),category.getRuTitle(), titleWithFilesList, seriesTitleDTO));
         }
 
         return categoryWithTitlesList;
@@ -92,10 +92,12 @@ public class PassportController {
     // DTO class to hold category name and its titles
     static class CategoryWithTitlesDTO {
         private String categoryName;
+        private String ruCategoryName;
         private List<PassportTitleWithFilesDTO> titles;
         private List<SeriesTitleDTO> seriesTitleDTOS;
-        public CategoryWithTitlesDTO(String categoryName, List<PassportTitleWithFilesDTO> titles, List<SeriesTitleDTO> seriesTitleDTOS) {
+        public CategoryWithTitlesDTO(String categoryName,String ruCategoryName, List<PassportTitleWithFilesDTO> titles, List<SeriesTitleDTO> seriesTitleDTOS) {
             this.categoryName = categoryName;
+            this.ruCategoryName = ruCategoryName;
             this.titles = titles;
             this.seriesTitleDTOS = seriesTitleDTOS;
         }
