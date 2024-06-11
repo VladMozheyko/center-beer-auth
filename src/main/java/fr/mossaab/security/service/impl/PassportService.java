@@ -57,7 +57,12 @@ public class PassportService {
 
     @Transactional
     public void createAndSavePassportData() throws IOException {
-        if (passportCategoryRepository.count() == 0 && passportTitleRepository.count() == 0 && passportFileDataRepository.count() == 0 && errorRepository.count() == 0) {
+        if (    passportCategoryRepository.count() == 0 &&
+                passportTitleRepository.count() == 0 &&
+                passportFileDataRepository.count() == 0 &&
+                errorRepository.count() == 0 &&
+                seriesTitleRepository.count() == 0
+        ) {
             // Создание категорий
             PassportCategory category1 = new PassportCategory();
             category1.setTitle("Salmi");
@@ -239,7 +244,7 @@ public class PassportService {
                     "Неисправность системы\n" +
                     "защиты от перегрева.");
             error9.setSeriesTitle(seriesTitle1);
-            error9.setSeries("T100K - T240K, T10-T24DK, T10 TKP(TKL) ÷ T24 TKP(TKL), T30 OK ÷ T50 OK,T30 O ÷ T50 O");
+            //error9.setSeries("T100K - T240K, T10-T24DK, T10 TKP(TKL) ÷ T24 TKP(TKL), T30 OK ÷ T50 OK,T30 O ÷ T50 O");
             errorRepository.save(error9);
 
             Error error10 = new Error();
@@ -254,7 +259,7 @@ public class PassportService {
                     "Засорение трубы\n" +
                     "дымоудаления.");
             error10.setSeriesTitle(seriesTitle1);
-            error10.setSeries("T100K - T240K, T10-T24DK, T10 TKP(TKL) ÷ T24 TKP(TKL), T30 OK ÷ T50 OK,T30 O ÷ T50 O");
+            //error10.setSeries("T100K - T240K, T10-T24DK, T10 TKP(TKL) ÷ T24 TKP(TKL), T30 OK ÷ T50 OK,T30 O ÷ T50 O");
             errorRepository.save(error10);
 
             Error error11 = new Error();
@@ -268,7 +273,7 @@ public class PassportService {
                     "давления теплоносителя в\n" +
                     "контуре отопления;");
             error11.setSeriesTitle(seriesTitle1);
-            error11.setSeries("T100K - T240K, T10-T24DK, T10 TKP(TKL) ÷ T24 TKP(TKL), T30 OK ÷ T50 OK,T30 O ÷ T50 O");
+            //error11.setSeries("T100K - T240K, T10-T24DK, T10 TKP(TKL) ÷ T24 TKP(TKL), T30 OK ÷ T50 OK,T30 O ÷ T50 O");
             errorRepository.save(error11);
 
             Error error12 = new Error();
@@ -279,7 +284,7 @@ public class PassportService {
                     "неправильное напряжение\n" +
                     "на электромагнитный клапан газового клапана.");
             error12.setSeriesTitle(seriesTitle1);
-            error12.setSeries("T100K - T240K, T10-T24DK, T10 TKP(TKL) ÷ T24 TKP(TKL), T30 OK ÷ T50 OK,T30 O ÷ T50 O");
+            //error12.setSeries("T100K - T240K, T10-T24DK, T10 TKP(TKL) ÷ T24 TKP(TKL), T30 OK ÷ T50 OK,T30 O ÷ T50 O");
             errorRepository.save(error12);
 
             Error error13 = new Error();
@@ -292,7 +297,7 @@ public class PassportService {
                     "Обрыв соединительного\n" +
                     "кабеля датчика температуры.");
             error13.setSeriesTitle(seriesTitle1);
-            error13.setSeries("T100K - T240K, T10-T24DK, T10 TKP(TKL) ÷ T24 TKP(TKL), T30 OK ÷ T50 OK,T30 O ÷ T50 O");
+            //error13.setSeries("T100K - T240K, T10-T24DK, T10 TKP(TKL) ÷ T24 TKP(TKL), T30 OK ÷ T50 OK,T30 O ÷ T50 O");
             errorRepository.save(error13);
 
             Error error14 = new Error();
@@ -305,7 +310,7 @@ public class PassportService {
                     "Обрыв соединительного\n" +
                     "кабеля датчика температуры.");
             error14.setSeriesTitle(seriesTitle1);
-            error14.setSeries("T100K - T240K, T10-T24DK, T10 TKP(TKL) ÷ T24 TKP(TKL), T30 OK ÷ T50 OK,T30 O ÷ T50 O");
+            //error14.setSeries("T100K - T240K, T10-T24DK, T10 TKP(TKL) ÷ T24 TKP(TKL), T30 OK ÷ T50 OK,T30 O ÷ T50 O");
             errorRepository.save(error14);
 
             Error error15 = new Error();
@@ -316,7 +321,7 @@ public class PassportService {
                     "Неисправность системы\n" +
                     "защиты от перегрева.");
             error15.setSeriesTitle(seriesTitle1);
-            error15.setSeries("T100K - T240K, T10-T24DK, T10 TKP(TKL) ÷ T24 TKP(TKL), T30 OK ÷ T50 OK,T30 O ÷ T50 O");
+            //error15.setSeries("T100K - T240K, T10-T24DK, T10 TKP(TKL) ÷ T24 TKP(TKL), T30 OK ÷ T50 OK,T30 O ÷ T50 O");
             errorRepository.save(error15);
 
             Error error16 = new Error();
@@ -325,7 +330,7 @@ public class PassportService {
             error16.setCause("Система отопления может\n" +
                     "быть заморожена");
             error16.setSeriesTitle(seriesTitle1);
-            error16.setSeries("T100K - T240K, T10-T24DK, T10 TKP(TKL) ÷ T24 TKP(TKL), T30 OK ÷ T50 OK,T30 O ÷ T50 O");
+            //error16.setSeries("T100K - T240K, T10-T24DK, T10 TKP(TKL) ÷ T24 TKP(TKL), T30 OK ÷ T50 OK,T30 O ÷ T50 O");
             errorRepository.save(error16);
 
 
@@ -351,7 +356,7 @@ public class PassportService {
                     "Выход из строя платы\n" +
                     "управления.");
             error29.setSeriesTitle(seriesTitle2);
-            error29.setSeries("T32-36DK");
+            //error29.setSeries("T32-36DK");
             errorRepository.save(error29);
 
             Error error30 = new Error();
@@ -364,7 +369,7 @@ public class PassportService {
                     "Неисправность системы\n" +
                     "защиты от перегрева.");
             error30.setSeriesTitle(seriesTitle2);
-            error30.setSeries("T32-36DK");
+            //error30.setSeries("T32-36DK");
             errorRepository.save(error30);
 
             Error error31 = new Error();
@@ -379,7 +384,7 @@ public class PassportService {
                     "Засорение трубы\n" +
                     "дымоудаления.");
             error31.setSeriesTitle(seriesTitle2);
-            error31.setSeries("T32-36DK");
+            //error31.setSeries("T32-36DK");
             errorRepository.save(error31);
 
             Error error32 = new Error();
@@ -393,7 +398,7 @@ public class PassportService {
                     "давления теплоносителя в\n" +
                     "контуре отопления;");
             error32.setSeriesTitle(seriesTitle2);
-            error32.setSeries("T32-36DK");
+            //error32.setSeries("T32-36DK");
             errorRepository.save(error32);
 
             Error error33 = new Error();
@@ -404,7 +409,7 @@ public class PassportService {
                     "неправильное напряжение\n" +
                     "на электромагнитный клапан газового клапана.");
             error33.setSeriesTitle(seriesTitle2);
-            error33.setSeries("T32-36DK");
+            //error33.setSeries("T32-36DK");
             errorRepository.save(error33);
 
             Error error34 = new Error();
@@ -417,7 +422,7 @@ public class PassportService {
                     "Обрыв соединительного\n" +
                     "кабеля датчика температуры.");
             error34.setSeriesTitle(seriesTitle2);
-            error34.setSeries("T32-36DK");
+            //error34.setSeries("T32-36DK");
             errorRepository.save(error34);
 
             Error error35 = new Error();
@@ -430,7 +435,7 @@ public class PassportService {
                     "Обрыв соединительного\n" +
                     "кабеля датчика температуры.");
             error35.setSeriesTitle(seriesTitle2);
-            error35.setSeries("T32-36DK");
+            //error35.setSeries("T32-36DK");
             errorRepository.save(error35);
 
             Error error36 = new Error();
@@ -441,7 +446,7 @@ public class PassportService {
                     "Неисправность системы\n" +
                     "защиты от перегрева.");
             error36.setSeriesTitle(seriesTitle2);
-            error36.setSeries("T32-36DK");
+            //error36.setSeries("T32-36DK");
             errorRepository.save(error36);
 
             Error error37 = new Error();
@@ -450,7 +455,7 @@ public class PassportService {
             error37.setCause("Система отопления может\n" +
                     "быть заморожена");
             error37.setSeriesTitle(seriesTitle2);
-            error37.setSeries("T32-36DK");
+            //error37.setSeries("T32-36DK");
             errorRepository.save(error37);
 
 
@@ -467,7 +472,7 @@ public class PassportService {
             error38.setDescription("Неисправность датчика температуры воды");
             error38.setCause("");
             error38.setSeriesTitle(seriesTitle3);
-            error38.setSeries("ST");
+            //error38.setSeries("ST");
             errorRepository.save(error38);
 
             Error error39 = new Error();
@@ -476,7 +481,7 @@ public class PassportService {
                     "находится вне зоны пламени – проверить датчик наличия пламени, проверить омывание датчика пламенем");
             error39.setCause("");
             error39.setSeriesTitle(seriesTitle3);
-            error39.setSeries("ST");
+            //error39.setSeries("ST");
             errorRepository.save(error39);
 
             Error error40 = new Error();
@@ -485,7 +490,7 @@ public class PassportService {
                     "прекращает подачу газа подачу газа");
             error40.setCause("");
             error40.setSeriesTitle(seriesTitle3);
-            error40.setSeries("ST");
+            //error40.setSeries("ST");
             errorRepository.save(error40);
 
             Error error41 = new Error();
@@ -493,7 +498,7 @@ public class PassportService {
             error41.setDescription("Защита от перегрева");
             error41.setCause("");
             error41.setSeriesTitle(seriesTitle3);
-            error41.setSeries("ST");
+            //error41.setSeries("ST");
             errorRepository.save(error41);
 
             Error error42 = new Error();
@@ -501,7 +506,7 @@ public class PassportService {
             error42.setDescription("Защита от перегрева");
             error42.setCause("");
             error42.setSeriesTitle(seriesTitle3);
-            error42.setSeries("ST");
+            //error42.setSeries("ST");
             errorRepository.save(error42);
 
             Error error43 = new Error();
@@ -509,7 +514,7 @@ public class PassportService {
             error43.setDescription("Неисправность датчика протока воды");
             error43.setCause("");
             error43.setSeriesTitle(seriesTitle3);
-            error43.setSeries("ST");
+            //error43.setSeries("ST");
             errorRepository.save(error43);
 
             Error error44 = new Error();
@@ -517,7 +522,7 @@ public class PassportService {
             error44.setDescription("Неисправность турбины, неисправность прессостата");
             error44.setCause("");
             error44.setSeriesTitle(seriesTitle3);
-            error44.setSeries("ST");
+            //error44.setSeries("ST");
             errorRepository.save(error44);
 
             Error error45 = new Error();
@@ -527,7 +532,7 @@ public class PassportService {
                     "водонагреватель перестает работать.");
             error45.setCause("");
             error45.setSeriesTitle(seriesTitle3);
-            error45.setSeries("ST");
+            //error45.setSeries("ST");
             errorRepository.save(error45);
 
             Error error46 = new Error();
@@ -535,7 +540,7 @@ public class PassportService {
             error46.setDescription("Неисправность электромагнитного клапана");
             error46.setCause("");
             error46.setSeriesTitle(seriesTitle3);
-            error46.setSeries("ST");
+            //error46.setSeries("ST");
             errorRepository.save(error46);
 
             Error error47 = new Error();
@@ -546,7 +551,7 @@ public class PassportService {
                     "выключается");
             error47.setCause("");
             error47.setSeriesTitle(seriesTitle3);
-            error47.setSeries("ST");
+            //error47.setSeries("ST");
             errorRepository.save(error47);
             /////////////////////////
             //////////FT////////////
@@ -559,7 +564,7 @@ public class PassportService {
             error48.setDescription("Неисправность датчика температуры воды");
             error48.setCause("");
             error48.setSeriesTitle(seriesTitle4);
-            error48.setSeries("FT");
+            //error48.setSeries("FT");
             errorRepository.save(error48);
 
             Error error49 = new Error();
@@ -568,7 +573,7 @@ public class PassportService {
                     "находится вне зоны пламени – проверить датчик наличия пламени, проверить омывание датчика пламенем");
             error49.setCause("");
             error49.setSeriesTitle(seriesTitle4);
-            error49.setSeries("FT");
+            //error49.setSeries("FT");
             errorRepository.save(error49);
 
             Error error50 = new Error();
@@ -577,7 +582,7 @@ public class PassportService {
                     "прекращает подачу газа подачу газа");
             error50.setCause("");
             error50.setSeriesTitle(seriesTitle4);
-            error50.setSeries("FT");
+            //error50.setSeries("FT");
             errorRepository.save(error50);
 
             Error error51 = new Error();
@@ -585,7 +590,7 @@ public class PassportService {
             error51.setDescription("Защита от перегрева");
             error51.setCause("");
             error51.setSeriesTitle(seriesTitle4);
-            error51.setSeries("FT");
+            //error51.setSeries("FT");
             errorRepository.save(error51);
 
             Error error52 = new Error();
@@ -593,7 +598,7 @@ public class PassportService {
             error52.setDescription("Неисправность датчика протока воды");
             error52.setCause("");
             error52.setSeriesTitle(seriesTitle4);
-            error52.setSeries("FT");
+            //error52.setSeries("FT");
             errorRepository.save(error52);
 
             Error error53 = new Error();
@@ -601,7 +606,7 @@ public class PassportService {
             error53.setDescription("Неисправность турбины, неисправность прессостата");
             error53.setCause("");
             error53.setSeriesTitle(seriesTitle4);
-            error53.setSeries("FT");
+            //error53.setSeries("FT");
             errorRepository.save(error53);
 
             Error error54 = new Error();
@@ -610,7 +615,7 @@ public class PassportService {
                     "– когда температура воды на выходе выше 85 ℃ в течение 10 секунд, газовый водонагреватель перестает работать.");
             error54.setCause("");
             error54.setSeriesTitle(seriesTitle4);
-            error54.setSeries("FT");
+            //error54.setSeries("FT");
             errorRepository.save(error54);
 
             Error error55 = new Error();
@@ -618,7 +623,7 @@ public class PassportService {
             error55.setDescription("Неисправность электромагнитного клапана");
             error55.setCause("");
             error55.setSeriesTitle(seriesTitle4);
-            error55.setSeries("FT");
+            //error55.setSeries("FT");
             errorRepository.save(error55);
 
             Error error56 = new Error();
@@ -629,7 +634,7 @@ public class PassportService {
                     "выключается.");
             error56.setCause("");
             error56.setSeriesTitle(seriesTitle4);
-            error56.setSeries("FT");
+            //error56.setSeries("FT");
             errorRepository.save(error56);
 
 
@@ -647,7 +652,7 @@ public class PassportService {
                     "на 1°С");
             error1.setCause("Ошибка режима «АНТИЗАМОРОЗКА»");
             error1.setSeriesTitle(seriesTitle5);
-            error1.setSeries("LT-D");
+            //error1.setSeries("LT-D");
             errorRepository.save(error1);
 
             Error error2 = new Error();
@@ -656,7 +661,7 @@ public class PassportService {
                     "для удаления ошибки");
             error2.setCause("Ошибка в электрической цепи котла");
             error2.setSeriesTitle(seriesTitle5);
-            error2.setSeries("LT-D");
+            //error2.setSeries("LT-D");
             errorRepository.save(error2);
 
             Error error3 = new Error();
@@ -666,7 +671,7 @@ public class PassportService {
             error3.setCause("Обрыв электрической цепи аварийного\n" +
                     "датчика температуры");
             error3.setSeriesTitle(seriesTitle5);
-            error3.setSeries("LT-D");
+            //error3.setSeries("LT-D");
             errorRepository.save(error3);
 
             Error error4 = new Error();
@@ -676,7 +681,7 @@ public class PassportService {
             error4.setCause("Перегрев датчика температуры линии\n" +
                     "подачи");
             error4.setSeriesTitle(seriesTitle5);
-            error4.setSeries("LT-D");
+            //error4.setSeries("LT-D");
             errorRepository.save(error4);
 
             Error error5 = new Error();
@@ -685,7 +690,7 @@ public class PassportService {
             error5.setCause("Ошибка датчика температуры\n" +
                     "теплоносителя");
             error5.setSeriesTitle(seriesTitle5);
-            error5.setSeries("LT-D");
+            //error5.setSeries("LT-D");
             errorRepository.save(error5);
 
             Error error6 = new Error();
@@ -695,7 +700,7 @@ public class PassportService {
                     "(фактический проток есть, но нет сигнала\n" +
                     "от датчика)");
             error6.setSeriesTitle(seriesTitle5);
-            error6.setSeries("LT-D");
+            //error6.setSeries("LT-D");
             errorRepository.save(error6);
 
             Error error7 = new Error();
@@ -704,7 +709,7 @@ public class PassportService {
             error7.setCause("Ошибка датчика реле протока\n" +
                     "(отсутствие циркуляция теплоносителя)");
             error7.setSeriesTitle(seriesTitle5);
-            error7.setSeries("LT-D");
+            //error7.setSeries("LT-D");
             errorRepository.save(error7);
             /////////////////////////////////
             //////////Серия QM////////////
@@ -716,7 +721,7 @@ public class PassportService {
             error17.setDescription("Автоматическое восстановление");
             error17.setCause("Перегрев теплоносителя");
             error17.setSeriesTitle(seriesTitle6);
-            error17.setSeries("QM");
+            //error17.setSeries("QM");
             errorRepository.save(error17);
 
             Error error18 = new Error();
@@ -724,7 +729,7 @@ public class PassportService {
             error18.setDescription("Автоматическое восстановление");
             error18.setCause("Обрыв электрической цепи датчика температуры NTC бойлера косвенного нагрева.");
             error18.setSeriesTitle(seriesTitle6);
-            error18.setSeries("QM");
+            //error18.setSeries("QM");
             errorRepository.save(error18);
 
             Error error19 = new Error();
@@ -732,7 +737,7 @@ public class PassportService {
             error19.setDescription("Автоматическое восстановление");
             error19.setCause("Перегрев датчика температуры линии подачи.");
             error19.setSeriesTitle(seriesTitle6);
-            error19.setSeries("QM");
+            //error19.setSeries("QM");
             errorRepository.save(error19);
 
             Error error20 = new Error();
@@ -740,7 +745,7 @@ public class PassportService {
             error20.setDescription("Автоматическое восстановление");
             error20.setCause("Обрыв электрической цепи датчика температуры линии подачи.");
             error20.setSeriesTitle(seriesTitle6);
-            error20.setSeries("QM");
+            //error20.setSeries("QM");
             errorRepository.save(error20);
 
             Error error21 = new Error();
@@ -748,7 +753,7 @@ public class PassportService {
             error21.setDescription("Автоматическое восстановление");
             error21.setCause("Обрыв электрической цепи датчика температуры линии подачи.");
             error21.setSeriesTitle(seriesTitle6);
-            error21.setSeries("QM");
+            //error21.setSeries("QM");
             errorRepository.save(error21);
 
             Error error22 = new Error();
@@ -756,7 +761,7 @@ public class PassportService {
             error22.setDescription("Автоматическое восстановление");
             error22.setCause("Перегрев датчика температуры линии обратки.");
             error22.setSeriesTitle(seriesTitle6);
-            error22.setSeries("QM");
+            //error22.setSeries("QM");
             errorRepository.save(error22);
 
             Error error23 = new Error();
@@ -764,7 +769,7 @@ public class PassportService {
             error23.setDescription("Автоматическое восстановление");
             error23.setCause("Обрыв электрической цепи датчика температуры линии обратки.");
             error23.setSeriesTitle(seriesTitle6);
-            error23.setSeries("QM");
+            //error23.setSeries("QM");
             errorRepository.save(error23);
 
             Error error24 = new Error();
@@ -772,7 +777,7 @@ public class PassportService {
             error24.setDescription("Нажмите и удерживайте кнопку ON/OFF для удаления ошибки");
             error24.setCause("Ошибка в электрической цепи котла.");
             error24.setSeriesTitle(seriesTitle6);
-            error24.setSeries("QM");
+            //error24.setSeries("QM");
             errorRepository.save(error24);
 
             Error error25 = new Error();
@@ -780,7 +785,7 @@ public class PassportService {
             error25.setDescription("Нажмите и удерживайте кнопку ON/OFF для удаления ошибки");
             error25.setCause("Обрыв электрической цепи аварийного датчика температуры");
             error25.setSeriesTitle(seriesTitle6);
-            error25.setSeries("QM");
+            //error25.setSeries("QM");
             errorRepository.save(error25);
 
             Error error26 = new Error();
@@ -788,7 +793,7 @@ public class PassportService {
             error26.setDescription("Нажмите и удерживайте кнопку ON/OFF для удаления ошибки");
             error26.setCause("Ошибка циркуляции теплоносителя");
             error26.setSeriesTitle(seriesTitle6);
-            error26.setSeries("QM");
+            //error26.setSeries("QM");
             errorRepository.save(error26);
 
             Error error27 = new Error();
@@ -796,7 +801,7 @@ public class PassportService {
             error27.setDescription("Нажмите и удерживайте кнопку ON/OFF для удаления ошибки");
             error27.setCause("Ошибка датчика протока");
             error27.setSeriesTitle(seriesTitle6);
-            error27.setSeries("QM");
+            //error27.setSeries("QM");
             errorRepository.save(error27);
 
             Error error28 = new Error();
@@ -804,7 +809,7 @@ public class PassportService {
             error28.setDescription("Нажмите и удерживайте кнопку ON/OFF для удаления ошибки");
             error28.setCause("Ошибка в работе панели управления");
             error28.setSeriesTitle(seriesTitle6);
-            error28.setSeries("QM");
+            //error28.setSeries("QM");
             errorRepository.save(error28);
         }
     }

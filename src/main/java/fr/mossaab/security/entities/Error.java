@@ -19,7 +19,6 @@ public class Error {
 
     private String code;
     private String cause;
-    private String series;
     private String description;
 
     @ManyToOne
