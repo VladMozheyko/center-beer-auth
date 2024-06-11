@@ -106,6 +106,14 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
      ```sql
      use vuary;
      ```
+  *
+    ```
+    -- Удаляем схему (базу данных) если она существует
+    DROP DATABASE IF EXISTS vuary;
+
+    -- Создаем новую пустую схему (базу данных) с тем же именем
+    CREATE DATABASE vuary;
+    ```
 # Локальное тестирование посредством Postman 
 ## Этот endpoint позволяет пользователю зарегистрироваться (не забыть почистить cookies) и изменить путь сохранения с глобального на локальный в классе StorageService.
 
