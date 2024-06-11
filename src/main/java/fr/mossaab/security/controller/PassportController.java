@@ -53,8 +53,8 @@ public class PassportController {
             }
 
             List<SeriesTitleDTO> seriesTitleDTO = new ArrayList<>();
-            List<ErrorDTO> errorDTOList = new ArrayList<>();
             for (SeriesTitle seriesTitle : category.getSeriesTitles()) {
+                List<ErrorDTO> errorDTOList = new ArrayList<>();
                 for (Error error : seriesTitle.getErrors()) {
                     errorDTOList.add(new ErrorDTO(error.getCode(), error.getCause(), error.getDescription()));
                 }
