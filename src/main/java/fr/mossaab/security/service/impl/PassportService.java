@@ -140,7 +140,7 @@ public class PassportService {
             title12.setCategory(category4);
 
             PassportTitle title13 = new PassportTitle();
-            title13.setTitle("Passport_S10-12_S10-12EM");
+            title13.setTitle("Passport_S10_12_S10_12EM");
             title13.setRuTitle("Паспорт колонка S10-12, S10-12EM");
             title13.setCategory(category4);
 
