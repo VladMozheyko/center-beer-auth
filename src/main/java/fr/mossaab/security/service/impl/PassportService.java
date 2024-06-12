@@ -90,24 +90,24 @@ public class PassportService {
             title2.setCategory(category1);
 
             PassportTitle title3 = new PassportTitle();
-            title3.setTitle("Passport_VFE_A5_new");
-            title3.setRuTitle("Паспорт водонагреватель VFE_A5_new");
+            title3.setTitle("Passport_VFE_A5");
+            title3.setRuTitle("Паспорт водонагреватель VFE_A5");
             title3.setCategory(category1);
 
             PassportTitle title4 = new PassportTitle();
-            title4.setTitle("Passport_KM_A5_new");
-            title4.setRuTitle("Паспорт водонагреватель KM_A5_new");
+            title4.setTitle("Passport_KM_A5");
+            title4.setRuTitle("Паспорт водонагреватель KM_A5");
             title4.setCategory(category1);
 
             PassportTitle title5 = new PassportTitle();
-            title5.setTitle("Passport_FRM_A5_new");
-            title5.setRuTitle("Паспорт водонагреватель FRM_A5_new");
+            title5.setTitle("Passport_FRM_A5");
+            title5.setRuTitle("Паспорт водонагреватель FRM_A5");
             title5.setCategory(category1);
 
-            PassportTitle title6 = new PassportTitle();
+            /*PassportTitle title6 = new PassportTitle();
             title6.setTitle("Passport_FRM_A5_3mm_new");
             title6.setRuTitle("Паспорт водонагреватель FRM_A5_3mm_new");
-            title6.setCategory(category1);
+            title6.setCategory(category1);*/
 
             PassportTitle title7 = new PassportTitle();
             title7.setTitle("Passport_QM");
@@ -130,13 +130,13 @@ public class PassportService {
             title10.setCategory(category3);
 
             PassportTitle title11 = new PassportTitle();
-            title11.setTitle("Passport_Т10_24DK");
+            title11.setTitle("Passport_T10_24DK");
             title11.setRuTitle("Паспорт Т10-24DK");
             title11.setCategory(category3);
 
             PassportTitle title12 = new PassportTitle();
-            title12.setTitle("Passport_Suari_ST_FT");
-            title12.setRuTitle("Паспорт колонка Suari ST_FT");
+            title12.setTitle("Passport_ST_FT");
+            title12.setRuTitle("Паспорт колонка ST_FT");
             title12.setCategory(category4);
 
             PassportTitle title13 = new PassportTitle();
@@ -144,7 +144,7 @@ public class PassportService {
             title13.setRuTitle("Паспорт колонка S10-12, S10-12EM");
             title13.setCategory(category4);
 
-            passportTitleRepository.saveAll(List.of(title1, title2, title3, title4, title5, title6, title7, title8, title9, title10, title11, title12, title13));
+            passportTitleRepository.saveAll(List.of(title1, title2, title3, title4, title5, title7, title8, title9, title10, title11, title12, title13));
 
             for (int i = 1; i <= 12; i++) {
                 uploadImage(title1, "_" + i);
@@ -161,9 +161,9 @@ public class PassportService {
             for (int i = 1; i <= 12; i++) {
                 uploadImage(title5, "_" + i);
             }
-            for (int i = 1; i <= 12; i++) {
+            /*for (int i = 1; i <= 12; i++) {
                 uploadImage(title6, "_" + i);
-            }
+            }*/
             for (int i = 1; i <= 40; i++) {
                 uploadImage(title7, "_" + i);
             }
