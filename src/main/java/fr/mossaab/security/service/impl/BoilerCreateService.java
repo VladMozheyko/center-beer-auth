@@ -174,10 +174,10 @@ public class BoilerCreateService {
             ImageForSeries i2 = new ImageForSeries("T18O_01.png", "image/*", "/var/www/vuary/Series/T18O_01.png", s2);
             ImageForSeries i3 = new ImageForSeries("T18O_01.png", "image/*", "/var/www/vuary/Series/T18O_01.png", s3);
             ImageForSeries i4 = new ImageForSeries("S10_S12.png", "image/*", "/var/www/vuary/Series/S10_S12.png", s4);
-            ImageForSeries i5 = new ImageForSeries("S10EM_S12EM", "image/*", "/var/www/vuary/Series/S10EM_S12EM", s5);
+            ImageForSeries i5 = new ImageForSeries("S10EM_S12EM", "image/*", "/var/www/vuary/Series/S10EM_S12EM.png", s5);
             ImageForSeries i6 = new ImageForSeries("S13ST_S16ST.png", "image/*", "/var/www/vuary/Series/S13ST_S16ST.png", s6);
             ImageForSeries i7 = new ImageForSeries("S12FT.png", "image/*", "/var/www/vuary/Series/S12FT.png", s7);
-            ImageForSeries i8 = new ImageForSeries("LT4_24D.png", "image/*", "/var/www/vuary/Series/LT4_24D", s8);
+            ImageForSeries i8 = new ImageForSeries("LT4_24D.png", "image/*", "/var/www/vuary/Series/LT4_24D.png", s8);
             ImageForSeries i9 = new ImageForSeries("QM_4_06_2.png", "image/*", "/var/www/vuary/Series/QM_4_06_2.png", s9);
             ImageForSeries i10 = new ImageForSeries("KMU10_30L.png", "image/*", "/var/www/vuary/Series/KMU10_30L.png", s10);
             ImageForSeries i11 = new ImageForSeries("VRM30_100.png", "image/*", "/var/www/vuary/Series/VRM30_100.png", s11);
