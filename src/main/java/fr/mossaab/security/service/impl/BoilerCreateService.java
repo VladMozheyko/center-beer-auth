@@ -170,9 +170,9 @@ public class BoilerCreateService {
 
             // Изображения котлов
             //------------------------------------------------------------------------------------------------------
-            ImageForSeries i1 = new ImageForSeries("T18O_01.png", "image/*", "/var/www/vuary/Series/T18O_01.png", s1);
-            ImageForSeries i2 = new ImageForSeries("T18O_01.png", "image/*", "/var/www/vuary/Series/T18O_01.png", s2);
-            ImageForSeries i3 = new ImageForSeries("T18O_01.png", "image/*", "/var/www/vuary/Series/T18O_01.png", s3);
+            ImageForSeries i1 = new ImageForSeries("T10O_T24O.png", "image/*", "/var/www/vuary/Series/T10O_T24O.png", s1);
+            ImageForSeries i2 = new ImageForSeries("T10OK_T24OK.png", "image/*", "/var/www/vuary/Series/T10OK_T24OK.png", s2);
+            ImageForSeries i3 = new ImageForSeries("T10DK_T24DK.png", "image/*", "/var/www/vuary/Series/T10DK_T24DK.png", s3);
             ImageForSeries i4 = new ImageForSeries("S10_S12.png", "image/*", "/var/www/vuary/Series/S10_S12.png", s4);
             ImageForSeries i5 = new ImageForSeries("S10EM_S12EM", "image/*", "/var/www/vuary/Series/S10EM_S12EM.png", s5);
             ImageForSeries i6 = new ImageForSeries("S13ST_S16ST.png", "image/*", "/var/www/vuary/Series/S13ST_S16ST.png", s6);

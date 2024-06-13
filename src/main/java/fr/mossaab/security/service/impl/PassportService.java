@@ -501,13 +501,13 @@ public class PassportService {
             //error41.setSeries("ST");
             errorRepository.save(error41);
 
-            Error error42 = new Error();
+            /*Error error42 = new Error();
             error42.setCode("Е3");
             error42.setDescription("Защита от перегрева");
             error42.setCause("");
             error42.setSeriesTitle(seriesTitle3);
             //error42.setSeries("ST");
-            errorRepository.save(error42);
+            errorRepository.save(error42);*/
 
             Error error43 = new Error();
             error43.setCode("Е4");
