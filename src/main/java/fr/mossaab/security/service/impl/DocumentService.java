@@ -32,7 +32,7 @@ public class DocumentService {
     private DocumentTitleRepository documentTitleRepository;
 
     public DocumentFileData uploadDocument(DocumentTitle documentTitle, String number) throws IOException{
-        String str1 = "/var/www/vuary/Политика обработки и соглашения";
+        String str1 = "/var/www/vuary/Processing_Policy_and_User_Agreement";
         String str2 = documentTitle.getCategory().getTitle();
         String str3 = documentTitle.getTitle();
         String filePath = str1 + str2 + "/" + str3 + "/" + number + ".png";
@@ -70,8 +70,8 @@ public class DocumentService {
             title1.setCategory(category1);
 
             DocumentTitle title2 = new DocumentTitle();
-            title2.setTitle("ПОЛЬЗОВАТЕЛЬСКОЕ СОГЛАШЕНИЕ");
-            title2.setRuTitle("");
+            title2.setTitle("User_Agreement");
+            title2.setRuTitle("ПОЛЬЗОВАТЕЛЬСКОЕ СОГЛАШЕНИЕ");
             title2.setCategory(category1);
 
             documentTitleRepository.saveAll(List.of(title1, title2));
