@@ -35,7 +35,7 @@ public class DocumentService {
         String str1 = "/var/www/vuary/Processing_Policy_and_User_Agreement";
         String str2 = documentTitle.getCategory().getTitle();
         String str3 = documentTitle.getTitle();
-        String filePath = str1 + str2 + "/" + str3 + "/" + number + ".png";
+        String filePath = str1 + "/" +str2 + "/" + str3 + number + ".png";
 
         DocumentFileData documentFileData = (DocumentFileData) documentFileDataRepository.save(DocumentFileData.builder()
                 .name(str3 + number + ".png")
