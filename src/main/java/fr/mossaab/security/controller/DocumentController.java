@@ -46,7 +46,7 @@ public class DocumentController {
                         .map(fileData -> "http://31.129.102.70:8080/image/" + fileData.getName()) // Добавление хоста к каждому имени файла
                         .collect(Collectors.toList()); // Собираем все имена файлов в список
 
-                titleWithFilesList.add(new TitleWithFilesDTO(title.getTitle(), filePaths));
+                titleWithFilesList.add(new TitleWithFilesDTO(title.getTitle(),title.getRuTitle(), filePaths));
             }
             categoryWithTitlesList.add(new CategoryWithTitlesDTO(category.getTitle(), titleWithFilesList));
         }
@@ -75,10 +75,12 @@ public class DocumentController {
     @Getter
     static class TitleWithFilesDTO {
         private String titleName;
+        private String ruTitleName;
         private List<String> files;
 
-        public TitleWithFilesDTO(String titleName, List<String> files) {
+        public TitleWithFilesDTO(String titleName,String ruTitleName, List<String> files) {
             this.titleName = titleName;
+            this.ruTitleName = ruTitleName;
             this.files = files;
         }
     }

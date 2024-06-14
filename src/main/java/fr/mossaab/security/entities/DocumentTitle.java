@@ -18,6 +18,7 @@ public class DocumentTitle {
     private int id;
 
     private String title;
+    private String ruTitle;
 
     @OneToMany(mappedBy = "documentTitle", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference

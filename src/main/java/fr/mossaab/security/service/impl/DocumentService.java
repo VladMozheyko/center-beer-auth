@@ -66,10 +66,12 @@ public class DocumentService {
             // Создание заголовков документов
             DocumentTitle title1 = new DocumentTitle();
             title1.setTitle("Personal_Data_Processing_Policy");
+            title1.setRuTitle("ПОЛИТИКА ОБ ОБРАБОТКЕ ПЕРСОНАЛЬНЫХ ДАННЫХ");
             title1.setCategory(category1);
 
             DocumentTitle title2 = new DocumentTitle();
-            title2.setTitle("User_Agreement");
+            title2.setTitle("ПОЛЬЗОВАТЕЛЬСКОЕ СОГЛАШЕНИЕ");
+            title2.setRuTitle("");
             title2.setCategory(category1);
 
             documentTitleRepository.saveAll(List.of(title1, title2));
