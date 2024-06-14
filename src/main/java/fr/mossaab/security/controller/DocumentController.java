@@ -46,7 +46,7 @@ public class DocumentController {
             for (DocumentTitle title : titles) {
                 List<DocumentFileData> fileDataList = documentFileDataRepository.findByDocumentTitle(title);
                 List<String> filePaths = fileDataList.stream()
-                        .map(fileData -> "http://31.129.102.70:8080/image/" + fileData.getName()) // Добавление хоста к каждому имени файла
+                        .map(fileData -> "http://31.129.102.70:8080/documents/fileSystem/" + fileData.getName()) // Добавление хоста к каждому имени файла
                         .collect(Collectors.toList()); // Собираем все имена файлов в список
 
                 titleWithFilesList.add(new TitleWithFilesDTO(title.getTitle(),title.getRuTitle(), filePaths));
