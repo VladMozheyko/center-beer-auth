@@ -9,6 +9,9 @@ import fr.mossaab.security.repository.DocumentTitleRepository;
 import fr.mossaab.security.service.impl.DocumentService;
 import lombok.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -54,10 +57,19 @@ public class DocumentController {
         return categoryWithTitlesList;
     }
 
-    @GetMapping("/file/{fileName}")
+    /*@GetMapping("/file/{fileName}")
     public byte[] getDocument(@PathVariable String fileName) throws IOException {
         return documentService.downloadDocumentFromFileSystem(fileName);
+    }*/
+
+    @GetMapping("/fileSystem/{fileName}")
+    public ResponseEntity<?> downloadImageFromFileSystem(@PathVariable String fileName) throws IOException {
+        byte[] imageData = documentService.downloadDocumentFromFileSystem(fileName);
+        return ResponseEntity.status(HttpStatus.OK)
+                .contentType(MediaType.valueOf("image/png"))
+                .body(imageData);
     }
+
 
     @Setter
     @Getter
