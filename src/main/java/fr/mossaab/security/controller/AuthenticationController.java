@@ -2,13 +2,12 @@ package fr.mossaab.security.controller;
 
 import fr.mossaab.security.entities.FileData;
 
+import fr.mossaab.security.entities.Series;
 import fr.mossaab.security.entities.User;
+import fr.mossaab.security.enums.CategoryOfAdvantage;
 import fr.mossaab.security.enums.Role;
 import fr.mossaab.security.enums.WorkerRole;
-import fr.mossaab.security.payload.request.AuthenticationRequest;
-import fr.mossaab.security.payload.request.EditProfileDto;
-import fr.mossaab.security.payload.request.RefreshTokenRequest;
-import fr.mossaab.security.payload.request.RegisterRequest;
+import fr.mossaab.security.payload.request.*;
 import fr.mossaab.security.payload.response.AuthenticationResponse;
 import fr.mossaab.security.payload.response.GetUsersDto;
 import fr.mossaab.security.payload.response.RefreshTokenResponse;
@@ -24,8 +23,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -40,6 +42,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 
 @Tag(name = "Authentication", description = "The Authentication API. Contains operations like login, logout, refresh-token etc.")
@@ -51,6 +54,8 @@ with @SecurityRequirements()
 */
 @RequiredArgsConstructor
 public class AuthenticationController {
+    @Autowired
+    private SeriesRepository seriesRepository;
     public static final Pattern VALID_PASSWORD_REGEX =
             Pattern.compile("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*])(?=\\S+$).{8,20}$");
     public static final Pattern VALID_PHONE_NUMBER_REGEX =
@@ -537,5 +542,85 @@ public class AuthenticationController {
         return ResponseEntity.status(HttpStatus.OK)
                 .contentType(MediaType.valueOf("image/png"))
                 .body(imageData);
+    }
+
+    @Operation(summary = "Смена пароля", description = "Этот эндпоинт позволяет пользователю изменить свой пароль.")
+    @PostMapping("/changePassword")
+    public ResponseEntity<Object> changePassword(@CookieValue("refresh-jwt-cookie") String cookie,
+                                                 @RequestBody ChangePasswordRequest changePasswordRequest) {
+        Map<String, Object> response = new HashMap<>();
+        Map<String, String> errors = new HashMap<>();
+        response.put("status", "success");
+        response.put("notify", "Пароль успешно изменен");
+        response.put("answer", "password change success");
+        errors.put("currentPassword", "");
+        errors.put("newPassword", "");
+
+        User user = refreshTokenRepository.findByToken(cookie).orElse(null).getUser();
+        if (!passwordEncoder.matches(changePasswordRequest.getCurrentPassword(), user.getPassword())) {
+            errors.put("currentPassword", "Неверный текущий пароль");
+        }
+
+        if (!isValidPassword(changePasswordRequest.getNewPassword())) {
+            errors.put("newPassword", "Новый пароль не соответствует требованиям");
+        }
+
+        if (errors.get("currentPassword").isEmpty() && errors.get("newPassword").isEmpty()) {
+            user.setPassword(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
+            userRepository.save(user);
+            response.put("errors", errors);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
+
+        response.put("status", "error");
+        response.put("notify", "Ошибка при смене пароля");
+        response.put("answer", "password change error");
+        response.put("errors", errors);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/allSeries")
+    public ResponseEntity<List<SeriesResponse>> getAllSeries() {
+        List<Series> seriesList = seriesRepository.findAll();
+        List<SeriesResponse> seriesResponses = seriesList.stream()
+                .map(series -> new SeriesResponse(
+                        series.getTitle(),
+                        series.getDescription(),
+                        series.getAdvantages().stream()
+                                .map(advantage -> new AdvantageResponse(advantage.getTitle(),
+                                        advantage.getCategory(),
+                                        "http://31.129.102.70:8080/api/fileSystemAdvantages/"+ advantage.getIconPath()))
+                                .collect(Collectors.toList())
+                ))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(seriesResponses);
+    }
+    @Getter
+    @Setter
+    public static class SeriesResponse {
+        private String title;
+        private String description;
+        private List<AdvantageResponse> advantages;
+
+        public SeriesResponse(String title, String description, List<AdvantageResponse> advantages) {
+            this.title = title;
+            this.description = description;
+            this.advantages = advantages;
+        }
+
+
+    }
+    @Getter
+    @Setter
+    public static class AdvantageResponse {
+        private String title;
+        private CategoryOfAdvantage category;
+        private String iconPath;
+        public AdvantageResponse(String title, CategoryOfAdvantage category, String iconPath) {
+            this.title = title;
+            this.category = category;
+            this.iconPath = iconPath;
+        }
+
     }
 }

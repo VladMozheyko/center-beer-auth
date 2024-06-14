@@ -76,10 +76,10 @@ public class DocumentService {
 
             // Загрузка документов
             for (int i = 1; i <= 4; i++) {
-                uploadDocument(title1, "-" + i);
+                uploadDocument(title1, "_" + i);
             }
             for (int i = 1; i <= 3; i++) {
-                uploadDocument(title2, "-" + i);
+                uploadDocument(title2, "_" + i);
             }
         }
     }

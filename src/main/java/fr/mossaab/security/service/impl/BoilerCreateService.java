@@ -624,7 +624,9 @@ public class BoilerCreateService {
             Advantage ad53 = new Advantage("Реле протока", "Flow_switch.png", CategoryOfAdvantage.PROTECTION);
             Advantage ad54 = new Advantage("ТЭН и колба из нержавеющей стали", "Stainless_steel_heating_element_and_tank.png", CategoryOfAdvantage.CONSTRUCTION);
 
-            //TODO соед с сериями
+
+
+
             ad1.setSeries(List.of(s1, s2, s3, s8, s9));
             ad2.setSeries(List.of(s1, s2, s3, s4, s5, s6, s7));
             ad3.setSeries(List.of(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15));
