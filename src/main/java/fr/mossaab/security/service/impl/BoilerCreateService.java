@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 
+
 @Service
 public class BoilerCreateService {
     @Autowired
@@ -680,8 +681,8 @@ public class BoilerCreateService {
             ad1.setSeries(List.of(s1, s2, s3, s8, s9));
             ad2.setSeries(List.of(s1, s2, s3, s4, s5, s6, s7));
             ad3.setSeries(List.of(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15));
-            ad4.setSeries(List.of(s1, s3, s4, s5, s6, s7, s8, s9, s11, s13));
-            ad5.setSeries(List.of(s1, s2, s3));
+            ad4.setSeries(List.of(s1, s3, s4, s5, s6, s7, s8, s9, s12, s13));
+            ad5.setSeries(List.of(s1, s2, s3, s5));
             ad6.setSeries(List.of(s4, s5, s6, s7));
             ad7.setSeries(List.of(s4, s5, s6, s7, s10, s11, s12, s13, s14, s15));
             ad8.setSeries(List.of(s4, s5, s6, s7));
@@ -715,7 +716,7 @@ public class BoilerCreateService {
             ad36.setSeries(List.of(s4, s5, s6, s7));
             ad37.setSeries(List.of(s5, s6, s7));
             ad38.setSeries(List.of(s7));
-            ad39.setSeries(List.of(s8, s9));
+            ad39.setSeries(List.of(s8, s9, s10, s11, s12, s13, s14, s15));
             ad40.setSeries(List.of(s8, s9));
             ad41.setSeries(List.of(s8, s9));
             ad42.setSeries(List.of(s10, s11, s12, s13, s14, s15));
@@ -729,14 +730,14 @@ public class BoilerCreateService {
             ad49.setSeries(List.of(s1, s2, s3, s10));
             ad50.setSeries(List.of(s1, s2, s3));
             ad51.setSeries(List.of(s2, s3));
-            ad52.setSeries(List.of(s4, s5, s6, s7));
+            ad52.setSeries(List.of(s4, s5, s6, s7, s9, s10, s11, s12, s13, s14, s15));
             ad53.setSeries(List.of(s8, s9));
             ad54.setSeries(List.of(s8));
 
 
             advantageService.addAll(List.of(ad1, ad2, ad3, ad4, ad5, ad6, ad7, ad8, ad9, ad10, ad11, ad12, ad13, ad14, ad15,
                     ad16, ad17, ad18, ad19, ad20, ad21, ad22, ad23, ad24, ad25, ad26, ad27, ad28, ad29, ad30, ad31, ad32, ad33, ad35,
-                    ad36, ad37, ad38, ad39, ad40, ad41, ad42));
+                    ad36, ad37, ad38, ad39, ad40, ad41, ad42, ad43, ad44, ad45, ad46, ad47, ad48, ad49, ad50, ad51, ad52, ad53, ad54));
 
             // Допустимые значения b1-b2
             //------------------------------------------------------------------------------------------------------
@@ -1573,7 +1574,7 @@ public class BoilerCreateService {
             Value v271 = new Value(c3, 89.0);
             v271.setBoilers(List.of(b13));
 
-            Value v272 = new Value(c71, 1274.0-1960.0);
+            Value v272 = new Value(c71, 1274.0, 1960.0);
             v272.setBoilers(List.of(b13));
             Value v273 = new Value(c72, 2940.0);
             v273.setBoilers(List.of(b13));
@@ -1657,10 +1658,10 @@ public class BoilerCreateService {
 
             Value v304 = new Value(c99, "нет");
             v304.setBoilers(List.of(b14));
-            Value v305 = new Value(c45, 0.05-0.3);
+            Value v305 = new Value(c45, 0.05, 0.3);
             v305.setBoilers(List.of(b14));
 
-            Value v306 = new Value(c47, 30.0-80.0);
+            Value v306 = new Value(c47, 30.0, 80.0);
             v306.setBoilers(List.of(b14));
             Value v307 = new Value(c48, "нет");
             v307.setBoilers(List.of(b14));
@@ -1722,10 +1723,10 @@ public class BoilerCreateService {
 
             Value v329 = new Value(c99, "нет");
             v329.setBoilers(List.of(b15));
-            Value v330 = new Value(c45, 0.05-0.3);
+            Value v330 = new Value(c45, 0.05, 0.3);
             v330.setBoilers(List.of(b15));
 
-            Value v331 = new Value(c47, 30.0-80.0);
+            Value v331 = new Value(c47, 30.0, 80.0);
             v331.setBoilers(List.of(b15));
             Value v332 = new Value(c48, "нет");
             v332.setBoilers(List.of(b15));
@@ -1787,12 +1788,12 @@ public class BoilerCreateService {
 
             Value v354 = new Value(c99, "внешний термостат");
             v354.setBoilers(List.of(b16));
-            Value v355 = new Value(c45, 0.05-0.3);
+            Value v355 = new Value(c45, 0.05, 0.3);
             v355.setBoilers(List.of(b16));
 
-            Value v356 = new Value(c47, 30.0-80.0);
+            Value v356 = new Value(c47, 30.0, 80.0);
             v356.setBoilers(List.of(b16));
-            Value v357 = new Value(c48, 30.0-60.0);
+            Value v357 = new Value(c48, 30.0, 60.0);
             v357.setBoilers(List.of(b16));
 
             Value v358 = new Value(c49, "IPX1");
@@ -1855,12 +1856,12 @@ public class BoilerCreateService {
 
             Value v380 = new Value(c99, "внешний термостат");
             v380.setBoilers(List.of(b17));
-            Value v381 = new Value(c45, 0.05-0.3);
+            Value v381 = new Value(c45, 0.05, 0.3);
             v381.setBoilers(List.of(b17));
 
-            Value v382 = new Value(c47, 30.0-80.0);
+            Value v382 = new Value(c47, 30.0, 80.0);
             v382.setBoilers(List.of(b17));
-            Value v383 = new Value(c48, 30.0-60.0);
+            Value v383 = new Value(c48, 30.0, 60.0);
             v383.setBoilers(List.of(b17));
 
             Value v384 = new Value(c49, "IPX1");
