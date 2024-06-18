@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+
 @Service
 public class BoilerCreateService {
     @Autowired
@@ -407,6 +408,28 @@ public class BoilerCreateService {
                     "Располо- жение патрубков",
                     u19);
             Characteristic c80 = new Characteristic("Номинальное напряжение", u20);
+            Characteristic c81 = new Characteristic("Минимальный расход воды, необходимый для зажигания горелки", u15);
+            Characteristic c82 = new Characteristic("Температура продуктов сгорания, не менее", u6);
+            Characteristic c83 = new Characteristic("Вход холодной воды", u7);
+            Characteristic c84 = new Characteristic("Выход горячей воды", u7);
+            Characteristic c85 = new Characteristic("Вход газа", u7);
+            Characteristic c86 = new Characteristic("Масса, брутто", u11);
+            Characteristic c87 = new Characteristic("Внутренний диаметр патрубка дымохода", u10);
+            Characteristic c88 = new Characteristic("Мощность", u1);
+            Characteristic c89 = new Characteristic("Wi-Fi", u19);
+            Characteristic c90 = new Characteristic("Способ управления", u19);
+            Characteristic c91 = new Characteristic("Использование в системах «Тёплый пол»", u19);
+            Characteristic c92 = new Characteristic("Функционал ГВС", u19);
+            Characteristic c93 = new Characteristic("Встроенный воздухоотводчик", u19);
+            Characteristic c94 = new Characteristic("Встроенный предохранительный клапан", u19);
+            Characteristic c95 = new Characteristic("Встроенный циркуляционный насос", u19);
+            Characteristic c96 = new Characteristic("Расширительный бак", u5);
+            Characteristic c97 = new Characteristic("Настройка расписания", u19);
+            Characteristic c98 = new Characteristic("Погодозависимое управление", u19);
+            Characteristic c99 = new Characteristic("Возможность подключения оборудования", u19);
+            Characteristic c100 = new Characteristic("Контур отопления подающая линия", u7);
+            Characteristic c101 = new Characteristic("Контур отопления обратная линия", u7);
+            Characteristic c102 = new Characteristic("Масса аппарата, брутто", u11);
 
 
             // TODO ждем ответа по пункту Время нагрева * (∆45°C) документа Passport_FRM_A5+3mm_new.pdf
@@ -485,10 +508,37 @@ public class BoilerCreateService {
             c77.setSeries(List.of(s9));
             c78.setSeries(List.of(s9,s8));
             c80.setSeries(List.of(s8));
+            c81.setSeries(List.of(s7, s6));
+            c82.setSeries(List.of(s7));
+            c83.setSeries(List.of(s7));
+            c84.setSeries(List.of(s7));
+            c85.setSeries(List.of(s7));
+            c86.setSeries(List.of(s7));
+            c87.setSeries(List.of(s7));
+            c88.setSeries(List.of(s8));
+            c89.setSeries(List.of(s8));
+            c90.setSeries(List.of(s8));
+            c91.setSeries(List.of(s8));
+            c92.setSeries(List.of(s8));
+            c93.setSeries(List.of(s8));
+            c94.setSeries(List.of(s8));
+            c95.setSeries(List.of(s8));
+            c96.setSeries(List.of(s8));
+            c97.setSeries(List.of(s8));
+            c98.setSeries(List.of(s8));
+            c99.setSeries(List.of(s8));
+            c100.setSeries(List.of(s8));
+            c101.setSeries(List.of(s8));
+            c102.setSeries(List.of(s8));
+
+
 
             characteristicService.addAll(List.of(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19,
                     c20, c21, c22, c23, c24, c25, c26, c27, c30, c31, c32, c33, c34, c35, c36, c37, c39, c40, c41,
-                    c43, c44, c45, c46, c47, c48, c49, c50, c51, c52, c56, c57, c58, c59, c60, c61, c62, c63, c64, c65, c66, c67, c68, c69, c70, c71, c72, c73, c74, c75, c76, c77, c78, c79,c80));
+                    c43, c44, c45, c46, c47, c48, c49, c50, c51, c52, c56, c57, c58, c59, c60, c61, c62, c63, c64,
+                    c65, c66, c67, c68, c69, c70, c71, c72, c73, c74, c75, c76, c77, c78, c79, c80, c81, c82, c83,
+                    c84, c85, c86, c87, c88, c89, c90, c91, c92, c93, c94, c95, c96, c97, c98, c99, c100, c101,
+                    c102));
 
             // Аттрибуты
             //------------------------------------------------------------------------------------------------------
@@ -595,10 +645,10 @@ public class BoilerCreateService {
             Advantage ad25 = new Advantage("Сухой нагревательный элемент", "Dry_heating_element.png", CategoryOfAdvantage.CONSTRUCTION);
             Advantage ad26 = new Advantage("Нижнее подключение", "Lower_connection.png", CategoryOfAdvantage.CONSTRUCTION);
             Advantage ad27 = new Advantage("Гарантия два года", "Two_year_warranty.png", CategoryOfAdvantage.CONSTRUCTION);
-            Advantage ad28 = new Advantage("Горелка из нержавеющей стали", "Burner_stainless_become.png", CategoryOfAdvantage.COMFORT);
-            Advantage ad29 = new Advantage("Теплообменник из бескислородной меди", "Heat_exchanger_from_oxygen_free_copper.png", CategoryOfAdvantage.COMFORT);
-            Advantage ad30 = new Advantage("Жаропрочная эмаль", "Heat_resistant_enamel.png", CategoryOfAdvantage.COMFORT);
-            Advantage ad31 = new Advantage("Высокая ремонтопригодность", "High_maintainability.png", CategoryOfAdvantage.COMFORT);
+            Advantage ad28 = new Advantage("Горелка из нержавеющей стали", "Burner_stainless_become.png", CategoryOfAdvantage.CONSTRUCTION);
+            Advantage ad29 = new Advantage("Теплообменник из бескислородной меди", "Heat_exchanger_from_oxygen_free_copper.png", CategoryOfAdvantage.CONSTRUCTION);
+            Advantage ad30 = new Advantage("Жаропрочная эмаль", "Heat_resistant_enamel.png", CategoryOfAdvantage.CONSTRUCTION);
+            Advantage ad31 = new Advantage("Высокая ремонтопригодность", "High_maintainability.png", CategoryOfAdvantage.CONSTRUCTION);
             Advantage ad32 = new Advantage("Защита от перегрева", "Double_overheat_protection.png", CategoryOfAdvantage.PROTECTION);
             Advantage ad33 = new Advantage("Защита от избыточного давления", "Pressure_safety_valve_protects_against_excess_water.png", CategoryOfAdvantage.PROTECTION);
             //Advantage ad34 = new Advantage("Термостат – защита от перегрева, отключает подачу газа", "Thermostat_protection_against_overheating_disconne", CategoryOfAdvantage.PROTECTION);
@@ -1512,9 +1562,334 @@ public class BoilerCreateService {
             Value v267 = new Value(c64, 15.0);
             v267.setBoilers(List.of(b19));
 
+            //--- Допустимые значение b13
+            Value v268 = new Value(c31, "закрытая");
+            v268.setBoilers(List.of(b13));
+            Value v269 = new Value(c33, "электронная");
+            v269.setBoilers(List.of(b13));
+
+            Value v270 = new Value(c20, 24.0);
+            v270.setBoilers(List.of(b13));
+            Value v271 = new Value(c3, 89.0);
+            v271.setBoilers(List.of(b13));
+
+            Value v272 = new Value(c71, 1274.0-1960.0);
+            v272.setBoilers(List.of(b13));
+            Value v273 = new Value(c72, 2940.0);
+            v273.setBoilers(List.of(b13));
+
+            Value v274 = new Value(c73, 2.59);
+            v274.setBoilers(List.of(b13));
+            Value v275 = new Value(c74, 1.89);
+            v275.setBoilers(List.of(b13));
+
+            Value v276 = new Value(c24, 2.5);
+            v276.setBoilers(List.of(b13));
+            Value v277 = new Value(c25, 12.0);
+            v277.setBoilers(List.of(b13));
+
+            Value v278 = new Value(c82, 110.0);
+            v278.setBoilers(List.of(b13));
+            Value v279 = new Value(c37, "автоматическое электронное");
+            v279.setBoilers(List.of(b13));
+
+            Value v280 = new Value(c26, "-");
+            v280.setBoilers(List.of(b13));
+            Value v281 = new Value(c36, "230/50");
+            v281.setBoilers(List.of(b13));
+
+            Value v282 = new Value(c83, "1/2");
+            v282.setBoilers(List.of(b13));
+            Value v283 = new Value(c84, "1/2");
+            v283.setBoilers(List.of(b13));
+
+            Value v284 = new Value(c85, "1/2");
+            v284.setBoilers(List.of(b13));
+            Value v285 = new Value(c86, 10.9);
+            v285.setBoilers(List.of(b13));
+
+            Value v286 = new Value(c19, "520x330x160");
+            v286.setBoilers(List.of(b13));
+            Value v287 = new Value(c86, "60/100");
+            v287.setBoilers(List.of(b13));
+
+            //--- Допустимые значение b14 (LT4)
+
+            Value v288 = new Value(c88, 4.0);
+            v288.setBoilers(List.of(b14));
+            Value v289 = new Value(c36, 230.50);
+            v289.setBoilers(List.of(b14));
+
+            Value v290 = new Value(c41, 3.0);
+            v290.setBoilers(List.of(b14));
+            Value v291 = new Value(c43, 25.0);
+            v291.setBoilers(List.of(b14));
+
+            Value v292 = new Value(c44, 4.0);
+            v292.setBoilers(List.of(b14));
+            Value v293 = new Value(c89, "нет");
+            v293.setBoilers(List.of(b14));
+
+            Value v294 = new Value(c3, 95.0);
+            v294.setBoilers(List.of(b14));
+            Value v295 = new Value(c90, "релейный");
+            v295.setBoilers(List.of(b14));
+
+            Value v296 = new Value(c91, "да");
+            v296.setBoilers(List.of(b14));
+            Value v297 = new Value(c92, "нет");
+            v297.setBoilers(List.of(b14));
+
+            Value v298 = new Value(c93, "да");
+            v298.setBoilers(List.of(b14));
+            Value v299 = new Value(c94, "нет");
+            v299.setBoilers(List.of(b14));
+
+            Value v300 = new Value(c95, "нет");
+            v300.setBoilers(List.of(b14));
+            Value v301 = new Value(c96, "нет");
+            v301.setBoilers(List.of(b14));
+
+            Value v302 = new Value(c97, "нет");
+            v302.setBoilers(List.of(b14));
+            Value v303 = new Value(c98, "нет");
+            v303.setBoilers(List.of(b14));
+
+            Value v304 = new Value(c99, "нет");
+            v304.setBoilers(List.of(b14));
+            Value v305 = new Value(c45, 0.05-0.3);
+            v305.setBoilers(List.of(b14));
+
+            Value v306 = new Value(c47, 30.0-80.0);
+            v306.setBoilers(List.of(b14));
+            Value v307 = new Value(c48, "нет");
+            v307.setBoilers(List.of(b14));
+
+            Value v308 = new Value(c49, "IPX1");
+            v308.setBoilers(List.of(b14));
+            Value v309 = new Value(c100, "3/4");
+            v309.setBoilers(List.of(b14));
+
+            Value v310 = new Value(c49, "3/4");
+            v310.setBoilers(List.of(b14));
+            Value v311 = new Value(c102, 13.5);
+            v311.setBoilers(List.of(b14));
+
+            Value v312 = new Value(c19, "520x320x155");
+            v312.setBoilers(List.of(b14));
+
+            //--- Допустимые значение b15 (LT24)
+
+            Value v313 = new Value(c88, 24.0);
+            v313.setBoilers(List.of(b15));
+            Value v314 = new Value(c36, 380.50);
+            v314.setBoilers(List.of(b15));
+
+            Value v315 = new Value(c41, 6.0);
+            v315.setBoilers(List.of(b15));
+            Value v316 = new Value(c43, 50.0);
+            v316.setBoilers(List.of(b15));
+
+            Value v317 = new Value(c44, 10.0);
+            v317.setBoilers(List.of(b15));
+            Value v318 = new Value(c89, "нет");
+            v318.setBoilers(List.of(b15));
+
+            Value v319 = new Value(c3, 95.0);
+            v319.setBoilers(List.of(b15));
+            Value v320 = new Value(c90, "релейный");
+            v320.setBoilers(List.of(b15));
+
+            Value v321 = new Value(c91, "да");
+            v321.setBoilers(List.of(b15));
+            Value v322 = new Value(c92, "нет");
+            v322.setBoilers(List.of(b15));
+
+            Value v323 = new Value(c93, "да");
+            v323.setBoilers(List.of(b15));
+            Value v324 = new Value(c94, "нет");
+            v324.setBoilers(List.of(b15));
+
+            Value v325 = new Value(c95, "нет");
+            v325.setBoilers(List.of(b15));
+            Value v326 = new Value(c96, "нет");
+            v326.setBoilers(List.of(b15));
+
+            Value v327 = new Value(c97, "нет");
+            v327.setBoilers(List.of(b15));
+            Value v328 = new Value(c98, "нет");
+            v328.setBoilers(List.of(b15));
+
+            Value v329 = new Value(c99, "нет");
+            v329.setBoilers(List.of(b15));
+            Value v330 = new Value(c45, 0.05-0.3);
+            v330.setBoilers(List.of(b15));
+
+            Value v331 = new Value(c47, 30.0-80.0);
+            v331.setBoilers(List.of(b15));
+            Value v332 = new Value(c48, "нет");
+            v332.setBoilers(List.of(b15));
+
+            Value v333 = new Value(c49, "IPX1");
+            v333.setBoilers(List.of(b15));
+            Value v334 = new Value(c100, "3/4");
+            v334.setBoilers(List.of(b15));
+
+            Value v335 = new Value(c49, "3/4");
+            v335.setBoilers(List.of(b15));
+            Value v336 = new Value(c102, 28.0);
+            v336.setBoilers(List.of(b15));
+
+            Value v337 = new Value(c19, "620x400x230");
+            v337.setBoilers(List.of(b15));
+
+            //--- Допустимые значение b16 (QM4)
+
+            Value v338 = new Value(c88, 4.0);
+            v338.setBoilers(List.of(b16));
+            Value v339 = new Value(c36, "230/380.50");
+            v339.setBoilers(List.of(b16));
+
+            Value v340 = new Value(c41, 2.0);
+            v340.setBoilers(List.of(b16));
+            Value v341 = new Value(c43, 25.0);
+            v341.setBoilers(List.of(b16));
+
+            Value v342 = new Value(c44, 4.0);
+            v342.setBoilers(List.of(b16));
+            Value v343 = new Value(c89, "да");
+            v343.setBoilers(List.of(b16));
+
+            Value v344 = new Value(c3, 96.0);
+            v344.setBoilers(List.of(b16));
+            Value v345 = new Value(c90, "релейный");
+            v345.setBoilers(List.of(b16));
+
+            Value v346 = new Value(c91, "да");
+            v346.setBoilers(List.of(b16));
+            Value v347 = new Value(c92, "да");
+            v347.setBoilers(List.of(b16));
+
+            Value v348 = new Value(c93, "да");
+            v348.setBoilers(List.of(b16));
+            Value v349 = new Value(c94, "да");
+            v349.setBoilers(List.of(b16));
+
+            Value v350 = new Value(c95, "да");
+            v350.setBoilers(List.of(b16));
+            Value v351 = new Value(c96, 6.0);
+            v351.setBoilers(List.of(b16));
+
+            Value v352 = new Value(c97, "да");
+            v352.setBoilers(List.of(b16));
+            Value v353 = new Value(c98, "нет");
+            v353.setBoilers(List.of(b16));
+
+            Value v354 = new Value(c99, "внешний термостат");
+            v354.setBoilers(List.of(b16));
+            Value v355 = new Value(c45, 0.05-0.3);
+            v355.setBoilers(List.of(b16));
+
+            Value v356 = new Value(c47, 30.0-80.0);
+            v356.setBoilers(List.of(b16));
+            Value v357 = new Value(c48, 30.0-60.0);
+            v357.setBoilers(List.of(b16));
+
+            Value v358 = new Value(c49, "IPX1");
+            v358.setBoilers(List.of(b16));
+            Value v359 = new Value(c83, "1/2");
+            v359.setBoilers(List.of(b16));
+
+            Value v360 = new Value(c100, "3/4");
+            v360.setBoilers(List.of(b16));
+
+            Value v361 = new Value(c49, "3/4");
+            v361.setBoilers(List.of(b16));
+            Value v362 = new Value(c102, 20.0);
+            v362.setBoilers(List.of(b16));
+
+            Value v363 = new Value(c19, "620x400x270");
+            v363.setBoilers(List.of(b16));
+
+            //--- Допустимые значение b17 (QM24)
+
+            Value v364= new Value(c88, 24.0);
+            v364.setBoilers(List.of(b17));
+            Value v365 = new Value(c36, "230/380.50");
+            v365.setBoilers(List.of(b17));
+
+            Value v366 = new Value(c41, 6.0);
+            v366.setBoilers(List.of(b17));
+            Value v367 = new Value(c43, 50.0);
+            v367.setBoilers(List.of(b17));
+
+            Value v368 = new Value(c44, 10.0);
+            v368.setBoilers(List.of(b17));
+            Value v369 = new Value(c89, "да");
+            v369.setBoilers(List.of(b17));
+
+            Value v370 = new Value(c3, 96.0);
+            v370.setBoilers(List.of(b17));
+            Value v371 = new Value(c90, "релейный");
+            v371.setBoilers(List.of(b17));
+
+            Value v372 = new Value(c91, "да");
+            v372.setBoilers(List.of(b17));
+            Value v373 = new Value(c92, "да");
+            v373.setBoilers(List.of(b17));
+
+            Value v374 = new Value(c93, "да");
+            v374.setBoilers(List.of(b17));
+            Value v375 = new Value(c94, "да");
+            v375.setBoilers(List.of(b17));
+
+            Value v376 = new Value(c95, "да");
+            v376.setBoilers(List.of(b17));
+            Value v377 = new Value(c96, 6.0);
+            v377.setBoilers(List.of(b17));
+
+            Value v378 = new Value(c97, "да");
+            v378.setBoilers(List.of(b17));
+            Value v379 = new Value(c98, "нет");
+            v379.setBoilers(List.of(b17));
+
+            Value v380 = new Value(c99, "внешний термостат");
+            v380.setBoilers(List.of(b17));
+            Value v381 = new Value(c45, 0.05-0.3);
+            v381.setBoilers(List.of(b17));
+
+            Value v382 = new Value(c47, 30.0-80.0);
+            v382.setBoilers(List.of(b17));
+            Value v383 = new Value(c48, 30.0-60.0);
+            v383.setBoilers(List.of(b17));
+
+            Value v384 = new Value(c49, "IPX1");
+            v384.setBoilers(List.of(b17));
+            Value v385 = new Value(c83, "1/2");
+            v385.setBoilers(List.of(b17));
+
+            Value v386 = new Value(c100, "3/4");
+            v386.setBoilers(List.of(b17));
+
+            Value v387 = new Value(c49, "3/4");
+            v387.setBoilers(List.of(b17));
+            Value v388 = new Value(c102, 25.0);
+            v388.setBoilers(List.of(b17));
+
+            Value v389 = new Value(c19, "690x410x270");
+            v389.setBoilers(List.of(b17));
+
+
             acceptableValueService.addAll(List.of(v223, v224, v225, v226, v227, v228, v229, v230, v231, v232, v233, v234,
                     v235, v236, v237, v238, v239, v240, v241, v242, v243, v244, v249, v250, v251, v252, v253, v254, v255,
-                    v256, v257, v258, v259, v260, v261, v262, v263, v264, v265, v266
+                    v256, v257, v258, v259, v260, v261, v262, v263, v264, v265, v266, v267, v268, v269, v270, v271, v272,
+                    v273, v274, v275, v276, v277, v278, v279, v280, v281, v282, v283, v284, v285, v286, v287, v288, v289,
+                    v290, v291, v292, v293, v294, v295, v296, v297, v298, v299, v300, v301, v302, v303, v304, v305, v306,
+                    v307, v308, v309, v310, v311, v312, v313, v314, v315, v316, v317, v318, v319, v320, v321, v322, v323,
+                    v324, v325, v326, v327, v328, v329, v330, v331, v332, v333, v334, v335, v336, v337, v338, v339, v340,
+                    v341, v342, v343, v344, v345, v346, v347, v348, v349, v350, v351, v352, v353, v354, v355, v356, v357,
+                    v358, v359, v360, v361, v362, v363, v364, v365, v366, v367, v368, v369, v370, v371, v372, v373, v374,
+                    v375, v376, v377, v378, v379, v380, v381, v382, v383, v384, v385, v386, v387, v388, v389
             ));
 
         }
