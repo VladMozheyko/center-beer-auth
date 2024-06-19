@@ -11,7 +11,6 @@ import java.util.List;
 
 
 
-
 @Service
 public class BoilerCreateService {
     @Autowired
@@ -679,23 +678,19 @@ public class BoilerCreateService {
 
 
 
-            ad1.setSeries(List.of(s1, s2, s3, s8, s9));
             ad2.setSeries(List.of(s1, s2, s3, s4, s5, s6, s7));
-            ad3.setSeries(List.of(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15));
-            ad4.setSeries(List.of(s1, s3, s4, s5, s6, s7, s8, s9, s12, s13));
-            ad5.setSeries(List.of(s1, s2, s3, s5));
             ad6.setSeries(List.of(s4, s5, s6, s7));
+            ad51.setSeries(List.of(s2, s3));
+
+            ad1.setSeries(List.of(s1, s2, s3, s8, s9));
+
             ad7.setSeries(List.of(s4, s5, s6, s7, s10, s11, s12, s13, s14, s15));
             ad8.setSeries(List.of(s4, s5, s6, s7));
             ad9.setSeries(List.of(s5, s6, s7));
             ad10.setSeries(List.of(s6, s7, s14));
             ad11.setSeries(List.of(s9));
             ad12.setSeries(List.of(s9));
-            ad13.setSeries(List.of(s10, s11, s12, s13, s15));
-            ad14.setSeries(List.of(s10, s11, s12));
-            ad15.setSeries(List.of(s10, s11, s12, s13, s14, s15));
-            ad16.setSeries(List.of(s13, s14));
-            ad17.setSeries(List.of(s15));
+
             ad18.setSeries(List.of(s11, s12, s13, s14, s15));
             ad19.setSeries(List.of(s10, s11, s12, s13, s14, s15));
             ad20.setSeries(List.of(s10, s11, s12, s13, s14, s15));
@@ -711,7 +706,7 @@ public class BoilerCreateService {
             ad30.setSeries(List.of(s4, s5, s6, s7));
             ad31.setSeries(List.of(s1, s2, s3, s4, s5, s6, s7));
             ad32.setSeries(List.of(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15));
-            ad33.setSeries(List.of(s1, s2, s3, s9, s10, s11, s12, s13, s14, s15));
+            ad33.setSeries(List.of(s1, s2, s3, s4, s5, s6, s7, s9, s10, s11, s12, s13, s14, s15));
             //ad34.setSeries(List.of(s4, s5, s6, s7));
             ad35.setSeries(List.of(s4, s5, s6, s7));
             ad36.setSeries(List.of(s4, s5, s6, s7));
@@ -730,15 +725,25 @@ public class BoilerCreateService {
             ad48.setSeries(List.of(s1, s2, s3));
             ad49.setSeries(List.of(s1, s2, s3, s10));
             ad50.setSeries(List.of(s1, s2, s3));
-            ad51.setSeries(List.of(s2, s3));
+
 //            ad52.setSeries(List.of(s4, s5, s6, s7, s9, s10, s11, s12, s13, s14, s15));
             ad53.setSeries(List.of(s8, s9));
             ad54.setSeries(List.of(s8));
 
+            ad3.setSeries(List.of(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15));
+            ad4.setSeries(List.of(s1, s3, s4, s5, s6, s7, s8, s9, s12, s13));
+            ad5.setSeries(List.of(s1, s2, s3, s5));
+            ad13.setSeries(List.of(s10, s11, s12, s13, s15));
+            ad14.setSeries(List.of(s10, s11, s12));
+            ad15.setSeries(List.of(s10, s11, s12, s13, s14, s15));
+            ad16.setSeries(List.of(s13, s14));
+            ad17.setSeries(List.of(s15));
 
-            advantageService.addAll(List.of(ad1, ad2, ad3, ad4, ad5, ad6, ad7, ad8, ad9, ad10, ad11, ad12, ad13, ad14, ad15,
-                    ad16, ad17, ad18, ad19, ad20, ad21, ad22, ad23, ad24, ad25, ad26, ad27, ad28, ad29, ad30, ad31, ad32, ad33, ad35,
-                    ad36, ad37, ad38, ad39, ad40, ad41, ad42, ad43, ad44, ad45, ad46, ad47, ad48, ad49, ad50, ad51, ad53, ad54));
+
+            advantageService.addAll(List.of(ad2, ad6, ad51, ad1, ad7, ad8, ad9, ad10, ad11, ad12, ad18, ad19, ad20, ad21,
+                    ad22, ad23, ad24, ad25, ad26, ad27, ad28, ad29, ad30, ad31, ad32, ad33, ad35, ad36, ad37, ad38, ad39,
+                    ad40, ad41, ad42, ad43, ad44, ad45, ad46, ad47, ad48, ad49, ad50,  ad53, ad54, ad3, ad4, ad5, ad13,
+                    ad14, ad15, ad16, ad17));
 
             // Допустимые значения b1-b2
             //------------------------------------------------------------------------------------------------------
