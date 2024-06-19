@@ -55,16 +55,22 @@ public class StorageService {
      * @return Данные о загруженном файле
      * @throws IOException Если происходит ошибка ввода-вывода при загрузке файла
      */
-    public FileData uploadImageToFileSystemDefaultAvatar() throws IOException {
-        String fileName = "defaultAvatar.png";
+    public void uploadImageToFileSystemDefaultAvatar() throws IOException {
+        String fileName = "Пример.png";
+
+        // Проверка, существует ли файл с таким именем в репозитории
+        if (fileDataRepository.findByName(fileName).isPresent()) {
+            // Если файл существует, ничего не делаем
+            return;
+        }
 
         String filePath = pathConfig.getStorageServiceFolderPath() + fileName + ".png";
 
-        FileData fileData=fileDataRepository.save(FileData.builder()
-                .name("defaultAvatar.png")
+        // Если файл не существует, сохраняем его в репозиторий
+        fileDataRepository.save(FileData.builder()
+                .name(fileName)
                 .type("image/jpeg")
                 .filePath(filePath).build());
-        return fileData;
     }
 
     /**
