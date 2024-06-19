@@ -11,6 +11,7 @@ import java.util.List;
 
 
 
+
 @Service
 public class BoilerCreateService {
     @Autowired
@@ -671,7 +672,7 @@ public class BoilerCreateService {
             Advantage ad49 = new Advantage("Гарантия 3 года", "3_years_warranty.png", CategoryOfAdvantage.CONSTRUCTION);
             Advantage ad50 = new Advantage("Стойкость к накипи и коррозии", "Scale_and_corrosion_resistance.png", CategoryOfAdvantage.CONSTRUCTION);
             Advantage ad51 = new Advantage("Высокая производительность горячей воды", "High_hot_water_production_capacity.png", CategoryOfAdvantage.COMFORT);
-            Advantage ad52 = new Advantage("Предохранительный клапан давления – защита от избыточного давления воды", "Pressure_safety_valve_protection_against_excessive_water_pressure.png", CategoryOfAdvantage.PROTECTION);
+//            Advantage ad52 = new Advantage("Предохранительный клапан давления – защита от избыточного давления воды", "Pressure_safety_valve_protection_against_excessive_water_pressure.png", CategoryOfAdvantage.PROTECTION);
             Advantage ad53 = new Advantage("Реле протока", "Flow_switch.png", CategoryOfAdvantage.PROTECTION);
             Advantage ad54 = new Advantage("ТЭН и колба из нержавеющей стали", "Stainless_steel_heating_element_and_tank.png", CategoryOfAdvantage.CONSTRUCTION);
 
@@ -710,7 +711,7 @@ public class BoilerCreateService {
             ad30.setSeries(List.of(s4, s5, s6, s7));
             ad31.setSeries(List.of(s1, s2, s3, s4, s5, s6, s7));
             ad32.setSeries(List.of(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15));
-            ad33.setSeries(List.of(s1, s2, s3, s4, s5, s6, s7));
+            ad33.setSeries(List.of(s1, s2, s3, s9, s10, s11, s12, s13, s14, s15));
             //ad34.setSeries(List.of(s4, s5, s6, s7));
             ad35.setSeries(List.of(s4, s5, s6, s7));
             ad36.setSeries(List.of(s4, s5, s6, s7));
@@ -730,14 +731,14 @@ public class BoilerCreateService {
             ad49.setSeries(List.of(s1, s2, s3, s10));
             ad50.setSeries(List.of(s1, s2, s3));
             ad51.setSeries(List.of(s2, s3));
-            ad52.setSeries(List.of(s4, s5, s6, s7, s9, s10, s11, s12, s13, s14, s15));
+//            ad52.setSeries(List.of(s4, s5, s6, s7, s9, s10, s11, s12, s13, s14, s15));
             ad53.setSeries(List.of(s8, s9));
             ad54.setSeries(List.of(s8));
 
 
             advantageService.addAll(List.of(ad1, ad2, ad3, ad4, ad5, ad6, ad7, ad8, ad9, ad10, ad11, ad12, ad13, ad14, ad15,
                     ad16, ad17, ad18, ad19, ad20, ad21, ad22, ad23, ad24, ad25, ad26, ad27, ad28, ad29, ad30, ad31, ad32, ad33, ad35,
-                    ad36, ad37, ad38, ad39, ad40, ad41, ad42, ad43, ad44, ad45, ad46, ad47, ad48, ad49, ad50, ad51, ad52, ad53, ad54));
+                    ad36, ad37, ad38, ad39, ad40, ad41, ad42, ad43, ad44, ad45, ad46, ad47, ad48, ad49, ad50, ad51, ad53, ad54));
 
             // Допустимые значения b1-b2
             //------------------------------------------------------------------------------------------------------
