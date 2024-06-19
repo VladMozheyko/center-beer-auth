@@ -19,8 +19,6 @@ public class SecurityApplication {
     private DocumentService documentService;
     @Autowired
     private CreateServiceCentreService createServiceCentreService;
-    @Autowired
-    private StorageService storageService;
 
     public static void main(String[] args) {
 
@@ -32,7 +30,6 @@ public class SecurityApplication {
         passportService.createAndSavePassportData();
         documentService.createAndSaveDocumentData();
         createServiceCentreService.CreateServiceCentre();
-        storageService.uploadImageToFileSystemDefaultAvatar();
         System.out.println("Пример презентации с файлами успешно создан.");
     }
 

@@ -49,29 +49,6 @@ public class StorageService {
         return fileData;
     }
 
-    /**
-     * Загружает изображение по умолчанию в файловую систему.
-     *
-     * @return Данные о загруженном файле
-     * @throws IOException Если происходит ошибка ввода-вывода при загрузке файла
-     */
-    public void uploadImageToFileSystemDefaultAvatar() throws IOException {
-        String fileName = "Пример.png";
-
-        // Проверка, существует ли файл с таким именем в репозитории
-        if (fileDataRepository.findByName(fileName).isPresent()) {
-            // Если файл существует, ничего не делаем
-            return;
-        }
-
-        String filePath = pathConfig.getStorageServiceFolderPath() + fileName + ".png";
-
-        // Если файл не существует, сохраняем его в репозиторий
-        fileDataRepository.save(FileData.builder()
-                .name(fileName)
-                .type("image/jpeg")
-                .filePath(filePath).build());
-    }
 
     /**
      * Загружает изображение из файловой системы.
