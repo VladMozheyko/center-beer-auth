@@ -1,4 +1,4 @@
-package fr.mossaab.security.payload.response;
+package fr.mossaab.security.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

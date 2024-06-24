@@ -3,9 +3,9 @@ package fr.mossaab.security.service.impl;
 import fr.mossaab.security.enums.Role;
 import fr.mossaab.security.enums.TokenType;
 import fr.mossaab.security.enums.WorkerRole;
-import fr.mossaab.security.payload.request.AuthenticationRequest;
-import fr.mossaab.security.payload.request.RegisterRequest;
-import fr.mossaab.security.payload.response.AuthenticationResponse;
+import fr.mossaab.security.dto.request.AuthenticationRequest;
+import fr.mossaab.security.dto.request.RegisterRequest;
+import fr.mossaab.security.dto.response.AuthenticationResponse;
 import fr.mossaab.security.service.api.AuthenticationService;
 import fr.mossaab.security.service.api.JwtService;
 import fr.mossaab.security.entities.User;
@@ -108,6 +108,22 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .roles(roles)
                 .tokenType(TokenType.BEARER.name())
                 .build();
+    }
+    @Override
+    public void  resendActivationCode(User user) throws ParseException {
+        String activationCode = generateActivationCode();
+        user.setActivationCode(activationCode);
+        if (!StringUtils.isEmpty(user.getEmail())) {
+            String message = String.format(
+                    "Здравствуйте, %s! \n" +
+                            "Добро пожаловать в Kotitonttu. Ваш код активации: %s",
+                    user.getUsername(),
+                    user.getActivationCode()
+            );
+
+            mailSender.send(user.getEmail(), "Код активации Kotitonttu", message);
+        }
+        userRepository.save(user);
     }
 
     /**

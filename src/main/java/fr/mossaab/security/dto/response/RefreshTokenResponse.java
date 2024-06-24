@@ -1,4 +1,4 @@
-package fr.mossaab.security.payload.response;
+package fr.mossaab.security.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;

@@ -1,10 +1,5 @@
-package fr.mossaab.security.payload.request;
+package fr.mossaab.security.dto.request;
 
-import fr.mossaab.security.enums.Role;
-import fr.mossaab.security.validation.StrongPassword;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,27 +17,21 @@ public class RegisterRequest {
     /**
      * Имя пользователя.
      */
-    //@NotBlank(message = "firstname is required")
     private String firstname;
 
     /**
      * Фамилия пользователя.
      */
-    //@NotBlank(message = "lastname is required")
     private String lastname;
 
     /**
      * Электронная почта пользователя.
      */
-    //@NotBlank(message = "email is required")
-    //@Email(message = "email format is not valid")
     private String email;
 
     /**
      * Пароль пользователя.
      */
-    //@NotBlank(message = "password is required")
-    //@StrongPassword
     private String password;
 
     /**

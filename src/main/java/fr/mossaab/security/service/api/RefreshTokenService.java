@@ -1,8 +1,8 @@
 package fr.mossaab.security.service.api;
 
 import fr.mossaab.security.entities.RefreshToken;
-import fr.mossaab.security.payload.request.RefreshTokenRequest;
-import fr.mossaab.security.payload.response.RefreshTokenResponse;
+import fr.mossaab.security.dto.request.RefreshTokenRequest;
+import fr.mossaab.security.dto.response.RefreshTokenResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseCookie;
 

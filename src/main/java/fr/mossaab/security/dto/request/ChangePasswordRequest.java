@@ -1,4 +1,4 @@
-package fr.mossaab.security.payload.request;
+package fr.mossaab.security.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 // DTO для передчи данных запроса на смену пароля от клиента на сервер
-// используем в методе класса AuthenticationController
+// используем в методе класса AuthController
 public class ChangePasswordRequest {
     private String currentPassword;
     private String newPassword;

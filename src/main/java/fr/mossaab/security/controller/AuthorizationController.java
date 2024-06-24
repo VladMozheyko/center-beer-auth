@@ -1,26 +1,12 @@
 package fr.mossaab.security.controller;
 
-import fr.mossaab.security.entities.User;
-import fr.mossaab.security.enums.Role;
-import fr.mossaab.security.enums.WorkerRole;
-import fr.mossaab.security.payload.response.GetUsersDto;
-import fr.mossaab.security.repository.FileDataRepository;
-import fr.mossaab.security.repository.RefreshTokenRepository;
-import fr.mossaab.security.repository.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Контроллер авторизации для работы с защищенными ресурсами.

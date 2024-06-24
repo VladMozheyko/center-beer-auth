@@ -1,4 +1,4 @@
-package fr.mossaab.security.payload.request;
+package fr.mossaab.security.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

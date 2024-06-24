@@ -2,7 +2,7 @@ package fr.mossaab.security.mapper;
 
 
 import fr.mossaab.security.entities.Series;
-import fr.mossaab.security.payload.request.SeriesDto;
+import fr.mossaab.security.dto.request.SeriesDto;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 

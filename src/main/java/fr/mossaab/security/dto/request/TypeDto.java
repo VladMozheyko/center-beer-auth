@@ -1,4 +1,4 @@
-package fr.mossaab.security.payload.request;
+package fr.mossaab.security.dto.request;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
