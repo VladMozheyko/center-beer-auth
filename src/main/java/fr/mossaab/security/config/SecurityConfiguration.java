@@ -56,6 +56,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(request ->
                         request
                                 .requestMatchers("/passport/**",
+                                        "/heatingSystem/**",
                                         "/auth/**",
                                         "/user/**",
                                         "/admin/**",
