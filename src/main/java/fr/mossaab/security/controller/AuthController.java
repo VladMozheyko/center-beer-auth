@@ -12,10 +12,7 @@ import fr.mossaab.security.repository.*;
 import fr.mossaab.security.service.api.AuthenticationService;
 import fr.mossaab.security.service.api.JwtService;
 import fr.mossaab.security.service.api.RefreshTokenService;
-import fr.mossaab.security.service.impl.StorageAdvantageService;
-import fr.mossaab.security.service.impl.StorageSeriesService;
-import fr.mossaab.security.service.impl.StorageService;
-import fr.mossaab.security.service.impl.StorageTypeService;
+import fr.mossaab.security.service.impl.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -58,6 +55,7 @@ public class AuthController {
     private final FileDataRepository fileDataRepository;
     private final PasswordEncoder passwordEncoder;
     private final StorageService storageService;
+    private final MailSender mailSender;
 
 
     private boolean isValidPassword(String password) {
@@ -327,5 +325,97 @@ public class AuthController {
                 .header(HttpHeaders.SET_COOKIE,refreshTokenCookie.toString())
                 .build();
 
+    }
+
+
+    @Operation(summary = "Запрос на смену пароля", description = "Этот эндпоинт отправляет код активации на почту пользователя.")
+    @PostMapping("/request-password-reset")
+    public ResponseEntity<Object> requestPasswordReset(@RequestBody Map<String, String> requestBody) {
+        PasswordResetRequestResponse response = new PasswordResetRequestResponse();
+        ErrorPasswordResetRequestDto errors = new ErrorPasswordResetRequestDto();
+
+        response.setStatus("success");
+        response.setNotify("Код активации успешно отправлен на почту");
+        response.setAnswer("password reset request success");
+
+        errors.setEmail("");
+
+        String email = requestBody.get("email");
+
+        Optional<User> userOptional = userRepository.findByEmail(email);
+
+        if (userOptional.isEmpty()) {
+            errors.setEmail("Неверный почтовый ящик");
+        } else {
+            User user = userOptional.get();
+            String activationCode = generateActivationCode(); // Генерация нового кода
+            user.setActivationCode(activationCode);
+            userRepository.save(user);
+            String message = String.format(
+                    "Здравствуйте, %s! \n" +
+                            "Ваш код смены для смены пароля: %s",
+                    user.getUsername(),
+                    user.getActivationCode()
+            );
+
+            mailSender.send(user.getEmail(), "Код смены пароля в Kotitonttu", message);
+        }
+
+        if (!errors.getEmail().isEmpty()) {
+            response.setStatus("error");
+            response.setNotify("Некорректные данные");
+            response.setAnswer("password reset request error");
+            response.setErrors(errors);
+        }
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @Operation(summary = "Смена пароля", description = "Этот эндпоинт позволяет сменить пароль пользователя с использованием кода активации.")
+    @PostMapping("/reset-password")
+    public ResponseEntity<Object> resetPassword(@RequestBody ResetPasswordRequest request) {
+        PasswordResetResponse response = new PasswordResetResponse();
+        ErrorPasswordResetDto errors = new ErrorPasswordResetDto();
+
+        response.setStatus("success");
+        response.setNotify("Пароль успешно изменен");
+        response.setAnswer("password reset success");
+
+        errors.setCode("");
+        errors.setPassword("");
+
+        User user = userRepository.findByActivationCode(request.getCode());
+
+        if (user == null) {
+            errors.setCode("Неверный код активации");
+        } else if (!isValidPassword(request.getNewPassword())) {
+            errors.setPassword("Неверный пароль");
+        }
+
+        if (errors.getCode().isEmpty() && errors.getPassword().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+            user.setActivationCode(null); // Удаление использованного кода
+            userRepository.save(user);
+        } else {
+            response.setStatus("error");
+            response.setNotify("Некорректные данные");
+            response.setAnswer("password reset error");
+            response.setErrors(errors);
+        }
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    private String generateActivationCode() {
+        int length = 4;
+        String digits = "0123456789";
+        Random random = new Random();
+
+        StringBuilder code = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            code.append(digits.charAt(random.nextInt(digits.length())));
+        }
+
+        return code.toString();
     }
 }
