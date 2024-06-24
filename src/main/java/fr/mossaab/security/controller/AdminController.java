@@ -27,14 +27,6 @@ import java.util.List;
 public class AdminController {
     private final UserRepository userRepository;
     private final StorageService storageService;
-    @Operation(summary = "Загрузка изображения аватарки пользователя из файловой системы", description = "Этот эндпоинт позволяет загрузить изображение аватарки пользователя из файловой системы.")
-    @GetMapping("/fileSystem/{fileName}")
-    public ResponseEntity<?> downloadImageFromFileSystem(@PathVariable String fileName) throws IOException {
-        byte[] imageData = storageService.downloadImageFromFileSystem(fileName);
-        return ResponseEntity.status(HttpStatus.OK)
-                .contentType(MediaType.valueOf("image/png"))
-                .body(imageData);
-    }
 
     @Operation(summary = "Получить всех пользователей", description = "Этот эндпоинт возвращает список всех пользователей с пагинацией.")
     @GetMapping("/allUsers")
