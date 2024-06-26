@@ -376,7 +376,8 @@ public class AuthController {
     public ResponseEntity<Object> resetPassword(@RequestBody ResetPasswordRequest request) {
         PasswordResetResponse response = new PasswordResetResponse();
         ErrorPasswordResetDto errors = new ErrorPasswordResetDto();
-
+        System.out.println("Код активации: " + request.getCode());
+        System.out.println("Новый пароль: " + request.getNewPassword());
         response.setStatus("success");
         response.setNotify("Пароль успешно изменен");
         response.setAnswer("password reset success");
