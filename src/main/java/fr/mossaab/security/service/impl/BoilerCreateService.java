@@ -220,133 +220,133 @@ public class BoilerCreateService {
                     "Диапазон регулировки температуры бытовой горячей воды (бойлер косвенного нагрева)",
                     u6);
             Characteristic c10 = new Characteristic(
-                    "Макс. давление в контуре бойлера косвенного нагрева)",
+                    "Макс. давление в контуре бойлера косвенного нагрева",
                     u4);
             Characteristic c11 = new Characteristic(
-                    "Присоединительный размер газовой магистрали)",
+                    "Присоединительный размер газовой магистрали",
                     u7);
             Characteristic c12 = new Characteristic(
-                    "Патрубки подключения подающей и обратной линий системы отопления)",
+                    "Патрубки подключения подающей и обратной линий системы отопления",
                     u7);
             Characteristic c13 = new Characteristic(
-                    "Патрубки подключения холодной воды и бойлера косвенного нагрева)",
+                    "Патрубки подключения холодной воды и бойлера косвенного нагрева",
                     u7);
             Characteristic c14 = new Characteristic(
-                    "Номинальное напряжение/частота)",
+                    "Номинальное напряжение/частота",
                     u8);
             Characteristic c15 = new Characteristic(
-                    "Потребляемая эл. мощность)",
+                    "Потребляемая эл. мощность",
                     u9);
             Characteristic c16 = new Characteristic(
-                    "Присоединительный размер дымохода)",
+                    "Присоединительный размер дымохода",
                     u10);
             Characteristic c17 = new Characteristic(
-                    "Класс и уровень защиты)",
+                    "Класс и уровень защиты",
                     u18);
             Characteristic c18 = new Characteristic(
-                    "Вес, нетто)",
+                    "Вес, нетто",
                     u11);
             Characteristic c19 = new Characteristic(
-                    "Габаритные размеры)",
+                    "Габаритные размеры",
                     u10);
             Characteristic c20 = new Characteristic(
-                    "Номинальная тепловая мощность)",
+                    "Номинальная тепловая мощность",
                     u1);
             Characteristic c21 = new Characteristic(
-                    "Номинальная теплопроизводительность)",
+                    "Номинальная теплопроизводительность",
                     u1);
             Characteristic c22 = new Characteristic(
-                    "Номинальное давление газа)",
+                    "Номинальное давление газа",
                     u19);
             Characteristic c23 = new Characteristic(
-                    "Номинальный расход газа)",
+                    "Номинальный расход газа",
                     u3);
             Characteristic c24 = new Characteristic(
-                    "Давление подводимой воды для нормальной работы аппарата)",
+                    "Давление подводимой воды для нормальной работы аппарата",
                     u14);
             Characteristic c25 = new Characteristic(
-                    "Расход воды при нагреве на ΔT = 25°C)",
+                    "Расход воды при нагреве на ΔT = 25°C",
                     u15);
             Characteristic c26 = new Characteristic(
-                    "Тип и напряжение элементов питания)",
+                    "Тип и напряжение элементов питания",
                     u20);
             Characteristic c27 = new Characteristic(
                     "Присоединительные размеры:",
                     u19);
             Characteristic c30 = new Characteristic(
-                    "Диаметр дымохода)",
+                    "Диаметр дымохода",
                     u10);
             Characteristic c31 = new Characteristic(
-                    "Тип камеры сгорания)",
+                    "Тип камеры сгорания",
                     u19);
             Characteristic c32 = new Characteristic(
-                    "Тип дымоудаления)",
+                    "Тип дымоудаления",
                     u19);
             Characteristic c33 = new Characteristic(
-                    "Наличие модуляции пламени)",
+                    "Наличие модуляции пламени",
                     u19);
             Characteristic c34 = new Characteristic(
-                    "Расход газа)",
+                    "Расход газа",
                     u21);
             Characteristic c35 = new Characteristic(
-                    "Мин. расход воды, необходимый для зажигания горелки)",
+                    "Мин. расход воды, необходимый для зажигания горелки",
                     u15);
             Characteristic c36 = new Characteristic(
-                    "Напряжение и частота)",
+                    "Напряжение и частота",
                     u8);
             Characteristic c37 = new Characteristic(
-                    "Зажигание)",
+                    "Зажигание",
                     u19);
             Characteristic c39 = new Characteristic(
-                    "Модель)",
+                    "Модель",
                     u19);
             Characteristic c40 = new Characteristic(
-                    "Номинальная потребляемая мощность)",
+                    "Номинальная потребляемая мощность",
                     u1);
             Characteristic c41 = new Characteristic(
-                    "Количество ступеней мощности)",
+                    "Количество ступеней мощности",
                     u19);
             Characteristic c43 = new Characteristic(
-                    "Номинальный ток автоматического выключателя)",
+                    "Номинальный ток автоматического выключателя",
                     u19);
             Characteristic c44 = new Characteristic(
-                    "Сечение токопроводящей жилы)",
+                    "Сечение токопроводящей жилы",
                     u22);
             Characteristic c45 = new Characteristic(
-                    "Рабочее давление теплоносителя)",
+                    "Рабочее давление теплоносителя",
                     u14);
             Characteristic c46 = new Characteristic(
-                    "Тип системы отопления)",
+                    "Тип системы отопления",
                     u19);
             Characteristic c47 = new Characteristic(
-                    "Диапазон регулирования температуры теплоносителя)",
+                    "Диапазон регулирования температуры теплоносителя",
                     u6);
             Characteristic c48 = new Characteristic(
-                    "Диапазон регулирования температуры воды)",
+                    "Диапазон регулирования температуры воды",
                     u6);
             Characteristic c49 = new Characteristic(
-                    "Класс влагозащищенности)",
+                    "Класс влагозащищенности",
                     u18);
             Characteristic c50 = new Characteristic(
-                    "Циркуляционный насос)",
+                    "Циркуляционный насос",
                     u19);
             Characteristic c51 = new Characteristic(
-                    "Габаритные размеры, В*Ш*Г не более)",
+                    "Габаритные размеры, В*Ш*Г не более",
                     u10);
             Characteristic c52 = new Characteristic(
-                    "Масса нетто, не более)",
+                    "Масса нетто, не более",
                     u11);
             Characteristic c56 = new Characteristic(
-                    "Макс./мин. тепловая мощность в режиме ГВС)",
+                    "Макс./мин. тепловая мощность в режиме ГВС",
                     u1);
             Characteristic c57 = new Characteristic(
                     "Макс./мин. давления в контуре ГВС",
                     u4);
             Characteristic c58 = new Characteristic(
-                    "Диапазон регулировки температуры бытовой горячей воды)",
+                    "Диапазон регулировки температуры бытовой горячей воды",
                     u6);
             Characteristic c59 = new Characteristic(
-                    "Производительность по нагреву горячей воды （ при △T=25℃）)",
+                    "Производительность по нагреву горячей воды （ при △T=25℃）",
                     u15);
             Characteristic c60 = new Characteristic(
                     "Производительность по нагреву горячей воды（при △T=30℃）",
