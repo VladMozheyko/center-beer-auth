@@ -1,31 +1,17 @@
 package fr.mossaab.security.dto.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Запрос на редактирование профиля пользователя.
  */
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Data
 public class EditProfileDto {
-
-    /**
-     * Имя пользователя.
-     */
-    private String username;
-
-    /**
-     * Фамилия пользователя.
-     */
-    private String lastname;
-
-    /**
-     * Дата рождения пользователя в формате строки.
-     */
+    private MultipartFile image;
+    private String firstName;
+    private String lastName;
+    private String phoneNumber;
+    private String email;
     private String dateOfBirth;
 }

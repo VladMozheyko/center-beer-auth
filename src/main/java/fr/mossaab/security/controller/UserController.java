@@ -3,10 +3,12 @@ package fr.mossaab.security.controller;
 import fr.mossaab.security.dto.request.EditProfileDto;
 import fr.mossaab.security.dto.response.*;
 import fr.mossaab.security.entities.FileData;
+import fr.mossaab.security.entities.ProposedChanges;
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.repository.FileDataRepository;
 import fr.mossaab.security.repository.RefreshTokenRepository;
 import fr.mossaab.security.repository.UserRepository;
+import fr.mossaab.security.service.impl.MailSender;
 import fr.mossaab.security.service.impl.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
@@ -20,9 +22,17 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.sql.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.regex.Matcher;
+
+import static fr.mossaab.security.controller.AuthController.VALID_PHONE_NUMBER_REGEX;
+
 @Tag(name = "User", description = "Контроллер предоставляющие методы доступные пользователю с ролью user")
 @RestController
 @RequestMapping("/user")
@@ -33,7 +43,11 @@ public class UserController {
     private final RefreshTokenRepository refreshTokenRepository;
     private final StorageService storageService;
     private final UserRepository userRepository;
-
+    private final MailSender mailSender;
+    private boolean isValidPhoneNumber(String phoneNumber) {
+        Matcher matcher = VALID_PHONE_NUMBER_REGEX.matcher(phoneNumber);
+        return matcher.matches();
+    }
     @Operation(summary = "Загрузка изображения аватарки пользователя из файловой системы", description = "Этот эндпоинт позволяет загрузить изображение аватарки пользователя из файловой системы.")
     @GetMapping("/fileSystem/{fileName}")
     public ResponseEntity<?> downloadImageFromFileSystem(@PathVariable String fileName) throws IOException {
@@ -108,84 +122,105 @@ public class UserController {
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
-    @Operation(summary = "Редактирование профиля", description = "Этот эндпоинт позволяет пользователю изменить свой профиль.")
-    @PostMapping("/editProfile")
-    public ResponseEntity<Object> editProfile(@CookieValue("refresh-jwt-cookie") String cookie,
-                                              @RequestPart EditProfileDto editProfileDto,
-                                              @RequestPart MultipartFile image) throws ParseException, IOException {
+    @PostMapping(value = "/edit-profile", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
+    public ResponseEntity<Object> editProfile(@RequestPart EditProfileDto request, @RequestPart(required = false) MultipartFile image, @CookieValue("refresh-jwt-cookie") String cookie) throws IOException {
         User user = refreshTokenRepository.findByToken(cookie).orElse(null).getUser();
-        EditProfileResponse response = new EditProfileResponse();
-        ErrorsEditProfileDto errors = new ErrorsEditProfileDto();
 
-        response.setStatus("success");
-        response.setNotify("Изменения выполнены");
-        response.setAnswer("edit success");
-
-        errors.setFirstname("");
-        errors.setLastname("");
-        errors.setDateOfBirth("");
-        errors.setPhoto("");
-
-        // Логика проверки и заполнения errors
-        if (editProfileDto.getUsername() == null || editProfileDto.getUsername().isEmpty()) {
-            errors.setFirstname("Неправильное имя пользователя");
-        }
-        if (editProfileDto.getLastname() == null || editProfileDto.getLastname().isEmpty()) {
-            errors.setLastname("Неправильная фамилия");
-        }
-        if (editProfileDto.getDateOfBirth() == null) {
-            errors.setDateOfBirth("Неверная дата рождения");
-        }
-        if (image == null || image.isEmpty()) {
-            errors.setPhoto("Неверная фотография");
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
 
-        int count = 0;
-        for (Field field : errors.getClass().getDeclaredFields()) {
-            field.setAccessible(true);
-            try {
-                if (field.get(errors) != null && !field.get(errors).toString().isEmpty()) {
-                    count++;
-                }
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
+        Map<String, String> changes = user.getProposedChanges().getChanges();
+        if (request.getFirstName() != null && !request.getFirstName().isEmpty()) {
+            changes.put("firstName", request.getFirstName());
+        }
+        if (request.getLastName() != null && !request.getLastName().isEmpty()) {
+            changes.put("lastName", request.getLastName());
+        }
+        if (request.getPhoneNumber() != null && !request.getPhoneNumber().isEmpty()) {
+            changes.put("phoneNumber", request.getPhoneNumber());
+        }
+        if (request.getEmail() != null && !request.getEmail().isEmpty()) {
+            changes.put("email", request.getEmail());
+        }
+        if (request.getDateOfBirth() != null && !request.getDateOfBirth().isEmpty()) {
+            changes.put("dateOfBirth", request.getDateOfBirth());
         }
 
-        if (count == 0) {
-            response.setErrors(errors);
-
-            user.setFirstname(editProfileDto.getUsername());
-            user.setLastname(editProfileDto.getLastname());
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-            user.setDateOfBirth(format.parse(editProfileDto.getDateOfBirth()));
-            userRepository.save(user);
-
-            List<FileData> allFileData = fileDataRepository.findAll();
-            String fileDataPath = null;
-            for (FileData fileData : allFileData) {
-                if (fileData.getUser().getId() == user.getId()) {
-                    fileDataPath = fileData.getName();
-                    break;
-                }
-            }
-
-            if (fileDataPath != null) {
-                fileDataRepository.deleteByName(fileDataPath);
-            }
-
+        if (image != null && !image.isEmpty()) {
+            //fileDataRepository.delete(user.getFileData());
+            //user.setFileData(null);
+            //System.out.println("");
             FileData uploadImage = storageService.uploadImageToFileSystemAvatarUser(image, user);
             fileDataRepository.save(uploadImage);
-
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            user.getProposedChanges().setProposedPhoto(uploadImage);
         }
 
-        response.setStatus("error");
-        response.setNotify("В изменениях отказано");
-        response.setAnswer("edit error");
-        response.setErrors(errors);
+        userRepository.save(user);
 
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        // Отправка кода подтверждения на почту пользователя
+        String activationCode = generateActivationCode();
+        user.setActivationCode(activationCode);
+        userRepository.save(user);
+
+        String message = String.format(
+                "Здравствуйте, %s! \n" +
+                        "Для подтверждения изменений профиля используйте следующий код: %s",
+                user.getFirstname(),
+                user.getActivationCode()
+        );
+
+        mailSender.send(user.getEmail(), "Подтверждение изменений профиля", message);
+
+        return ResponseEntity.ok("Изменения предложены, подтвердите изменения через код, отправленный на вашу почту.");
+    }
+    @PostMapping("/confirm-changes")
+    public ResponseEntity<Object> confirmChanges(@RequestBody Map<String, String> requestBody) {
+        String code = requestBody.get("code");
+        User user = userRepository.findByActivationCode(code);
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Invalid code");
+        }
+
+        Map<String, String> changes = user.getProposedChanges().getChanges();
+        if (changes.containsKey("firstName")) {
+            user.setFirstname(changes.get("firstName"));
+        }
+        if (changes.containsKey("lastName")) {
+            user.setLastname(changes.get("lastName"));
+        }
+        if (changes.containsKey("phoneNumber")) {
+            user.setPhoneNumber(changes.get("phoneNumber"));
+        }
+        if (changes.containsKey("email")) {
+            user.setEmail(changes.get("email"));
+        }
+        if (changes.containsKey("dateOfBirth")) {
+            user.setDateOfBirth(Date.valueOf(changes.get("dateOfBirth")));
+        }
+
+        FileData proposedPhoto = user.getProposedChanges().getProposedPhoto();
+        if (proposedPhoto != null) {
+            user.setFileData(proposedPhoto);
+        }
+
+        user.setProposedChanges(new ProposedChanges());
+        user.setActivationCode(null);
+        userRepository.save(user);
+
+        return ResponseEntity.ok("Изменения профиля успешно подтверждены.");
+    }
+    private String generateActivationCode() {
+        int length = 4;
+        String digits = "0123456789";
+        Random random = new Random();
+
+        StringBuilder code = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            code.append(digits.charAt(random.nextInt(digits.length())));
+        }
+
+        return code.toString();
     }
 }

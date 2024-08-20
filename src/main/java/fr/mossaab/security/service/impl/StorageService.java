@@ -35,15 +35,25 @@ public class StorageService {
      */
     public FileData uploadImageToFileSystemAvatarUser(MultipartFile file, User user) throws IOException {
         String fileName = UUID.randomUUID().toString();
-
         String filePath = pathConfig.getStorageServiceFolderPath() + fileName + ".png";
 
-        FileData fileData=fileDataRepository.save(FileData.builder()
+        // Удалить старый объект FileData, если он существует
+        if (user.getFileData() != null) {
+            fileDataRepository.delete(user.getFileData());
+        }
+
+        // Создать новый объект FileData и установить пользователя перед сохранением
+        FileData fileData = FileData.builder()
                 .name(fileName + ".png")
                 .type(file.getContentType())
-                .filePath(filePath).build());
-        fileData.setUser(user);
-        fileDataRepository.save(fileData);
+                .filePath(filePath)
+                .user(user)
+                .build();
+
+        // Сохранить объект FileData в репозитории
+        fileData = fileDataRepository.save(fileData);
+
+        // Перенести файл
         file.transferTo(new File(filePath));
 
         return fileData;

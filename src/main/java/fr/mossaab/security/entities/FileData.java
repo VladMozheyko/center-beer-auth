@@ -1,5 +1,6 @@
 package fr.mossaab.security.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
@@ -22,7 +23,7 @@ public class FileData {
      * Уникальный идентификатор файла.
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     private Long id;
 
     /**
@@ -43,9 +44,10 @@ public class FileData {
     /**
      * Пользователь, связанный с файлом.
      */
-    @OneToOne(cascade = CascadeType.REMOVE)
+    @OneToOne(optional = false)
     @JoinColumn(name = "_user_id", referencedColumnName = "id", unique = true)
     @OnDelete(action = OnDeleteAction.CASCADE)
+    @JsonBackReference
     private User user;
 
 }

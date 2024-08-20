@@ -1,5 +1,7 @@
 package fr.mossaab.security.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import fr.mossaab.security.enums.Role;
 import fr.mossaab.security.enums.WorkerRole;
 import jakarta.persistence.*;
@@ -67,8 +69,9 @@ public class User implements UserDetails {
     /**
      * Данные файла, связанные с пользователем.
      */
-    @OneToOne(mappedBy = "user")
-    @JoinColumn(name = "file_data_id", referencedColumnName = "id")
+    @OneToOne(mappedBy = "user", cascade = CascadeType.MERGE, orphanRemoval = true)
+    //@JoinColumn(name = "file_data_id", referencedColumnName = "id")
+    @JsonManagedReference
     private FileData fileData;
 
     /**
@@ -90,9 +93,10 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<RefreshToken> refreshTokens;
-
+    @Embedded
+    private ProposedChanges proposedChanges;
     /**
      * Получение списка ролей пользователя.
      *

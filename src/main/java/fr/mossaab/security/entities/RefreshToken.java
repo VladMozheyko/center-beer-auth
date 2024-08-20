@@ -22,8 +22,8 @@ public class RefreshToken {
      * Уникальный идентификатор токена.
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
+    @GeneratedValue
+    private Long id;
 
     /**
      * Пользователь, связанный с токеном.
