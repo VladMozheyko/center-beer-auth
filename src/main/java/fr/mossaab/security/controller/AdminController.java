@@ -61,7 +61,7 @@ public class AdminController {
                     user.getPhoneNumber() != null ? user.getPhoneNumber() : null,
                     workerRole != null ? workerRole.name() : null,
                     user.getDateOfBirth() != null ? user.getDateOfBirth().toString() : null,
-                    "http://localhost:8080/user/fileSystem/"+(user.getFileData() != null && user.getFileData().getName() != null ? user.getFileData().getName() : null),
+                    "http://31.129.102.70:8080/user/fileSystem/"+(user.getFileData() != null && user.getFileData().getName() != null ? user.getFileData().getName() : null),
                     user.getActivationCode() == null,
                     role != null ? role.name() : null,
                     user.getId() != null ? user.getId().toString() : null
