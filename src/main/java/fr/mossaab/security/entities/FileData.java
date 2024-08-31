@@ -1,6 +1,7 @@
 package fr.mossaab.security.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
@@ -48,6 +49,4 @@ public class FileData {
     @JoinColumn(name = "_user_id", referencedColumnName = "id", unique = true)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonBackReference
-    private User user;
-
-}
+    private User user;}

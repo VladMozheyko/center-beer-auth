@@ -23,7 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-@Service
+/*@Service
 @RequiredArgsConstructor
 public class RestoreService implements CommandLineRunner {
 
@@ -128,3 +128,5 @@ public class RestoreService implements CommandLineRunner {
         return token;
     }
 }
+
+ */

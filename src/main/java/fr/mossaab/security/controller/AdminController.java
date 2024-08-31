@@ -1,24 +1,35 @@
 package fr.mossaab.security.controller;
 
+import fr.mossaab.security.dto.request.BarcodeTypeDto;
+import fr.mossaab.security.dto.request.UserEmailWithBoilerPhotoNamesDTO;
 import fr.mossaab.security.dto.response.GetAllUsersResponse;
 import fr.mossaab.security.dto.response.GetUsersDto;
-import fr.mossaab.security.entities.User;
+import fr.mossaab.security.entities.*;
 import fr.mossaab.security.enums.Role;
 import fr.mossaab.security.enums.WorkerRole;
+import fr.mossaab.security.repository.BarcodeTypeRepository;
+import fr.mossaab.security.repository.BonusRequestRepository;
 import fr.mossaab.security.repository.UserRepository;
+import fr.mossaab.security.service.impl.BarcodeService;
+import fr.mossaab.security.service.impl.BoilerPurchasePhotoService;
 import fr.mossaab.security.service.impl.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 @Tag(name = "Admin", description = "Контроллер предоставляющие методы доступные пользователю с ролью администратор")
 @RestController
 @RequestMapping("/admin")
@@ -27,6 +38,10 @@ import java.util.List;
 public class AdminController {
     private final UserRepository userRepository;
     private final StorageService storageService;
+    private final BoilerPurchasePhotoService boilerPurchasePhotoService;
+    private final BarcodeService barcodeService;
+    private final BarcodeTypeRepository barcodeTypeRepository;
+    private final BonusRequestRepository bonusRequestRepository;
 
     @Operation(summary = "Получить всех пользователей", description = "Этот эндпоинт возвращает список всех пользователей с пагинацией.")
     @GetMapping("/allUsers")
@@ -40,7 +55,7 @@ public class AdminController {
             WorkerRole workerRole = user.getWorkerRoles();
             Role role = user.getRole();
             GetUsersDto userDto = new GetUsersDto(
-                    user.getUsername() != null ? user.getUsername() : null,
+                    user.getFirstname() != null ? user.getFirstname() : null,
                     user.getEmail() != null ? user.getEmail() : null,
                     user.getLastname() != null ? user.getLastname() : null,
                     user.getPhoneNumber() != null ? user.getPhoneNumber() : null,
@@ -71,5 +86,106 @@ public class AdminController {
         response.setFirst(page == 0);
 
         return ResponseEntity.ok(response);
+    }
+    @Operation(summary = "Получить все типы штрих-кодов")
+    @GetMapping("/print-all-bonus-program-photos")
+    public ResponseEntity<List<Map<String, Object>>> printPhotos() {
+        // Получаем всех пользователей
+        List<User> users = userRepository.findAll();
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        // Проходим по каждому пользователю
+        for (User user : users) {
+            Map<String, Object> userMap = new HashMap<>();
+            userMap.put("email", user.getEmail());
+
+            List<Map<String, Object>> bonusRequestList = new ArrayList<>();
+
+            // Получаем все бонусные запросы пользователя
+            for (BonusRequest bonusRequest : user.getBonusRequests()) {
+                Map<String, Object> bonusRequestMap = new HashMap<>();
+                bonusRequestMap.put("bonusRequestId", bonusRequest.getId());
+
+                // Добавляем статус бонусного запроса
+                bonusRequestMap.put("status", bonusRequest.getStatus().name());
+
+                // Добавляем сообщение об отказе, если статус REJECTED
+                if (bonusRequest.getStatus() == BonusRequest.RequestStatus.REJECTED) {
+                    bonusRequestMap.put("rejectionMessage", bonusRequest.getRejectionMessage());
+                }
+
+                List<String> photoNames = new ArrayList<>();
+                // Получаем все фотографии покупки котла для этого бонусного запроса
+                for (BoilerPurchasePhoto photo : bonusRequest.getBoilerPurchasePhotos()) {
+                    photoNames.add("http://localhost:8080/admin/fileSystem/" + photo.getName());
+                }
+
+                bonusRequestMap.put("photos", photoNames);
+                bonusRequestList.add(bonusRequestMap);
+            }
+
+            userMap.put("bonusRequests", bonusRequestList);
+            result.add(userMap);
+        }
+
+        // Возвращаем результат в виде JSON
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/updateStatus")
+    @Operation(summary = "Обновление статуса запроса пользователя на получение баллов за бонусную программу")
+    public ResponseEntity<String> updateBonusRequestStatus(
+            @RequestParam("requestId") Long requestId,
+            @RequestParam("status") BonusRequest.RequestStatus status,
+            @RequestParam(value = "rejectionMessage", required = false) String rejectionMessage) {
+
+        // Поиск BonusRequest по ID
+        var bonusRequest = bonusRequestRepository.findById(requestId).orElse(null);
+        if (bonusRequest == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("BonusRequest not found.");
+        }
+
+        // Установка статуса и сообщения об отказе, если статус REJECTED
+        bonusRequest.setStatus(status);
+        if (status == BonusRequest.RequestStatus.REJECTED && rejectionMessage != null) {
+            bonusRequest.setRejectionMessage(rejectionMessage);
+        }
+        if (status == BonusRequest.RequestStatus.APPROVED) {
+            bonusRequest.getUser().setBalance(bonusRequest.getUser().getBalance()+bonusRequest.getBarcodeType().getPoints());
+        }
+        // Сохранение обновленного BonusRequest
+        bonusRequestRepository.save(bonusRequest);
+
+        return ResponseEntity.ok("BonusRequest status updated successfully.");
+    }
+    @Operation(summary = "Загрузка изображения фотографии присланной пользователем в рамках бонусной программы", description = "Этот эндпоинт позволяет загрузить изображение присланное пользователем в рамках бонусной программы")
+    @GetMapping("/fileSystem/{fileName}")
+    public ResponseEntity<?> downloadImageFromBonusProgramFromFileSystem(@PathVariable String fileName) throws IOException {
+        byte[] imageData = boilerPurchasePhotoService.downloadImageFromFileSystem(fileName);
+        return ResponseEntity.status(HttpStatus.OK)
+                .contentType(MediaType.valueOf("image/png"))
+                .body(imageData);
+    }
+    // Добавление нового штрих-кода
+    @PostMapping("/add-barcode")
+    @Operation(summary = "Добавление нового штрих-кода")
+    public ResponseEntity<Barcode> addBarcode(@RequestParam Long code, @RequestParam Long barcodeTypeId) {
+        Barcode createdBarcode = barcodeService.addBarcode(code, barcodeTypeId);
+        return ResponseEntity.ok(createdBarcode);
+    }
+    @Operation(summary = "Добавление нового типа штрих-кода")
+    @PostMapping("/add-barcode-type")
+    public ResponseEntity<BarcodeType> addBarcodeType(@RequestParam("points") int points,
+                                                      @RequestParam("type")  String type,
+                                                      @RequestParam("subtype") String subtype) {
+        BarcodeType barcodeType = new BarcodeType();
+        barcodeType.setPoints(points);
+        barcodeType.setType(type);
+        barcodeType.setSubtype(subtype);
+
+        BarcodeType savedBarcodeType = barcodeTypeRepository.save(barcodeType);
+
+        // Возвращаем ResponseEntity с объектом и статусом 201 Created
+        return new ResponseEntity<>(savedBarcodeType, HttpStatus.CREATED);
     }
 }

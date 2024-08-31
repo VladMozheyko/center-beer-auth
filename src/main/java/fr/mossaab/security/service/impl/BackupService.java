@@ -19,7 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-@Component
+/*@Component
 @RequiredArgsConstructor
 public class BackupService implements ApplicationListener<ContextClosedEvent> {
 
@@ -95,4 +95,4 @@ public class BackupService implements ApplicationListener<ContextClosedEvent> {
         tokenDTO.setRevoked(token.isRevoked());
         return tokenDTO;
     }
-}
+}*/
