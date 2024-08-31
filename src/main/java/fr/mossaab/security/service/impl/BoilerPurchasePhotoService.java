@@ -23,8 +23,6 @@ public class BoilerPurchasePhotoService {
     @Autowired
     private BoilerPurchasePhotoRepository boilerPurchasePhotoRepository;
 
-    @Autowired
-    private PathConfig pathConfig;
     /**
      * Загружает изображение пользователя в файловую систему.
      *
@@ -34,7 +32,7 @@ public class BoilerPurchasePhotoService {
      */
     public BoilerPurchasePhoto uploadImageToFileSystemPhotoForBonus(MultipartFile file, BonusRequest bonusRequest) throws IOException {
         String fileName = UUID.randomUUID().toString();
-        String filePath = pathConfig.getStorageServiceFolderPath() + fileName + ".png";
+        String filePath = "/var/www/vuary/bonus/" + fileName + ".png";
 
         // Создать новый объект FileData и установить пользователя перед сохранением
         BoilerPurchasePhoto boilerPurchasePhoto = BoilerPurchasePhoto.builder()
