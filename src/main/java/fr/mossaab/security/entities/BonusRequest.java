@@ -48,13 +48,10 @@ public class BonusRequest {
     @JsonManagedReference
     private List<BoilerPurchasePhoto> boilerPurchasePhotos;
 
-    /**
-     * Список типов штрих-кодов, связанных с запросом бонуса.
-     */
-    @ManyToOne
-    @JoinColumn(name = "barcode_type_id", nullable = false)
-    private BarcodeType barcodeType;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "barcode_id", nullable = false)
+    private Barcode barcode;
 
     public enum RequestStatus {
         PENDING, APPROVED, REJECTED

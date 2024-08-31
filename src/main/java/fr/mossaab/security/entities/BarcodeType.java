@@ -31,9 +31,8 @@ public class BarcodeType {
     @Column(name = "subtype", nullable = false)
     private String subtype;
 
-    @OneToMany(mappedBy = "barcodeType", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Barcode> barcodes = new HashSet<>();
 
     @OneToMany(mappedBy = "barcodeType", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<BonusRequest> bonusRequests = new ArrayList<>();
+    private List<Barcode> barcodes = new ArrayList<>(); // Изменили Set на List
+
 }

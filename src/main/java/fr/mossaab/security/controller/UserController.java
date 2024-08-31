@@ -43,6 +43,7 @@ public class UserController {
     private final BoilerPurchasePhotoService boilerPurchasePhotoService;
     private final BonusRequestRepository bonusRequestRepository;
     private final BarcodeTypeRepository barcodeTypeRepository;
+    private final BarcodeRepository barcodeRepository;
     @GetMapping("/get-all-barcode-types")
     @Operation(summary = "Получить все типы штрих-кодов")
     public ResponseEntity<List<BarcodeTypeDto>> getAllBarcodeTypes() {
@@ -59,18 +60,18 @@ public class UserController {
     @PostMapping("/upload-photos")
     @Operation(summary = "Подгрузка пользователем фотографий в запрос на бонусную программу")
     public ResponseEntity<String> uploadPhotos(@RequestParam("photos") List<MultipartFile> photos,
-                                               @CookieValue("refresh-jwt-cookie") String cookie,@RequestParam("type-id") Long typeId) throws IOException {
+                                               @CookieValue("refresh-jwt-cookie") String cookie,@RequestParam("barcode-id") Long barcodeId) throws IOException {
         // Получение текущего пользователя по cookie
         var user = refreshTokenRepository.findByToken(cookie).orElse(null).getUser();
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token.");
         }
-        var barcodeType = barcodeTypeRepository.findById(typeId).orElse(null);
+        var barcode = barcodeRepository.findById(barcodeId).orElse(null);
         // Создание нового BonusRequest
         BonusRequest bonusRequest = BonusRequest.builder()
                 .status(BonusRequest.RequestStatus.PENDING)
                 .user(user)
-                .barcodeType(barcodeType)
+                .barcode(barcode)
                 .build();
 
         // Сначала сохраняем BonusRequest

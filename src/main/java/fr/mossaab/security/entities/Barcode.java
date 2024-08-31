@@ -19,7 +19,8 @@ public class Barcode {
 
     @Column(name = "used", nullable = false)
     private boolean used = false;
-
+    @OneToOne(mappedBy = "barcode", cascade = CascadeType.ALL, orphanRemoval = true)
+    private BonusRequest bonusRequest;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "barcode_type_id", nullable = false)
     private BarcodeType barcodeType;

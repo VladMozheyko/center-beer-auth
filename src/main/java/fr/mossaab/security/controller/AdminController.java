@@ -1,16 +1,20 @@
 package fr.mossaab.security.controller;
 
 import fr.mossaab.security.dto.request.BarcodeTypeDto;
+import fr.mossaab.security.dto.request.BarcodeTypeUpdateDto;
+import fr.mossaab.security.dto.request.BarcodeUpdateDto;
 import fr.mossaab.security.dto.request.UserEmailWithBoilerPhotoNamesDTO;
 import fr.mossaab.security.dto.response.GetAllUsersResponse;
 import fr.mossaab.security.dto.response.GetUsersDto;
 import fr.mossaab.security.entities.*;
 import fr.mossaab.security.enums.Role;
 import fr.mossaab.security.enums.WorkerRole;
+import fr.mossaab.security.repository.BarcodeRepository;
 import fr.mossaab.security.repository.BarcodeTypeRepository;
 import fr.mossaab.security.repository.BonusRequestRepository;
 import fr.mossaab.security.repository.UserRepository;
 import fr.mossaab.security.service.impl.BarcodeService;
+import fr.mossaab.security.service.impl.BarcodeSummaryDto;
 import fr.mossaab.security.service.impl.BoilerPurchasePhotoService;
 import fr.mossaab.security.service.impl.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,10 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Tag(name = "Admin", description = "Контроллер предоставляющие методы доступные пользователю с ролью администратор")
 @RestController
@@ -42,6 +43,7 @@ public class AdminController {
     private final BarcodeService barcodeService;
     private final BarcodeTypeRepository barcodeTypeRepository;
     private final BonusRequestRepository bonusRequestRepository;
+    private final BarcodeRepository barcodeRepository;
 
     @Operation(summary = "Получить всех пользователей", description = "Этот эндпоинт возвращает список всех пользователей с пагинацией.")
     @GetMapping("/allUsers")
@@ -87,7 +89,7 @@ public class AdminController {
 
         return ResponseEntity.ok(response);
     }
-    @Operation(summary = "Получить все типы штрих-кодов")
+    @Operation(summary = "Получить по почтам все запросы, их статус, id, а также фотки котлов")
     @GetMapping("/print-all-bonus-program-photos")
     public ResponseEntity<List<Map<String, Object>>> printPhotos() {
         // Получаем всех пользователей
@@ -117,7 +119,7 @@ public class AdminController {
                 List<String> photoNames = new ArrayList<>();
                 // Получаем все фотографии покупки котла для этого бонусного запроса
                 for (BoilerPurchasePhoto photo : bonusRequest.getBoilerPurchasePhotos()) {
-                    photoNames.add("http://localhost:8080/admin/fileSystem/" + photo.getName());
+                    photoNames.add("http://31.129.102.70:8080/admin/fileSystem/" + photo.getName());
                 }
 
                 bonusRequestMap.put("photos", photoNames);
@@ -149,9 +151,11 @@ public class AdminController {
         bonusRequest.setStatus(status);
         if (status == BonusRequest.RequestStatus.REJECTED && rejectionMessage != null) {
             bonusRequest.setRejectionMessage(rejectionMessage);
+            bonusRequest.getBarcode().setBonusRequest(null);
         }
         if (status == BonusRequest.RequestStatus.APPROVED) {
-            bonusRequest.getUser().setBalance(bonusRequest.getUser().getBalance()+bonusRequest.getBarcodeType().getPoints());
+            bonusRequest.getBarcode().setUsed(true);
+            bonusRequest.getUser().setBalance(bonusRequest.getUser().getBalance()+bonusRequest.getBarcode().getBarcodeType().getPoints());
         }
         // Сохранение обновленного BonusRequest
         bonusRequestRepository.save(bonusRequest);
@@ -187,5 +191,50 @@ public class AdminController {
 
         // Возвращаем ResponseEntity с объектом и статусом 201 Created
         return new ResponseEntity<>(savedBarcodeType, HttpStatus.CREATED);
+    }
+    @Operation(summary = "Вывод всех штрих кодов")
+    @GetMapping("/all-barcode")
+    public ResponseEntity<List<BarcodeSummaryDto>> getAllBarcodesSummary() {
+        List<Barcode> barcodes = barcodeRepository.findAll();
+        List<BarcodeSummaryDto> barcodeSummaryDtos = new ArrayList<>();
+
+        // Используем цикл for для обработки списка
+        for (Barcode barcode : barcodes) {
+            BarcodeSummaryDto summaryDto = new BarcodeSummaryDto(barcode.getId(), barcode.getCode(), barcode.isUsed());
+            barcodeSummaryDtos.add(summaryDto);
+        }
+
+        return ResponseEntity.ok(barcodeSummaryDtos);
+    }
+    @Operation(summary = "Редактирование штрих-кода по его id")
+    @PutMapping("update-barcode/{id}")
+    public ResponseEntity<Barcode> updateBarcode(@PathVariable Long id,
+                                                 @RequestBody BarcodeUpdateDto updateDto) {
+
+        Optional<Barcode> existingBarcode = barcodeRepository.findById(id);
+        if (existingBarcode.isPresent()) {
+            Barcode barcode = existingBarcode.get();
+            barcode.setCode(updateDto.getCode());
+            barcode.setUsed(updateDto.isUsed());
+            return ResponseEntity.ok(barcodeRepository.save(barcode));
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    @Operation(summary = "Редактирование типа штрих-кода по его id")
+    @PutMapping("update-barcode-type/{id}/type")
+    public ResponseEntity<BarcodeType> updateBarcodeType(@PathVariable Long id,
+                                                         @RequestBody BarcodeTypeUpdateDto updateDto) {
+
+        Optional<BarcodeType> existingBarcodeType = barcodeTypeRepository.findById(id);
+        if (existingBarcodeType.isPresent()) {
+            BarcodeType barcodeType = existingBarcodeType.get();
+            barcodeType.setPoints(updateDto.getPoints());
+            barcodeType.setType(updateDto.getType());
+            barcodeType.setSubtype(updateDto.getSubtype());
+            return ResponseEntity.ok(barcodeTypeRepository.save(barcodeType));
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
