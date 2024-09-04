@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Set;
 
 /**
  * Класс JwtAuthenticationFilter расширяет OncePerRequestFilter для выполнения на каждом HTTP-запросе.
@@ -32,25 +32,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService; // Сервис для работы с JWT
     private final UserDetailsService userDetailsService; // Реализация предоставляется в ApplicationSecurityConfig
 
-    // Список URI, для которых не нужно выполнять фильтрацию
-    private static final List<String> EXCLUDED_URLS = List.of(
-            "/passport/**",
-            "/heatingSystem/**",
-            "/auth/**",
-            "/user/**",
-            "/admin/**",
-            "/v2/api-docs",
-            "/v3/api-docs",
-            "/swagger-resources/**",
-            "/swagger-ui/**",
-            "/webjars/**",
-            "/swagger-ui.html",
-            "/types/**",
-            "/kinds/**",
-            "/documents/**",
-            "/service-centres/**"
-    );
-
+    /**
+     * Фильтрует HTTP-запросы, основанные на аутентификации JWT.
+     *
+     * @param request     HTTP-запрос
+     * @param response    HTTP-ответ
+     * @param filterChain Цепочка фильтров
+     * @throws ServletException Исключение, выбрасываемое в случае сервлет-специфической ошибки
+     * @throws IOException      Исключение, выбрасываемое в случае ошибки ввода-вывода
+     */
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
@@ -58,8 +48,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
-        // Проверка, если текущий запрос нужно исключить из JWT-фильтрации
-        if (isExcludedUrl(request.getRequestURI())) {
+        // URL-ы, которые не должны проверяться фильтром JWT
+        Set<String> urlsToSkip = Set.of(
+                "/passport/", "/heatingSystem/", "/auth/", "/user/", "/admin/",
+                "/v2/api-docs", "/v3/api-docs", "/swagger-resources/",
+                "/swagger-ui/", "/webjars/", "/swagger-ui.html",
+                "/types/", "/kinds/", "/documents/", "/service-centres/"
+        );
+
+        String requestURI = request.getRequestURI();
+
+        // Проверка, нужно ли пропускать данный запрос
+        boolean shouldSkip = urlsToSkip.stream()
+                .anyMatch(url -> requestURI.startsWith(url));
+
+        if (shouldSkip) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -68,16 +71,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String jwt = jwtService.getJwtFromCookies(request);
         final String authHeader = request.getHeader("Authorization");
 
-        // Если JWT отсутствует в куках и заголовке Authorization, или если запрос - это запрос на аутентификацию,
-        // пропустить фильтрацию и перейти к следующему фильтру в цепочке
-        if ((jwt == null && (authHeader == null || !authHeader.startsWith("Bearer "))) ||
-                request.getRequestURI().contains("/auth")) {
+        // Если JWT отсутствует в куках и заголовке Authorization
+        if (jwt == null && (authHeader == null || !authHeader.startsWith("Bearer "))) {
             filterChain.doFilter(request, response);
             return;
         }
 
         // Если JWT отсутствует в куках, но присутствует в заголовке Authorization
-        if (jwt == null && authHeader.startsWith("Bearer ")) {
+        if (jwt == null && authHeader != null && authHeader.startsWith("Bearer ")) {
             jwt = authHeader.substring(7); // после "Bearer "
         }
 
@@ -92,27 +93,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // Проверка валидности токена JWT для пользователя
             if (jwtService.isTokenValid(jwt, userDetails)) {
                 // Обновление контекста безопасности Spring Security путем добавления нового UsernamePasswordAuthenticationToken
-                SecurityContext context = SecurityContextHolder.createEmptyContext();
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,
-                        userDetails.getAuthorities());
+                        userDetails.getAuthorities()
+                );
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContext context = SecurityContextHolder.createEmptyContext();
                 context.setAuthentication(authToken);
                 SecurityContextHolder.setContext(context);
             }
         }
+
         // Пропустить запрос к следующему фильтру в цепочке
         filterChain.doFilter(request, response);
-    }
-
-    /**
-     * Проверяет, нужно ли исключить URL из фильтрации.
-     *
-     * @param requestURI URI запроса
-     * @return true, если URL исключен, иначе false
-     */
-    private boolean isExcludedUrl(String requestURI) {
-        return EXCLUDED_URLS.stream().anyMatch(requestURI::startsWith);
     }
 }
