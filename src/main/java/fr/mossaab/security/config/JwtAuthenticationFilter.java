@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Класс JwtAuthenticationFilter расширяет OncePerRequestFilter для выполнения на каждом HTTP-запросе.
@@ -31,21 +32,37 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService; // Сервис для работы с JWT
     private final UserDetailsService userDetailsService; // Реализация предоставляется в ApplicationSecurityConfig
 
-    /**
-     * Фильтрует HTTP-запросы, основанные на аутентификации JWT.
-     *
-     * @param request     HTTP-запрос
-     * @param response    HTTP-ответ
-     * @param filterChain Цепочка фильтров
-     * @throws ServletException Исключение, выбрасываемое в случае сервлет-специфической ошибки
-     * @throws IOException      Исключение, выбрасываемое в случае ошибки ввода-вывода
-     */
+    // Список URI, для которых не нужно выполнять фильтрацию
+    private static final List<String> EXCLUDED_URLS = List.of(
+            "/passport/**",
+            "/heatingSystem/**",
+            "/auth/**",
+            "/user/**",
+            "/admin/**",
+            "/v2/api-docs",
+            "/v3/api-docs",
+            "/swagger-resources/**",
+            "/swagger-ui/**",
+            "/webjars/**",
+            "/swagger-ui.html",
+            "/types/**",
+            "/kinds/**",
+            "/documents/**",
+            "/service-centres/**"
+    );
+
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
+
+        // Проверка, если текущий запрос нужно исключить из JWT-фильтрации
+        if (isExcludedUrl(request.getRequestURI())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         // Попытка получить JWT из куки или из заголовка Authorization
         String jwt = jwtService.getJwtFromCookies(request);
@@ -87,5 +104,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         // Пропустить запрос к следующему фильтру в цепочке
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * Проверяет, нужно ли исключить URL из фильтрации.
+     *
+     * @param requestURI URI запроса
+     * @return true, если URL исключен, иначе false
+     */
+    private boolean isExcludedUrl(String requestURI) {
+        return EXCLUDED_URLS.stream().anyMatch(requestURI::startsWith);
     }
 }
