@@ -237,4 +237,45 @@ public class AdminController {
             return ResponseEntity.notFound().build();
         }
     }
+    @PutMapping("/edit-balance")
+    public ResponseEntity<String> updateBalance(@RequestParam String email, @RequestParam int amount) {
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.setBalance(user.getBalance() + amount);
+            userRepository.save(user);
+            return ResponseEntity.ok("Balance updated successfully.");
+        } else {
+            return ResponseEntity.badRequest().body("User not found.");
+        }
+    }
+    @DeleteMapping("deleteBarcode/{id}")
+    public ResponseEntity<Void> deleteBarcode(@PathVariable Long id) {
+        // Найти сущность Barcode по id
+        Barcode barcode = barcodeRepository.findById(id).orElse(null);
+
+        if (barcode == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Удаление сущности Barcode
+        barcodeRepository.delete(barcode);
+
+        return ResponseEntity.noContent().build();
+    }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBarcodeType(@PathVariable Long id) {
+        // Найти сущность BarcodeType по id
+        BarcodeType barcodeType = barcodeTypeRepository.findById(id).orElse(null);
+
+        if (barcodeType == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Удаление сущности BarcodeType
+        barcodeTypeRepository.delete(barcodeType);
+
+        return ResponseEntity.noContent().build();
+    }
 }
