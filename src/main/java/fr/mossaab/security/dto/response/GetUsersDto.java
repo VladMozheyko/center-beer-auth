@@ -63,4 +63,5 @@ public class GetUsersDto {
      * Уникальный идентификатор пользователя.
      */
     private String id;
+    private int balance;
 }

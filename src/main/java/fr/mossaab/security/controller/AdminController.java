@@ -1,9 +1,7 @@
 package fr.mossaab.security.controller;
 
-import fr.mossaab.security.dto.request.BarcodeTypeDto;
 import fr.mossaab.security.dto.request.BarcodeTypeUpdateDto;
 import fr.mossaab.security.dto.request.BarcodeUpdateDto;
-import fr.mossaab.security.dto.request.UserEmailWithBoilerPhotoNamesDTO;
 import fr.mossaab.security.dto.response.GetAllUsersResponse;
 import fr.mossaab.security.dto.response.GetUsersDto;
 import fr.mossaab.security.entities.*;
@@ -21,14 +19,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Tag(name = "Admin", description = "Контроллер предоставляющие методы доступные пользователю с ролью администратор")
@@ -63,10 +60,10 @@ public class AdminController {
                     user.getPhoneNumber() != null ? user.getPhoneNumber() : null,
                     workerRole != null ? workerRole.name() : null,
                     user.getDateOfBirth() != null ? user.getDateOfBirth().toString() : null,
-                    "http://31.129.102.70:8080/user/fileSystem/"+(user.getFileData() != null && user.getFileData().getName() != null ? user.getFileData().getName() : null),
+                    "http://31.129.102.70:8080/user/fileSystem/" + (user.getFileData() != null && user.getFileData().getName() != null ? user.getFileData().getName() : null),
                     user.getActivationCode() == null,
                     role != null ? role.name() : null,
-                    user.getId() != null ? user.getId().toString() : null
+                    user.getId() != null ? user.getId().toString() : null, user.getBalance()
             );
             userDtos.add(userDto);
         }
@@ -89,8 +86,9 @@ public class AdminController {
 
         return ResponseEntity.ok(response);
     }
-    @Operation(summary = "Получить по почтам все запросы, их статус, id, а также фотки котлов")
-    @GetMapping("/print-all-bonus-program-photos")
+
+    @Operation(summary = "Получить по почтам все отказанные запросы по бонусной программе: их статус, id, а также фотки котлов")
+    @GetMapping("/get-all-rejected-bonus-requests")
     public ResponseEntity<List<Map<String, Object>>> printPhotos() {
         // Получаем всех пользователей
         List<User> users = userRepository.findAll();
@@ -104,17 +102,41 @@ public class AdminController {
             List<Map<String, Object>> bonusRequestList = new ArrayList<>();
 
             // Получаем все бонусные запросы пользователя
-            for (BonusRequest bonusRequest : user.getBonusRequests()) {
+            List<BonusRequest> bonusRequests = new ArrayList<>(user.getBonusRequests());
+
+            // Фильтруем по статусу и сортируем по requestSentDate от новых к старым
+            List<BonusRequest> rejectedBonusRequests = new ArrayList<>();
+            for (BonusRequest bonusRequest : bonusRequests) {
+                if (bonusRequest.getStatus() == BonusRequest.RequestStatus.REJECTED) {
+                    rejectedBonusRequests.add(bonusRequest);
+                }
+            }
+
+            // Сортировка по requestSentDate от новых к старым
+            Collections.sort(rejectedBonusRequests, (br1, br2) -> {
+                if (br1.getRequestDate() == null && br2.getRequestDate() == null) {
+                    return 0;
+                } else if (br1.getRequestDate() == null) {
+                    return 1;
+                } else if (br2.getRequestDate() == null) {
+                    return -1;
+                } else {
+                    return br2.getRequestDate().compareTo(br1.getRequestDate());
+                }
+            });
+
+            // Проходим по отсортированным бонусным запросам
+            for (BonusRequest bonusRequest : rejectedBonusRequests) {
                 Map<String, Object> bonusRequestMap = new HashMap<>();
                 bonusRequestMap.put("bonusRequestId", bonusRequest.getId());
 
                 // Добавляем статус бонусного запроса
                 bonusRequestMap.put("status", bonusRequest.getStatus().name());
+                bonusRequestMap.put("requestDate", bonusRequest.getRequestDate());
+                bonusRequestMap.put("responseDate", bonusRequest.getResponseDate());
 
-                // Добавляем сообщение об отказе, если статус REJECTED
-                if (bonusRequest.getStatus() == BonusRequest.RequestStatus.REJECTED) {
-                    bonusRequestMap.put("rejectionMessage", bonusRequest.getRejectionMessage());
-                }
+                // Добавляем сообщение об отказе
+                bonusRequestMap.put("rejectionMessage", bonusRequest.getRejectionMessage());
 
                 List<String> photoNames = new ArrayList<>();
                 // Получаем все фотографии покупки котла для этого бонусного запроса
@@ -134,6 +156,136 @@ public class AdminController {
         return ResponseEntity.ok(result);
     }
 
+
+    @Operation(summary = "Получить по почтам все одобренные запросы по бонусной программе: их статус, id, а также фотки котлов")
+    @GetMapping("/get-all-approved-bonus-requests")
+    public ResponseEntity<List<Map<String, Object>>> getApprovedBonusRequests() {
+        // Получаем всех пользователей
+        List<User> users = userRepository.findAll();
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        // Проходим по каждому пользователю
+        for (User user : users) {
+            Map<String, Object> userMap = new HashMap<>();
+            userMap.put("email", user.getEmail());
+
+            List<Map<String, Object>> bonusRequestList = new ArrayList<>();
+
+            // Получаем все бонусные запросы пользователя
+            List<BonusRequest> bonusRequests = new ArrayList<>(user.getBonusRequests());
+
+            // Фильтруем по статусу и сортируем по requestSentDate от новых к старым
+            List<BonusRequest> approvedBonusRequests = new ArrayList<>();
+            for (BonusRequest bonusRequest : bonusRequests) {
+                if (bonusRequest.getStatus() == BonusRequest.RequestStatus.APPROVED) {
+                    approvedBonusRequests.add(bonusRequest);
+                }
+            }
+
+            // Сортировка по requestSentDate от новых к старым
+            Collections.sort(approvedBonusRequests, (br1, br2) -> {
+                if (br1.getRequestDate() == null && br2.getRequestDate() == null) {
+                    return 0;
+                } else if (br1.getRequestDate() == null) {
+                    return 1;
+                } else if (br2.getRequestDate() == null) {
+                    return -1;
+                } else {
+                    return br2.getRequestDate().compareTo(br1.getRequestDate());
+                }
+            });
+
+            // Проходим по отсортированным бонусным запросам
+            for (BonusRequest bonusRequest : approvedBonusRequests) {
+                Map<String, Object> bonusRequestMap = new HashMap<>();
+                bonusRequestMap.put("bonusRequestId", bonusRequest.getId());
+
+                // Добавляем статус бонусного запроса
+                bonusRequestMap.put("status", bonusRequest.getStatus().name());
+                bonusRequestMap.put("requestDate", bonusRequest.getRequestDate());
+                bonusRequestMap.put("responseDate", bonusRequest.getResponseDate());
+
+                List<String> photoNames = new ArrayList<>();
+                // Получаем все фотографии покупки котла для этого бонусного запроса
+                for (BoilerPurchasePhoto photo : bonusRequest.getBoilerPurchasePhotos()) {
+                    photoNames.add("http://31.129.102.70:8080/admin/fileSystem/" + photo.getName());
+                }
+
+                bonusRequestMap.put("photos", photoNames);
+                bonusRequestList.add(bonusRequestMap);
+            }
+
+            userMap.put("bonusRequests", bonusRequestList);
+            result.add(userMap);
+        }
+
+        // Возвращаем результат в виде JSON
+        return ResponseEntity.ok(result);
+    }
+    @Operation(summary = "Получить по почтам все ожидающие запросы по бонусной программе: их статус, id, а также фотки котлов")
+    @GetMapping("/get-all-pending-bonus-requests")
+    public ResponseEntity<List<Map<String, Object>>> getPendingBonusRequests() {
+        // Получаем всех пользователей
+        List<User> users = userRepository.findAll();
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        // Проходим по каждому пользователю
+        for (User user : users) {
+            Map<String, Object> userMap = new HashMap<>();
+            userMap.put("email", user.getEmail());
+
+            List<Map<String, Object>> bonusRequestList = new ArrayList<>();
+
+            // Получаем все бонусные запросы пользователя
+            List<BonusRequest> bonusRequests = new ArrayList<>(user.getBonusRequests());
+
+            // Фильтруем по статусу и сортируем по requestSentDate от новых к старым
+            List<BonusRequest> pendingBonusRequests = new ArrayList<>();
+            for (BonusRequest bonusRequest : bonusRequests) {
+                if (bonusRequest.getStatus() == BonusRequest.RequestStatus.PENDING) {
+                    pendingBonusRequests.add(bonusRequest);
+                }
+            }
+
+            // Сортировка по requestSentDate от новых к старым
+            Collections.sort(pendingBonusRequests, (br1, br2) -> {
+                if (br1.getRequestDate() == null && br2.getRequestDate() == null) {
+                    return 0;
+                } else if (br1.getRequestDate() == null) {
+                    return 1;
+                } else if (br2.getRequestDate() == null) {
+                    return -1;
+                } else {
+                    return br2.getRequestDate().compareTo(br1.getRequestDate());
+                }
+            });
+
+            // Проходим по отсортированным бонусным запросам
+            for (BonusRequest bonusRequest : pendingBonusRequests) {
+                Map<String, Object> bonusRequestMap = new HashMap<>();
+                bonusRequestMap.put("bonusRequestId", bonusRequest.getId());
+
+                // Добавляем статус бонусного запроса
+                bonusRequestMap.put("status", bonusRequest.getStatus().name());
+                bonusRequestMap.put("requestDate", bonusRequest.getRequestDate());
+
+                List<String> photoNames = new ArrayList<>();
+                // Получаем все фотографии покупки котла для этого бонусного запроса
+                for (BoilerPurchasePhoto photo : bonusRequest.getBoilerPurchasePhotos()) {
+                    photoNames.add("http://31.129.102.70:8080/admin/fileSystem/" + photo.getName());
+                }
+
+                bonusRequestMap.put("photos", photoNames);
+                bonusRequestList.add(bonusRequestMap);
+            }
+
+            userMap.put("bonusRequests", bonusRequestList);
+            result.add(userMap);
+        }
+
+        // Возвращаем результат в виде JSON
+        return ResponseEntity.ok(result);
+    }
     @PostMapping("/updateStatus")
     @Operation(summary = "Обновление статуса запроса пользователя на получение баллов за бонусную программу")
     public ResponseEntity<String> updateBonusRequestStatus(
@@ -149,19 +301,21 @@ public class AdminController {
 
         // Установка статуса и сообщения об отказе, если статус REJECTED
         bonusRequest.setStatus(status);
+        bonusRequest.setResponseDate(LocalDateTime.now());
         if (status == BonusRequest.RequestStatus.REJECTED && rejectionMessage != null) {
             bonusRequest.setRejectionMessage(rejectionMessage);
-            bonusRequest.getBarcode().setBonusRequest(null);
+            //bonusRequest.getBarcode().setBonusRequest(null);
         }
         if (status == BonusRequest.RequestStatus.APPROVED) {
             bonusRequest.getBarcode().setUsed(true);
-            bonusRequest.getUser().setBalance(bonusRequest.getUser().getBalance()+bonusRequest.getBarcode().getBarcodeType().getPoints());
+            bonusRequest.getUser().setBalance(bonusRequest.getUser().getBalance() + bonusRequest.getBarcode().getBarcodeType().getPoints());
         }
         // Сохранение обновленного BonusRequest
         bonusRequestRepository.save(bonusRequest);
 
         return ResponseEntity.ok("BonusRequest status updated successfully.");
     }
+
     @Operation(summary = "Загрузка изображения фотографии присланной пользователем в рамках бонусной программы", description = "Этот эндпоинт позволяет загрузить изображение присланное пользователем в рамках бонусной программы")
     @GetMapping("/fileSystem/{fileName}")
     public ResponseEntity<?> downloadImageFromBonusProgramFromFileSystem(@PathVariable String fileName) throws IOException {
@@ -170,6 +324,7 @@ public class AdminController {
                 .contentType(MediaType.valueOf("image/png"))
                 .body(imageData);
     }
+
     // Добавление нового штрих-кода
     @PostMapping("/add-barcode")
     @Operation(summary = "Добавление нового штрих-кода")
@@ -177,10 +332,11 @@ public class AdminController {
         Barcode createdBarcode = barcodeService.addBarcode(code, barcodeTypeId);
         return ResponseEntity.ok(createdBarcode);
     }
+
     @Operation(summary = "Добавление нового типа штрих-кода")
     @PostMapping("/add-barcode-type")
     public ResponseEntity<BarcodeType> addBarcodeType(@RequestParam("points") int points,
-                                                      @RequestParam("type")  String type,
+                                                      @RequestParam("type") String type,
                                                       @RequestParam("subtype") String subtype) {
         BarcodeType barcodeType = new BarcodeType();
         barcodeType.setPoints(points);
@@ -192,6 +348,7 @@ public class AdminController {
         // Возвращаем ResponseEntity с объектом и статусом 201 Created
         return new ResponseEntity<>(savedBarcodeType, HttpStatus.CREATED);
     }
+
     @Operation(summary = "Вывод всех штрих кодов")
     @GetMapping("/all-barcode")
     public ResponseEntity<List<BarcodeSummaryDto>> getAllBarcodesSummary() {
@@ -206,6 +363,7 @@ public class AdminController {
 
         return ResponseEntity.ok(barcodeSummaryDtos);
     }
+
     @Operation(summary = "Редактирование штрих-кода по его id")
     @PutMapping("update-barcode/{id}")
     public ResponseEntity<Barcode> updateBarcode(@PathVariable Long id,
@@ -221,6 +379,7 @@ public class AdminController {
             return ResponseEntity.notFound().build();
         }
     }
+
     @Operation(summary = "Редактирование типа штрих-кода по его id")
     @PutMapping("update-barcode-type/{id}/type")
     public ResponseEntity<BarcodeType> updateBarcodeType(@PathVariable Long id,
@@ -237,6 +396,8 @@ public class AdminController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @Operation(summary = "Редактирование баланса пользователя по его e-mail")
     @PutMapping("/edit-balance")
     public ResponseEntity<String> updateBalance(@RequestParam String email, @RequestParam int amount) {
         Optional<User> optionalUser = userRepository.findByEmail(email);
@@ -250,7 +411,9 @@ public class AdminController {
             return ResponseEntity.badRequest().body("User not found.");
         }
     }
-    @DeleteMapping("deleteBarcode/{id}")
+
+    @Operation(summary = "Удаление штрих кода по его id")
+    @DeleteMapping("delete-barcode/{id}")
     public ResponseEntity<Void> deleteBarcode(@PathVariable Long id) {
         // Найти сущность Barcode по id
         Barcode barcode = barcodeRepository.findById(id).orElse(null);
@@ -264,7 +427,9 @@ public class AdminController {
 
         return ResponseEntity.noContent().build();
     }
-    @DeleteMapping("/{id}")
+
+    @Operation(summary = "Удаление типа штрих кода по его id")
+    @DeleteMapping("delete-barcode-type/{id}")
     public ResponseEntity<Void> deleteBarcodeType(@PathVariable Long id) {
         // Найти сущность BarcodeType по id
         BarcodeType barcodeType = barcodeTypeRepository.findById(id).orElse(null);

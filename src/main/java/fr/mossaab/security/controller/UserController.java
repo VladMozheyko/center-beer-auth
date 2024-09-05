@@ -24,6 +24,7 @@ import java.lang.reflect.Field;
 import java.sql.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.regex.Matcher;
 
@@ -60,18 +61,19 @@ public class UserController {
     @PostMapping("/upload-photos")
     @Operation(summary = "Подгрузка пользователем фотографий в запрос на бонусную программу")
     public ResponseEntity<String> uploadPhotos(@RequestParam("photos") List<MultipartFile> photos,
-                                               @CookieValue("refresh-jwt-cookie") String cookie,@RequestParam("barcode-id") Long barcodeId) throws IOException {
+                                               @CookieValue("refresh-jwt-cookie") String cookie,@RequestParam("barcode-code") Long barcodeCode) throws IOException {
         // Получение текущего пользователя по cookie
         var user = refreshTokenRepository.findByToken(cookie).orElse(null).getUser();
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token.");
         }
-        var barcode = barcodeRepository.findById(barcodeId).orElse(null);
+        var barcode = barcodeRepository.findByCode(barcodeCode).orElse(null);
         // Создание нового BonusRequest
         BonusRequest bonusRequest = BonusRequest.builder()
                 .status(BonusRequest.RequestStatus.PENDING)
                 .user(user)
                 .barcode(barcode)
+                .requestDate(LocalDateTime.now())
                 .build();
 
         // Сначала сохраняем BonusRequest
