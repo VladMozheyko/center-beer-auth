@@ -50,4 +50,6 @@ public class AuthenticationResponse {
     @JsonProperty("token_type")
     private String tokenType;
 
+    private String jwtCookie;
+    private String refreshTokenCookie;
 }

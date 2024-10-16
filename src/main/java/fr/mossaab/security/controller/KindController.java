@@ -1,6 +1,6 @@
 package fr.mossaab.security.controller;
 
-import fr.mossaab.security.service.api.KindService;
+import fr.mossaab.security.service.KindService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

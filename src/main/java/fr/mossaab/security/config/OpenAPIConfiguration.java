@@ -28,8 +28,8 @@ import org.springframework.context.annotation.Configuration;
                         name = "Alexandr",
                         email = "kichmarev@list.ru"
                 ),
-                title = "Spring Security 6+ APP",
-                description = "Пример Spring Boot 3+ Spring Security 6+",
+                title = "Kotitonttu API",
+                description = "API для отопительных систем",
                 version = "0.0.1-SNAPSHOT"
         ),
         servers = {},  // Placeholder, will be added dynamically
@@ -49,12 +49,10 @@ import org.springframework.context.annotation.Configuration;
 )
 public class OpenAPIConfiguration {
 
-        @Autowired
-        private PathConfig pathConfig;
 
         @Bean
         public OpenApiCustomizer openApiCustomizer() {
-                return openApi -> openApi.addServersItem(new io.swagger.v3.oas.models.servers.Server().url(pathConfig.getSwaggerUrlPath()));
+                return openApi -> openApi.addServersItem(new io.swagger.v3.oas.models.servers.Server().url("http://31.129.102.70:8080"));
         }
 
         /**

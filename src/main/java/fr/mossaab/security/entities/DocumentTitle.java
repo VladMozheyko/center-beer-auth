@@ -20,12 +20,16 @@ public class DocumentTitle {
     private String title;
     private String ruTitle;
 
-    @OneToMany(mappedBy = "documentTitle", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
-    private List<DocumentFileData> files;
 
     @ManyToOne
     @JoinColumn(name = "CATEGORY_ID")
     @JsonBackReference
     private DocumentCategory category;
+
+    @OneToMany(mappedBy = "documentTitle", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<FileData> files;
 }
+ /*@OneToMany(mappedBy = "documentTitle", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<DocumentFileData> files;*/

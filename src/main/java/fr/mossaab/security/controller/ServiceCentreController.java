@@ -1,7 +1,7 @@
 package fr.mossaab.security.controller;
 
 import fr.mossaab.security.entities.ServiceCentre;
-import fr.mossaab.security.service.impl.ServiceCentreService;
+import fr.mossaab.security.service.ServiceCentreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

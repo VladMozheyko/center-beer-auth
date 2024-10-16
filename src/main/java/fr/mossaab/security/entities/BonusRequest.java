@@ -45,10 +45,9 @@ public class BonusRequest {
     /**
      * Список фотографий покупки котла.
      */
-    @OneToMany(mappedBy = "bonusRequest", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "bonusRequest", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
-    private List<BoilerPurchasePhoto> boilerPurchasePhotos;
-
+    private List<FileData> files;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "barcode_id", nullable = false)

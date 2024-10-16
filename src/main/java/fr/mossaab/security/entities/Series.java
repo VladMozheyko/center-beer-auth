@@ -25,9 +25,6 @@ public class Series {
     @JsonIgnore
     private Kind kind;
 
-    @OneToMany(mappedBy = "series", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<ImageForSeries> images = new ArrayList<>();
-
     @ManyToMany(mappedBy = "series")
     private List<Characteristic> characteristics = new ArrayList<>();
 
@@ -40,6 +37,10 @@ public class Series {
     @OneToMany(mappedBy = "series", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Boiler> boilers = new ArrayList<>();
 
+    @OneToMany(mappedBy = "series", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<FileData> files = new ArrayList<>();
+
     public Series() {
         this("null","null", new Kind());
     }
@@ -51,3 +52,5 @@ public class Series {
         this.title = title;
     }
 }
+/*@OneToMany(mappedBy = "series", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ImageForSeries> images = new ArrayList<>();*/

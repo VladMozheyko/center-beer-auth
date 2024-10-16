@@ -1,18 +1,15 @@
 package fr.mossaab.security.controller;
 
-import fr.mossaab.security.dto.request.BarcodeTypeDto;
 import fr.mossaab.security.dto.request.EditProfileDto;
 import fr.mossaab.security.dto.response.*;
 import fr.mossaab.security.entities.*;
 import fr.mossaab.security.repository.*;
-import fr.mossaab.security.service.impl.BoilerPurchasePhotoService;
-import fr.mossaab.security.service.impl.MailSender;
-import fr.mossaab.security.service.impl.StorageService;
+import fr.mossaab.security.service.MailSender;
+import fr.mossaab.security.service.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,15 +17,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.sql.Date;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.*;
-import java.util.regex.Matcher;
-
-import static fr.mossaab.security.controller.AuthController.VALID_PHONE_NUMBER_REGEX;
 
 @Tag(name = "User", description = "Контроллер предоставляющие методы доступные пользователю с ролью user")
 @RestController
@@ -41,65 +31,7 @@ public class UserController {
     private final StorageService storageService;
     private final UserRepository userRepository;
     private final MailSender mailSender;
-    private final BoilerPurchasePhotoService boilerPurchasePhotoService;
-    private final BonusRequestRepository bonusRequestRepository;
-    private final BarcodeTypeRepository barcodeTypeRepository;
-    private final BarcodeRepository barcodeRepository;
-    @GetMapping("/get-all-barcode-types")
-    @Operation(summary = "Получить все типы штрих-кодов")
-    public ResponseEntity<List<BarcodeTypeDto>> getAllBarcodeTypes() {
-        List<BarcodeType> barcodeTypes = barcodeTypeRepository.findAll();
-        List<BarcodeTypeDto> barcodeTypeDtos = new ArrayList<>();
 
-        for (BarcodeType barcodeType : barcodeTypes) {
-            barcodeTypeDtos.add(new BarcodeTypeDto(barcodeType.getId(), barcodeType.getPoints(), barcodeType.getType(),barcodeType.getSubtype()));
-        }
-
-        return ResponseEntity.ok(barcodeTypeDtos);
-    }
-    // Подгрузка список фотографий от пользователя
-    @PostMapping("/upload-photos")
-    @Operation(summary = "Подгрузка пользователем фотографий в запрос на бонусную программу")
-    public ResponseEntity<String> uploadPhotos(@RequestParam("photos") List<MultipartFile> photos,
-                                               @CookieValue("refresh-jwt-cookie") String cookie,@RequestParam("barcode-code") Long barcodeCode) throws IOException {
-        // Получение текущего пользователя по cookie
-        var user = refreshTokenRepository.findByToken(cookie).orElse(null).getUser();
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token.");
-        }
-        var barcode = barcodeRepository.findByCode(barcodeCode).orElse(null);
-        // Создание нового BonusRequest
-        BonusRequest bonusRequest = BonusRequest.builder()
-                .status(BonusRequest.RequestStatus.PENDING)
-                .user(user)
-                .barcode(barcode)
-                .requestDate(LocalDateTime.now())
-                .build();
-
-        // Сначала сохраняем BonusRequest
-        bonusRequest = bonusRequestRepository.save(bonusRequest);
-
-        List<BoilerPurchasePhoto> boilerPurchasePhotos = new ArrayList<>();
-
-        // Проходим по списку фотографий и сохраняем каждую
-        for (MultipartFile photo : photos) {
-            BoilerPurchasePhoto savedPhoto = boilerPurchasePhotoService.uploadImageToFileSystemPhotoForBonus(photo, bonusRequest);
-            boilerPurchasePhotos.add(savedPhoto);
-        }
-
-        // Связываем фотографии с BonusRequest
-        bonusRequest.setBoilerPurchasePhotos(boilerPurchasePhotos);
-
-        // Сохраняем обновленный BonusRequest с фотографиями
-        bonusRequestRepository.save(bonusRequest);
-
-        return ResponseEntity.ok("Photos uploaded successfully and BonusRequest created.");
-    }
-
-    private boolean isValidPhoneNumber(String phoneNumber) {
-        Matcher matcher = VALID_PHONE_NUMBER_REGEX.matcher(phoneNumber);
-        return matcher.matches();
-    }
     @Operation(summary = "Загрузка изображения аватарки пользователя из файловой системы", description = "Этот эндпоинт позволяет загрузить изображение аватарки пользователя из файловой системы.")
     @GetMapping("/fileSystem/{fileName}")
     public ResponseEntity<?> downloadImageFromFileSystem(@PathVariable String fileName) throws IOException {
@@ -201,10 +133,7 @@ public class UserController {
         }
 
         if (image != null && !image.isEmpty()) {
-            //fileDataRepository.delete(user.getFileData());
-            //user.setFileData(null);
-            //System.out.println("");
-            FileData uploadImage = storageService.uploadImageToFileSystemAvatarUser(image, user);
+            FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image,"", user);
             fileDataRepository.save(uploadImage);
             user.getProposedChanges().setProposedPhoto(uploadImage);
         }

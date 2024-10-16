@@ -36,7 +36,7 @@ public class Http401UnauthorizedEntryPoint implements AuthenticationEntryPoint {
      */
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
-            throws IOException, ServletException {
+            throws IOException {
         // Логируем ошибку неавторизованного доступа с сообщением исключения.
         log.error("Unauthorized error: {}", authException.getMessage());
 

@@ -34,7 +34,6 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException {
         // Логируем ошибку отказа в доступе с сообщением исключения.
-        log.error("Access denied error: {}", accessDeniedException.getMessage());
 
         // Устанавливаем тип контента ответа как JSON.
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
