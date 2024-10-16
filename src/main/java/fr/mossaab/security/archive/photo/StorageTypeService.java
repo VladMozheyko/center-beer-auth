@@ -1,6 +1,5 @@
 package fr.mossaab.security.archive.photo;
 
-import fr.mossaab.security.config.PathConfig;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
