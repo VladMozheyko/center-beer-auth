@@ -7,6 +7,7 @@ import fr.mossaab.security.service.StorageService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.Arrays;
@@ -16,10 +17,15 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PassportService {
+    @Autowired
     private PassportTitleRepository passportTitleRepository;
+    @Autowired
     private PassportCategoryRepository passportCategoryRepository;
+    @Autowired
     private ErrorRepository errorRepository;
+    @Autowired
     private SeriesTitleRepository seriesTitleRepository;
+    @Autowired
     private StorageService storageService;
 
     @Transactional
