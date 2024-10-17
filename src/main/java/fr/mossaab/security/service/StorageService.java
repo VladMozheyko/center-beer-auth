@@ -32,7 +32,7 @@ public class StorageService {
                     fileDataRepository.delete(user.getFileData());
                 }
                 builder.name(UUID.randomUUID().toString() + ".png");
-                builder.type(file.getContentType());
+                builder.type("image/png");
                 builder.filePath("/var/www/vuary/user_folder/" + UUID.randomUUID().toString() + ".png");
                 if (!file.isEmpty()) {
                     file.transferTo(new File("/var/www/vuary/user_folder/" + UUID.randomUUID().toString() + ".png"));
@@ -45,7 +45,7 @@ public class StorageService {
                 BonusRequest bonusRequest = (BonusRequest) relatedEntity;
 
                 builder.name(name + ".png");
-                builder.type(file.getContentType());
+                builder.type("image/png");
                 builder.filePath("/var/www/vuary/bonus/" + name + ".png");
                 if (!file.isEmpty()) {
                     file.transferTo(new File("/var/www/vuary/bonus/" + name + ".png"));
@@ -74,7 +74,7 @@ public class StorageService {
                 builder.documentTitle(documentTitle);
             case "Series":
                 builder.name(name + ".png");
-                builder.type(file.getContentType());
+                builder.type("image/png");
                 builder.filePath("/var/www/vuary/Series/" + name + ".png");
                 if (!file.isEmpty()) {
                     file.transferTo(new File("/var/www/vuary/Series/" + name + ".png"));
