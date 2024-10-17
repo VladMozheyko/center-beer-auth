@@ -34,7 +34,7 @@ public class StorageService {
                 builder.name(UUID.randomUUID().toString() + ".png");
                 builder.type("image/png");
                 builder.filePath("/var/www/vuary/user_folder/" + UUID.randomUUID().toString() + ".png");
-                if (!file.isEmpty()) {
+                if (file != null && !file.isEmpty()) {
                     file.transferTo(new File("/var/www/vuary/user_folder/" + UUID.randomUUID().toString() + ".png"));
                 }
                 // Устанавливаем связь с пользователем
@@ -47,7 +47,7 @@ public class StorageService {
                 builder.name(name + ".png");
                 builder.type("image/png");
                 builder.filePath("/var/www/vuary/bonus/" + name + ".png");
-                if (!file.isEmpty()) {
+                if (file != null && !file.isEmpty()) {
                     file.transferTo(new File("/var/www/vuary/bonus/" + name + ".png"));
                 }
                 // Устанавливаем связь с бонусным запросом
@@ -57,7 +57,7 @@ public class StorageService {
                 builder.name(name + ".png");
                 builder.type("application/pdf");
                 builder.filePath("/var/www/vuary/Guidance_and_error_codes/"+ name + ".pdf");
-                if (!file.isEmpty()) {
+                if (file != null && !file.isEmpty()) {
                     file.transferTo(new File("/var/www/vuary/Guidance_and_error_codes/"+ name + ".pdf"));
                 }
                 PassportTitle passportTitle = (PassportTitle) relatedEntity;
@@ -66,7 +66,7 @@ public class StorageService {
                 builder.name(name + ".png");
                 builder.type("application/pdf");
                 builder.filePath("/var/www/vuary/Processing_Policy_and_User_Agreement/"+ name + ".pdf");
-                if (!file.isEmpty()) {
+                if (file != null && !file.isEmpty()) {
                     file.transferTo(new File("/var/www/vuary/Processing_Policy_and_User_Agreement/" + name + ".pdf"));
                 }
                 assert relatedEntity instanceof DocumentTitle;
@@ -76,7 +76,7 @@ public class StorageService {
                 builder.name(name + ".png");
                 builder.type("image/png");
                 builder.filePath("/var/www/vuary/Series/" + name + ".png");
-                if (!file.isEmpty()) {
+                if (file != null && !file.isEmpty()) {
                     file.transferTo(new File("/var/www/vuary/Series/" + name + ".png"));
                 }
                 assert relatedEntity instanceof Series;
