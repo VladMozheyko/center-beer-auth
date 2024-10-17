@@ -56,22 +56,28 @@ public class StorageService {
             case "PassportTitle":
                 builder.name(name + ".png");
                 builder.type("application/pdf");
-                builder.filePath("/var/www/vuary/Guidance_and_error_codes/"+ name + ".pdf");
+                builder.filePath("/var/www/vuary/Guidance_and_error_codes/" + name + ".pdf");
                 if (file != null && !file.isEmpty()) {
-                    file.transferTo(new File("/var/www/vuary/Guidance_and_error_codes/"+ name + ".pdf"));
+                    file.transferTo(new File("/var/www/vuary/Guidance_and_error_codes/" + name + ".pdf"));
                 }
-                PassportTitle passportTitle = (PassportTitle) relatedEntity;
-                builder.passportTitle(passportTitle);
+                if (relatedEntity instanceof PassportTitle) {
+                    PassportTitle passportTitle = (PassportTitle) relatedEntity;
+                    builder.passportTitle(passportTitle);
+                }
+                break;  // Добавляем break для завершения этого case
+
             case "DocumentTitle":
                 builder.name(name + ".png");
                 builder.type("application/pdf");
-                builder.filePath("/var/www/vuary/Processing_Policy_and_User_Agreement/"+ name + ".pdf");
+                builder.filePath("/var/www/vuary/Processing_Policy_and_User_Agreement/" + name + ".pdf");
                 if (file != null && !file.isEmpty()) {
                     file.transferTo(new File("/var/www/vuary/Processing_Policy_and_User_Agreement/" + name + ".pdf"));
                 }
-                assert relatedEntity instanceof DocumentTitle;
-                DocumentTitle documentTitle = (DocumentTitle) relatedEntity;
-                builder.documentTitle(documentTitle);
+                if (relatedEntity instanceof DocumentTitle) {
+                    DocumentTitle documentTitle = (DocumentTitle) relatedEntity;
+                    builder.documentTitle(documentTitle);
+                }
+                break;  // Добавляем break для завершения этого case
             case "Series":
                 builder.name(name + ".png");
                 builder.type("image/png");
