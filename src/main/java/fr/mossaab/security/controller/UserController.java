@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Date;
 import java.util.*;
 
@@ -32,41 +34,23 @@ public class UserController {
     private final UserRepository userRepository;
     private final MailSender mailSender;
 
-    @Operation(summary = "Загрузка файла пользователя из файловой системы",
-            description = "Этот эндпоинт позволяет загрузить изображение или PDF-файл пользователя из файловой системы.")
+    @Operation(summary = "Загрузка файла из файловой системы", description = "Этот эндпоинт позволяет загрузить файл (изображение, PDF и т.д.) из файловой системы.")
     @GetMapping("/fileSystem/{fileName}")
     public ResponseEntity<?> downloadFileFromFileSystem(@PathVariable String fileName) throws IOException {
+        // Получаем содержимое файла в виде массива байт
         byte[] fileData = storageService.downloadImageFromFileSystem(fileName);
 
-        // Определяем тип контента в зависимости от расширения файла
-        String fileExtension = getFileExtension(fileName);
-        MediaType mediaType;
+        // Определяем тип содержимого на основе расширения файла
+        String contentType = Files.probeContentType(Paths.get(fileName));
 
-        switch (fileExtension.toLowerCase()) {
-            case "png":
-            case "jpg":
-            case "jpeg":
-                mediaType = MediaType.IMAGE_PNG; // или MediaType.IMAGE_JPEG для jpg
-                break;
-            case "pdf":
-                mediaType = MediaType.APPLICATION_PDF;
-                break;
-            default:
-                return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
-                        .body("Unsupported file type: " + fileExtension);
+        // Если тип не был определен, используем тип по умолчанию
+        if (contentType == null) {
+            contentType = "application/octet-stream";
         }
 
         return ResponseEntity.status(HttpStatus.OK)
-                .contentType(mediaType)
+                .contentType(MediaType.parseMediaType(contentType))
                 .body(fileData);
-    }
-
-    // Метод для получения расширения файла
-    private String getFileExtension(String fileName) {
-        if (fileName.lastIndexOf('.') > 0) {
-            return fileName.substring(fileName.lastIndexOf('.') + 1);
-        }
-        return "";
     }
 
     @Operation(summary = "Получить данные пользователя", description = "Этот эндпоинт возвращает данные пользователя на основе предоставленного куки.")
