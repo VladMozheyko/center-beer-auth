@@ -50,7 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // URL-ы, которые не должны проверяться фильтром JWT
         Set<String> urlsToSkip = Set.of(
-                "/passport/", "/heatingSystem/", "/auth/", "/user/", "/admin/",
+                "/passport/", "/heatingSystem/", "/authentication/", "/user/", "/admin/",
                 "/v2/api-docs", "/v3/api-docs", "/swagger-resources/",
                 "/swagger-ui/", "/webjars/", "/swagger-ui.html",
                 "/types/", "/kinds/", "/documents/", "/service-centres/"

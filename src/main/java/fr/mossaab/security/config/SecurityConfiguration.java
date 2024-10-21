@@ -57,7 +57,7 @@ public class SecurityConfiguration {
                         request
                                 .requestMatchers("/passport/**",
                                         "/heatingSystem/**",
-                                        "/auth/**",
+                                        "/authentication/**",
                                         "/user/**",
                                         "/admin/**",
                                         "/v2/api-docs",
