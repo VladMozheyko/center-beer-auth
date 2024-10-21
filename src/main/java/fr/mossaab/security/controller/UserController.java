@@ -17,8 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.Date;
 import java.util.*;
 
@@ -34,23 +32,22 @@ public class UserController {
     private final UserRepository userRepository;
     private final MailSender mailSender;
 
-    @Operation(summary = "Загрузка файла из файловой системы", description = "Этот эндпоинт позволяет загрузить файл (изображение, PDF и т.д.) из файловой системы.")
-    @GetMapping("/fileSystem/{fileName}")
-    public ResponseEntity<?> downloadFileFromFileSystem(@PathVariable String fileName) throws IOException {
-        // Получаем содержимое файла в виде массива байт
-        byte[] fileData = storageService.downloadImageFromFileSystem(fileName);
-
-        // Определяем тип содержимого на основе расширения файла
-        String contentType = Files.probeContentType(Paths.get(fileName));
-
-        // Если тип не был определен, используем тип по умолчанию
-        if (contentType == null) {
-            contentType = "application/octet-stream";
-        }
-
+    @Operation(summary = "Загрузка PDF-файла из файловой системы", description = "Этот эндпоинт позволяет загрузить PDF-файл из файловой системы.")
+    @GetMapping("/fileSystemPdf/{fileName}")
+    public ResponseEntity<?> downloadPdfFromFileSystem(@PathVariable String fileName) throws IOException {
+        byte[] pdfData = storageService.downloadImageFromFileSystem(fileName);
         return ResponseEntity.status(HttpStatus.OK)
-                .contentType(MediaType.parseMediaType(contentType))
-                .body(fileData);
+                .contentType(MediaType.valueOf("application/pdf"))
+                .body(pdfData);
+    }
+
+    @Operation(summary = "Загрузка изображения из файловой системы", description = "Этот эндпоинт позволяет загрузить изображение из файловой системы.")
+    @GetMapping("/fileSystem/{fileName}")
+    public ResponseEntity<?> downloadImageFromFileSystem(@PathVariable String fileName) throws IOException {
+        byte[] imageData = storageService.downloadImageFromFileSystem(fileName);
+        return ResponseEntity.status(HttpStatus.OK)
+                .contentType(MediaType.valueOf("image/png"))
+                .body(imageData);
     }
 
     @Operation(summary = "Получить данные пользователя", description = "Этот эндпоинт возвращает данные пользователя на основе предоставленного куки.")
