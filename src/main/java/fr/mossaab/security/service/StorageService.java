@@ -87,6 +87,7 @@ public class StorageService {
                     file.transferTo(new File("/var/www/vuary/Series/" + name + ".png"));
                 }
                 builder.series(series);
+                break;
                 // Можно добавить дополнительные случаи для других типов объектов
             default:
                 throw new IllegalArgumentException("Unsupported related entity type: " + relatedEntity.getClass().getSimpleName());
