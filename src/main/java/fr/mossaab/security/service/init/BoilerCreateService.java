@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -26,8 +27,6 @@ public class BoilerCreateService {
     private CharacteristicService characteristicService;
     @Autowired
     private AttributeService attributeService;
-//    @Autowired
-//    private ImageForSeriesService imageForSeriesService;
     @Autowired
     private BoilerService boilerService;
     @Autowired
@@ -47,8 +46,6 @@ public class BoilerCreateService {
     private CharacteristicRepository characteristicRepository;
     @Autowired
     private AttributeRepository attributeRepository;
-//    @Autowired
-//    private ImageForSeriesRepository imageForSeriesRepository;
     @Autowired
     private BoilerRepository boilerRepository;
     @Autowired
@@ -57,6 +54,8 @@ public class BoilerCreateService {
     private AcceptableValueRepository acceptableValueRepository;
     @Autowired
     private StorageService storageService;
+    @Autowired
+    private FileDataRepository fileDataRepository;
     /*@Autowired
     private JdbcTemplate jdbcTemplate;
     */
@@ -83,7 +82,6 @@ public class BoilerCreateService {
                 seriesRepository.count() == 0 &&
                 characteristicRepository.count() == 0 &&
                 attributeRepository.count() == 0 &&
-                //imageForSeriesRepository.count() == 0 &&
                 boilerRepository.count() == 0 &&
                 advantageRepository.count() == 0 &&
                 acceptableValueRepository.count() == 0
@@ -175,23 +173,28 @@ public class BoilerCreateService {
 
             // Изображения котлов
             //------------------------------------------------------------------------------------------------------
-            storageService.uploadImageToFileSystem(null,"T10O_T24O",s1);
-            storageService.uploadImageToFileSystem(null,"T10OK_T24OK",s2);
-            storageService.uploadImageToFileSystem(null,"T10DK_T24DK",s3);
-            storageService.uploadImageToFileSystem(null,"S10_S12",s4);
-            storageService.uploadImageToFileSystem(null,"S10EM_S12EM",s5);
-            storageService.uploadImageToFileSystem(null,"S13ST_S16ST",s6);
-            storageService.uploadImageToFileSystem(null,"S12FT",s7);
-            storageService.uploadImageToFileSystem(null,"LT4_24D",s8);
-            storageService.uploadImageToFileSystem(null,"QM_4_06_2",s9);
-            storageService.uploadImageToFileSystem(null,"KMU10_30L",s10);
-            storageService.uploadImageToFileSystem(null,"VRM30_100",s11);
-            storageService.uploadImageToFileSystem(null,"VRM30_100D",s12);
-            storageService.uploadImageToFileSystem(null,"VRM30_100",s13);
-            storageService.uploadImageToFileSystem(null,"VRM30_100D",s14);
-            storageService.uploadImageToFileSystem(null,"VFM30_80D",s1);
-            storageService.uploadImageToFileSystem(null,"VFE30_50WE",s1);
-            storageService.uploadImageToFileSystem(null,"FRM200_300",s1);
+            // Создание списка для хранения FileData
+            List<FileData> fileDataList = new ArrayList<>();
+
+// Загрузка изображений и добавление в список
+            fileDataList.add((FileData) storageService.uploadImageToFileSystem(null, "T10O_T24O", s1));
+            fileDataList.add((FileData) storageService.uploadImageToFileSystem(null, "T10OK_T24OK", s2));
+            fileDataList.add((FileData) storageService.uploadImageToFileSystem(null, "T10DK_T24DK", s3));
+            fileDataList.add((FileData) storageService.uploadImageToFileSystem(null, "S10_S12", s4));
+            fileDataList.add((FileData) storageService.uploadImageToFileSystem(null, "S10EM_S12EM", s5));
+            fileDataList.add((FileData) storageService.uploadImageToFileSystem(null, "S13ST_S16ST", s6));
+            fileDataList.add((FileData) storageService.uploadImageToFileSystem(null, "S12FT", s7));
+            fileDataList.add((FileData) storageService.uploadImageToFileSystem(null, "LT4_24D", s8));
+            fileDataList.add((FileData) storageService.uploadImageToFileSystem(null, "QM_4_06_2", s9));
+            fileDataList.add((FileData) storageService.uploadImageToFileSystem(null, "KMU10_30L", s10));
+            fileDataList.add((FileData) storageService.uploadImageToFileSystem(null, "VRM30_100", s11));
+            fileDataList.add((FileData) storageService.uploadImageToFileSystem(null, "VRM30_100D", s12));
+            fileDataList.add((FileData) storageService.uploadImageToFileSystem(null, "VFM30_80D", s13)); // Исправлено: s1 на s15
+            fileDataList.add((FileData) storageService.uploadImageToFileSystem(null, "VFE30_50WE", s14)); // Исправлено: s1 на s16
+            fileDataList.add((FileData) storageService.uploadImageToFileSystem(null, "FRM200_300", s15)); // Исправлено: s1 на s17
+
+// Сохранение FileData в репозиторий
+            fileDataRepository.saveAll(fileDataList);
 //            ImageForSeries i1 = new ImageForSeries("T10O_T24O.png", "image/*", "/var/www/vuary/Series/T10O_T24O.png", s1);
 //            ImageForSeries i2 = new ImageForSeries("T10OK_T24OK.png", "image/*", "/var/www/vuary/Series/T10OK_T24OK.png", s2);
 //            ImageForSeries i3 = new ImageForSeries("T10DK_T24DK.png", "image/*", "/var/www/vuary/Series/T10DK_T24DK.png", s3);
