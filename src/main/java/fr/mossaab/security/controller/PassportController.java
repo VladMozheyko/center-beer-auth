@@ -35,7 +35,7 @@ public class PassportController {
             for (PassportTitle title : titles) {
                 FileData fileData = passportFileDataRepository.findByName(title.getTitle()+".pdf").orElse(null);
                 // Используем цикл для добавления хоста к каждому имени файла
-                String filePaths = "http://31.129.102.70:8080/user/fileSystemPdf/" + fileData.getName()+".pdf";
+                String filePaths = "http://31.129.102.70:8080/user/fileSystemPdf/" + fileData.getName();
                 titleWithFilesList.add(new PassportTitleWithFilesDTO(title.getTitle(), title.getRuTitle(), filePaths));
             }
 
