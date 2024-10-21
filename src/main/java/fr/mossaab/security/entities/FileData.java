@@ -64,7 +64,7 @@ public class FileData {
     private DocumentTitle documentTitle;
 
     @OneToOne
-    @JoinColumn(name = "passport_title_id", unique = true, nullable = false)
+    @JoinColumn(name = "passport_title_id", unique = true, nullable = true)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonBackReference
     private PassportTitle passportTitle;
