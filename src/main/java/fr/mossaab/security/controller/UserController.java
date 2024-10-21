@@ -32,13 +32,41 @@ public class UserController {
     private final UserRepository userRepository;
     private final MailSender mailSender;
 
-    @Operation(summary = "Загрузка изображения аватарки пользователя из файловой системы", description = "Этот эндпоинт позволяет загрузить изображение аватарки пользователя из файловой системы.")
+    @Operation(summary = "Загрузка файла пользователя из файловой системы",
+            description = "Этот эндпоинт позволяет загрузить изображение или PDF-файл пользователя из файловой системы.")
     @GetMapping("/fileSystem/{fileName}")
-    public ResponseEntity<?> downloadImageFromFileSystem(@PathVariable String fileName) throws IOException {
-        byte[] imageData = storageService.downloadImageFromFileSystem(fileName);
+    public ResponseEntity<?> downloadFileFromFileSystem(@PathVariable String fileName) throws IOException {
+        byte[] fileData = storageService.downloadImageFromFileSystem(fileName);
+
+        // Определяем тип контента в зависимости от расширения файла
+        String fileExtension = getFileExtension(fileName);
+        MediaType mediaType;
+
+        switch (fileExtension.toLowerCase()) {
+            case "png":
+            case "jpg":
+            case "jpeg":
+                mediaType = MediaType.IMAGE_PNG; // или MediaType.IMAGE_JPEG для jpg
+                break;
+            case "pdf":
+                mediaType = MediaType.APPLICATION_PDF;
+                break;
+            default:
+                return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                        .body("Unsupported file type: " + fileExtension);
+        }
+
         return ResponseEntity.status(HttpStatus.OK)
-                .contentType(MediaType.valueOf("image/png"))
-                .body(imageData);
+                .contentType(mediaType)
+                .body(fileData);
+    }
+
+    // Метод для получения расширения файла
+    private String getFileExtension(String fileName) {
+        if (fileName.lastIndexOf('.') > 0) {
+            return fileName.substring(fileName.lastIndexOf('.') + 1);
+        }
+        return "";
     }
 
     @Operation(summary = "Получить данные пользователя", description = "Этот эндпоинт возвращает данные пользователя на основе предоставленного куки.")
