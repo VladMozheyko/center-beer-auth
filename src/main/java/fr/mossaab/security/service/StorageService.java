@@ -21,9 +21,10 @@ public class StorageService {
     private FileDataRepository fileDataRepository;
 
     // Универсальный метод для загрузки изображения с передачей объекта, с которым нужно связать файл
-    public Object uploadImageToFileSystem(MultipartFile file,String name, Object relatedEntity) throws IOException {
+    public Object uploadImageToFileSystem(MultipartFile file, String name, Object relatedEntity) throws IOException {
         FileData.FileDataBuilder builder = FileData.builder();
         System.out.println("Received related entity type: " + relatedEntity.getClass().getSimpleName());
+        System.out.println("Related entity: " + relatedEntity);
         // Устанавливаем связи в зависимости от типа объекта
         switch (relatedEntity.getClass().getSimpleName().toString()) {
             case "User":
@@ -74,22 +75,19 @@ public class StorageService {
                 if (file != null && !file.isEmpty()) {
                     file.transferTo(new File("/var/www/vuary/Processing_Policy_and_User_Agreement/" + name + ".pdf"));
                 }
-                if (relatedEntity instanceof DocumentTitle) {
-                    DocumentTitle documentTitle = (DocumentTitle) relatedEntity;
-                    builder.documentTitle(documentTitle);
-                }
+                DocumentTitle documentTitle = (DocumentTitle) relatedEntity;
+                builder.documentTitle(documentTitle);
                 break;  // Добавляем break для завершения этого case
             case "Series":
+                Series series = (Series) relatedEntity;
                 builder.name(name + ".png");
                 builder.type("image/png");
                 builder.filePath("/var/www/vuary/Series/" + name + ".png");
                 if (file != null && !file.isEmpty()) {
                     file.transferTo(new File("/var/www/vuary/Series/" + name + ".png"));
                 }
-                assert relatedEntity instanceof Series;
-                Series series = (Series) relatedEntity;
                 builder.series(series);
-            // Можно добавить дополнительные случаи для других типов объектов
+                // Можно добавить дополнительные случаи для других типов объектов
             default:
                 throw new IllegalArgumentException("Unsupported related entity type: " + relatedEntity.getClass().getSimpleName());
         }
@@ -103,6 +101,7 @@ public class StorageService {
 
         return fileData;
     }
+
     public byte[] downloadImageFromFileSystem(String fileName) throws IOException {
         Optional<FileData> fileData = fileDataRepository.findByName(fileName);
         String filePath = fileData.get().getFilePath();
