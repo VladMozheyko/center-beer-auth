@@ -25,7 +25,7 @@ public class StorageService {
         FileData.FileDataBuilder builder = FileData.builder();
         System.out.println("Received related entity type: " + relatedEntity.getClass().getSimpleName());
         // Устанавливаем связи в зависимости от типа объекта
-        switch (relatedEntity.getClass().getSimpleName()) {
+        switch (relatedEntity.getClass().getSimpleName().toString()) {
             case "User":
                 User user = (User) relatedEntity;
                 // Удаляем старый аватар, если он существует

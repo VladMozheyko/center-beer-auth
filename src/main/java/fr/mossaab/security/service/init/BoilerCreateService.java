@@ -56,25 +56,6 @@ public class BoilerCreateService {
     private StorageService storageService;
     @Autowired
     private FileDataRepository fileDataRepository;
-    /*@Autowired
-    private JdbcTemplate jdbcTemplate;
-    */
-
-    /*public void resetAutoIncrement() {
-        typeRepository.deleteAll();
-        String schemaSql = "USE vuary";
-        jdbcTemplate.execute(schemaSql);
-        String sql1 = "ALTER TABLE types AUTO_INCREMENT = 1";
-        jdbcTemplate.execute(sql1);
-        String sql2 = "ALTER TABLE _presentation AUTO_INCREMENT = 1";
-        jdbcTemplate.execute(sql2);
-
-        Type t1 = new Type("TOIVO", "Котлы настенные газовые", "image_toivo.png");
-        typeRepository.save(t1);
-        Type t2 = new Type("TOIVO", "Котлы настенные газовые", "image_toivo.png");
-        typeRepository.save(t2);
-
-    }*/
     public boolean CheckRepos() {
         return typeRepository.count() == 0 &&
                 kindRepository.count() == 0 &&
