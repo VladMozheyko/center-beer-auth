@@ -1,11 +1,5 @@
-package fr.mossaab.security.archive.photo;
+package fr.mossaab.security.archive;
 
-import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Service;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 /*
 @Service
 @AllArgsConstructor

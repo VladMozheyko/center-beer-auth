@@ -2,9 +2,9 @@ package fr.mossaab.security;
 
 import fr.mossaab.security.service.CreateServiceCentreService;
 import fr.mossaab.security.service.init.BoilerCreateService;
-import fr.mossaab.security.service.init.DocumentService;
-import fr.mossaab.security.service.init.PassportService;
-import fr.mossaab.security.service.init.UserCreationService;
+import fr.mossaab.security.service.init.DocumentCreateService;
+import fr.mossaab.security.service.init.PassportCreateService;
+import fr.mossaab.security.service.init.UserCreatService;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -19,13 +19,13 @@ public class SecurityApplication {
     @Autowired
     private BoilerCreateService boilerCreateService;
     @Autowired
-    private PassportService passportService;
+    private PassportCreateService passportService;
     @Autowired
-    private DocumentService documentService;
+    private DocumentCreateService documentService;
     @Autowired
     private CreateServiceCentreService createServiceCentreService;
     @Autowired
-    private UserCreationService userCreationService;
+    private UserCreatService userCreationService;
 
     public static void main(String[] args) {
 

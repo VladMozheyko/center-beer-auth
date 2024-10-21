@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 @Service
-public class UserCreationService {
+public class UserCreatService {
 
     @Autowired
     private UserRepository userRepository;

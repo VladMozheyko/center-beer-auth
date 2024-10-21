@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.sql.Date;
 import java.util.*;
 
-@Tag(name = "User", description = "Контроллер предоставляющие методы доступные пользователю с ролью user")
+@Tag(name = "Пользователь", description = "Контроллер предоставляет базовые методы доступные пользователю с ролью user")
 @RestController
 @RequestMapping("/user")
 @SecurityRequirements()

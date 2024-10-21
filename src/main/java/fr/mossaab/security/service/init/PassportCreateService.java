@@ -16,7 +16,7 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 @NoArgsConstructor
-public class PassportService {
+public class PassportCreateService {
     @Autowired
     private PassportTitleRepository passportTitleRepository;
     @Autowired

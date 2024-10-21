@@ -11,16 +11,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @AllArgsConstructor
 @NoArgsConstructor
-public class DocumentService {
+public class DocumentCreateService {
     @Autowired
     private StorageService storageService;
 
@@ -53,13 +50,6 @@ public class DocumentService {
             documentTitleRepository.saveAll(List.of(title1, title2));
             storageService.uploadImageToFileSystem(null,title1.getTitle(),title1);
             storageService.uploadImageToFileSystem(null,title2.getTitle(),title2);
-//            // Загрузка документов
-//            for (int i = 1; i <= 4; i++) {
-//                uploadDocument(title1, "_" + i);
-//            }
-//            for (int i = 1; i <= 3; i++) {
-//                uploadDocument(title2, "_" + i);
-//            }
         }
     }
 

@@ -1,5 +1,5 @@
-package fr.mossaab.security.dto.request;
-
+package fr.mossaab.security.archive;
+/*
 import lombok.Getter;
 import lombok.Setter;
 
@@ -21,3 +21,4 @@ public class PassportTitleWithFilesDTO {
 
     // getters and setters
 }
+ */

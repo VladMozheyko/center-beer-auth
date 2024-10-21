@@ -1,4 +1,4 @@
-package fr.mossaab.security.archive.photo;
+package fr.mossaab.security.archive;
 
 /*
 import fr.mossaab.security.entities.ImageForSeries;

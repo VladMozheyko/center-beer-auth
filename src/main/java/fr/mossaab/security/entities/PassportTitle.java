@@ -25,11 +25,8 @@ public class PassportTitle {
     @JoinColumn(name = "CATEGORY_ID")
     @JsonBackReference
     private PassportCategory category;
-    @OneToMany(mappedBy = "passportTitle", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "passportTitle", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
-    private List<FileData> files;
+    private FileData file;
 
 }
- /*@OneToMany(mappedBy = "passportTitle", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
-    private List<PassportFileData> files;*/

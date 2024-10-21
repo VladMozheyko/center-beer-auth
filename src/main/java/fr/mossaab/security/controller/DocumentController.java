@@ -17,7 +17,7 @@ public class DocumentController {
     @Autowired
     private StorageService storageService;
 
-//    private final DocumentService documentService;
+//    private final DocumentCreateService documentService;
 //
 //    @GetMapping("/categories")
 //    public List<CategoryWithTitlesDocumentDTO> getAllCategoriesWithTitlesAndFiles() {

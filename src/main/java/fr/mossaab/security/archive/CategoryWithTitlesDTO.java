@@ -1,5 +1,5 @@
-package fr.mossaab.security.dto.request;
-
+package fr.mossaab.security.archive;
+/*
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,3 +22,4 @@ public class CategoryWithTitlesDTO {
 
     // getters and setters
 }
+*/

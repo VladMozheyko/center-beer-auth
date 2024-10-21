@@ -1,4 +1,4 @@
-package fr.mossaab.security.archive.photo;
+package fr.mossaab.security.archive;
 
 /*@Entity
 @Table(name = "document_file_data")
