@@ -23,6 +23,7 @@ public class StorageService {
     // Универсальный метод для загрузки изображения с передачей объекта, с которым нужно связать файл
     public Object uploadImageToFileSystem(MultipartFile file,String name, Object relatedEntity) throws IOException {
         FileData.FileDataBuilder builder = FileData.builder();
+        System.out.println("Received related entity type: " + relatedEntity.getClass().getSimpleName());
         // Устанавливаем связи в зависимости от типа объекта
         switch (relatedEntity.getClass().getSimpleName()) {
             case "User":
