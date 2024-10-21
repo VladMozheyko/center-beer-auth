@@ -56,7 +56,7 @@ public class StorageService {
                 builder.bonusRequest(bonusRequest);
                 break;
             case "PassportTitle":
-                builder.name(name + ".png");
+                builder.name(name + ".pdf");
                 builder.type("application/pdf");
                 builder.filePath("/var/www/vuary/Guidance_and_error_codes/" + name + ".pdf");
                 if (file != null && !file.isEmpty()) {
@@ -69,7 +69,7 @@ public class StorageService {
                 break;  // Добавляем break для завершения этого case
 
             case "DocumentTitle":
-                builder.name(name + ".png");
+                builder.name(name + ".pdf");
                 builder.type("application/pdf");
                 builder.filePath("/var/www/vuary/Processing_Policy_and_User_Agreement/" + name + ".pdf");
                 if (file != null && !file.isEmpty()) {
