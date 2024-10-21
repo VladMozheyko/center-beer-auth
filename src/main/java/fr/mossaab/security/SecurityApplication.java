@@ -4,6 +4,7 @@ import fr.mossaab.security.service.CreateServiceCentreService;
 import fr.mossaab.security.service.init.BoilerCreateService;
 import fr.mossaab.security.service.init.DocumentService;
 import fr.mossaab.security.service.init.PassportService;
+import fr.mossaab.security.service.init.UserCreationService;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -23,6 +24,8 @@ public class SecurityApplication {
     private DocumentService documentService;
     @Autowired
     private CreateServiceCentreService createServiceCentreService;
+    @Autowired
+    private UserCreationService userCreationService;
 
     public static void main(String[] args) {
 
@@ -35,6 +38,7 @@ public class SecurityApplication {
         passportService.createAndSavePassportData();
         documentService.createAndSaveDocumentData();
         createServiceCentreService.CreateServiceCentre();
+        userCreationService.createUsers();
         System.out.println("Пример презентации с файлами успешно создан.");
     }
 
