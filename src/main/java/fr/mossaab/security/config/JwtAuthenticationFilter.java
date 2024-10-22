@@ -53,7 +53,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 "/passport/", "/heatingSystem/", "/authentication/", "/user/", "/admin/",
                 "/v2/api-docs", "/v3/api-docs", "/swagger-resources/",
                 "/swagger-ui/", "/webjars/", "/swagger-ui.html",
-                "/types/", "/kinds/", "/documents/", "/service-centres/"
+                "/types/", "/kinds/", "/documents/", "/service-centres/","/bonus-program/"
         );
 
         String requestURI = request.getRequestURI();
