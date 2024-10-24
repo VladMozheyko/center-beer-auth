@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,6 +24,9 @@ public class StorageService {
     // Универсальный метод для загрузки изображения с передачей объекта, с которым нужно связать файл
     public Object uploadImageToFileSystem(MultipartFile file, String name, Object relatedEntity) throws IOException {
         FileData.FileDataBuilder builder = FileData.builder();
+        if(Objects.equals(name, "")) {
+            name = UUID.randomUUID().toString();
+        }
         System.out.println("Received related entity type: " + relatedEntity.getClass().getSimpleName());
         System.out.println("Related entity: " + relatedEntity);
         // Устанавливаем связи в зависимости от типа объекта
@@ -33,11 +37,11 @@ public class StorageService {
                 if (user.getFileData() != null) {
                     fileDataRepository.delete(user.getFileData());
                 }
-                builder.name(UUID.randomUUID().toString() + ".png");
+                builder.name(name + ".png");
                 builder.type("image/png");
-                builder.filePath("/var/www/vuary/user_folder/" + UUID.randomUUID().toString() + ".png");
+                builder.filePath("/var/www/vuary/user_folder/" + name + ".png");
                 if (file != null && !file.isEmpty()) {
-                    file.transferTo(new File("/var/www/vuary/user_folder/" + UUID.randomUUID().toString() + ".png"));
+                    file.transferTo(new File("/var/www/vuary/user_folder/" + name + ".png"));
                 }
                 // Устанавливаем связь с пользователем
                 builder.user(user);
@@ -54,6 +58,18 @@ public class StorageService {
                 }
                 // Устанавливаем связь с бонусным запросом
                 builder.bonusRequest(bonusRequest);
+                break;
+            case "DocumentVerificationRequest":
+                DocumentVerificationRequest documentVerification = (DocumentVerificationRequest) relatedEntity;
+
+                builder.name(name + ".png");
+                builder.type("image/png");
+                builder.filePath("/var/www/vuary/documentVerification/" + name + ".png");
+                if (file != null && !file.isEmpty()) {
+                    file.transferTo(new File("/var/www/vuary/documentVerification/" + name + ".png"));
+                }
+                // Устанавливаем связь с бонусным запросом
+                builder.documentVerification(documentVerification);
                 break;
             case "PassportTitle":
                 builder.name(name + ".pdf");

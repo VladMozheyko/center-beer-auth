@@ -2,6 +2,7 @@ package fr.mossaab.security.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import fr.mossaab.security.enums.RequestStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -62,7 +63,4 @@ public class BonusRequest {
      */
     private LocalDateTime responseDate;
 
-    public enum RequestStatus {
-        PENDING, APPROVED, REJECTED
-    }
 }

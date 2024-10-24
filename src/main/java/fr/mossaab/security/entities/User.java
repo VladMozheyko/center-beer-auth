@@ -100,6 +100,9 @@ public class User implements UserDetails {
     @Embedded
     private ProposedChanges proposedChanges;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<DocumentVerificationRequest> documentVerifications;
     /**
      * Получение списка ролей пользователя.
      *

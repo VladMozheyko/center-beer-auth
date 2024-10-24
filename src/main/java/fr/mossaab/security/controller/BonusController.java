@@ -6,6 +6,7 @@ import fr.mossaab.security.dto.request.BarcodeUpdateDto;
 import fr.mossaab.security.entities.Barcode;
 import fr.mossaab.security.entities.BarcodeType;
 import fr.mossaab.security.entities.BonusRequest;
+import fr.mossaab.security.enums.RequestStatus;
 import fr.mossaab.security.service.BarcodeService;
 import fr.mossaab.security.service.BarcodeSummaryDto;
 import fr.mossaab.security.service.BonusService;
@@ -44,6 +45,12 @@ public class BonusController {
         return ResponseEntity.ok(bonusService.uploadPhotos(photos, cookie, barcodeCode));
     }
 
+    @Operation(summary = "Позволяет подгрузить пользователем фотографии паспорта для участия в бонусной программе")
+    @PostMapping("/upload-passport-photos")
+    public ResponseEntity<String> uploadPassport(@RequestParam("photos") List<MultipartFile> photos, @CookieValue("refresh-jwt-cookie") String cookie) throws IOException {
+        return ResponseEntity.ok(bonusService.uploadPhotosPassport(photos, cookie));
+    }
+
     @Operation(summary = "Позволяет удалить типа штрих кода администратором по его id ")
     @DeleteMapping("delete-barcode-type/{id}")
     public ResponseEntity<Void> deleteBarcodeTypeById(@PathVariable Long id) {
@@ -61,7 +68,6 @@ public class BonusController {
     public ResponseEntity<String> updateBalance(@RequestParam String email, @RequestParam int amount) {
         return bonusService.updateBalance(email, amount);
     }
-
 
     @Operation(summary = "Редактирование типа штрих-кода по его id")
     @PutMapping("update-barcode-type/{id}/type")
@@ -102,27 +108,28 @@ public class BonusController {
     @Operation(summary = "Обновление статуса запроса пользователя на получение баллов за бонусную программу")
     public ResponseEntity<String> updateBonusRequestStatus(
             @RequestParam("requestId") Long requestId,
-            @RequestParam("status") BonusRequest.RequestStatus status,
+            @RequestParam("status") RequestStatus status,
             @RequestParam(value = "rejectionMessage", required = false) String rejectionMessage) {
         return bonusService.updateBonusRequestStatus(requestId, status, rejectionMessage);
     }
 
-    @Operation(summary = "Получить по почтам все ожидающие запросы по бонусной программе: их статус, id, а также фотки котлов")
-    @GetMapping("/get-all-pending-bonus-requests")
-    public ResponseEntity<List<Map<String, Object>>> getPendingBonusRequests() {
-        return bonusService.getPendingBonusRequests();
+    @PostMapping("/updateDocumentVerificationStatus")
+    @Operation(summary = "Обновление статуса запроса пользователя на подтверждения паспортных данных")
+    public ResponseEntity<String> updateDocumentVerificationStatus(
+            @RequestParam("documentVerificationId") Long documentVerificationId,
+            @RequestParam("status") RequestStatus status,
+            @RequestParam(value = "rejectionMessage", required = false) String rejectionMessage) {
+        return bonusService.updatePassportStatus(documentVerificationId, status, rejectionMessage);
     }
 
-    @Operation(summary = "Получить по почтам все одобренные запросы по бонусной программе: их статус, id, а также фотки котлов")
-    @GetMapping("/get-all-approved-bonus-requests")
-    public ResponseEntity<List<Map<String, Object>>> getApprovedBonusRequests() {
-        return bonusService.getApprovedBonusRequests();
+    @Operation(summary = "Получить по почтам все ожидающие/одобренные/отказанные запросы по бонусной программе: их статус, id, а также фотки котлов")
+    @GetMapping("/get-all-bonus-requests-by-parameter")
+    public ResponseEntity<List<Map<String, Object>>> getBonusRequests(RequestStatus requestStatus) {
+        return bonusService.getBonusRequests(requestStatus);
     }
-
-    @Operation(summary = "Получить по почтам все отказанные запросы по бонусной программе: их статус, id, а также фотки котлов")
-    @GetMapping("/get-all-rejected-bonus-requests")
-    public ResponseEntity<List<Map<String, Object>>> printPhotos() {
-        return bonusService.getRejectedBonusRequests();
+    @Operation(summary = "Получить по почтам все ожидающие/одобренные/отказанные запросы по паспортам: их статус, id, а также фотки паспортов")
+    @GetMapping("/get-all-document-verifications-request-by-parameter")
+    public ResponseEntity<List<Map<String, Object>>> getDocumentVerifications(RequestStatus requestStatus) {
+        return bonusService.getDocumentVerifications(requestStatus);
     }
-
 }

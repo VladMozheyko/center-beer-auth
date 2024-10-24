@@ -1,7 +1,6 @@
 package fr.mossaab.security.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
@@ -77,4 +76,10 @@ public class FileData {
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonBackReference
     private Series series;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "document_verification_id", nullable = true)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JsonBackReference
+    private DocumentVerificationRequest documentVerification;
 }
