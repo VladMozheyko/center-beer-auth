@@ -21,7 +21,7 @@ import java.util.List;
 public class BonusRequest {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     private Long id;
 
     /**
