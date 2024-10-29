@@ -5,7 +5,8 @@ import lombok.*;
 
 @Entity
 @Table(name = "barcode")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Barcode {
