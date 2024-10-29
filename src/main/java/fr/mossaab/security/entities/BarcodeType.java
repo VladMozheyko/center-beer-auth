@@ -19,7 +19,7 @@ import java.util.Set;
 public class BarcodeType {
 
     @Id
-    @GeneratedValue()
+    @GeneratedValue
     private Long id;
 
     @Column(name = "points", nullable = false)

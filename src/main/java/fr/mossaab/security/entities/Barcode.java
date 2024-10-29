@@ -11,7 +11,7 @@ import lombok.*;
 public class Barcode {
 
     @Id
-    @GeneratedValue()
+    @GeneratedValue
     private Long id;
 
     @Column(name = "code", nullable = false, unique = true)
