@@ -2,8 +2,7 @@ package fr.mossaab.security.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,13 +11,20 @@ import java.util.List;
 @Table(name="boilers")
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Boiler {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     private Long id;
 
-    private String title;
+    @Column(name = "number", nullable = false, unique = true)
+    private Long number;
+
+    @Column(name = "barcode", nullable = false, unique = true)
+    private String barcode;
 
     @ManyToOne
     @JsonIgnore
@@ -27,13 +33,4 @@ public class Boiler {
     @ManyToMany(mappedBy = "boilers")
     private List<Value> values =  new ArrayList<>();
 
-    public Boiler() {
-        this("null", new Series());
-    }
-
-    public Boiler(String title, Series series) {
-        this.id = null;
-        this.title = title;
-        this.series = series;
-    }
 }

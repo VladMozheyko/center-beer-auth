@@ -1,5 +1,6 @@
 package fr.mossaab.security.service;
 
+import fr.mossaab.security.dto.BarcodeSummaryDto;
 import fr.mossaab.security.dto.request.BarcodeTypeDto;
 import fr.mossaab.security.dto.request.BarcodeTypeUpdateDto;
 import fr.mossaab.security.dto.request.BarcodeUpdateDto;

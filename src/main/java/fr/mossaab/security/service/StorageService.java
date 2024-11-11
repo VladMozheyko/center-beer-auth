@@ -84,16 +84,16 @@ public class StorageService {
                 }
                 break;  // Добавляем break для завершения этого case
 
-            case "DocumentTitle":
-                builder.name(name + ".pdf");
-                builder.type("application/pdf");
-                builder.filePath("/var/www/vuary/Processing_Policy_and_User_Agreement/" + name + ".pdf");
-                if (file != null && !file.isEmpty()) {
-                    file.transferTo(new File("/var/www/vuary/Processing_Policy_and_User_Agreement/" + name + ".pdf"));
-                }
-                DocumentTitle documentTitle = (DocumentTitle) relatedEntity;
-                builder.documentTitle(documentTitle);
-                break;  // Добавляем break для завершения этого case
+//            case "DocumentTitle":
+//                builder.name(name + ".pdf");
+//                builder.type("application/pdf");
+//                builder.filePath("/var/www/vuary/Processing_Policy_and_User_Agreement/" + name + ".pdf");
+//                if (file != null && !file.isEmpty()) {
+//                    file.transferTo(new File("/var/www/vuary/Processing_Policy_and_User_Agreement/" + name + ".pdf"));
+//                }
+//                DocumentTitle documentTitle = (DocumentTitle) relatedEntity;
+//                builder.documentTitle(documentTitle);
+//                break;  // Добавляем break для завершения этого case
             case "Series":
                 Series series = (Series) relatedEntity;
                 builder.name(name + ".png");

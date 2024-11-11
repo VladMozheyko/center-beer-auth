@@ -56,12 +56,6 @@ public class FileData {
     @JsonBackReference
     private BonusRequest bonusRequest;
 
-    @ManyToOne(optional = true, fetch = FetchType.LAZY)
-    @JoinColumn(name = "document_title_id", nullable = true)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JsonBackReference
-    private DocumentTitle documentTitle;
-
     @OneToOne
     @JoinColumn(name = "passport_title_id", unique = true, nullable = true)
     @OnDelete(action = OnDeleteAction.CASCADE)

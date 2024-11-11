@@ -1,8 +1,7 @@
 package fr.mossaab.security.entities;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
@@ -10,27 +9,20 @@ import java.util.List;
 @Table(name="types")
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Type {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     private Long id;
 
     private String title;
-    private String description;
-    private String path;
 
-    public Type() {
-        this("null", "null", "null");
-    }
+    private String description;
 
     @OneToMany(mappedBy = "type", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Kind> kinds;
 
-    public Type(String title, String description, String path) {
-        this.id = null;
-        this.title = title;
-        this.description = description;
-        this.path = path;
-    }
 }

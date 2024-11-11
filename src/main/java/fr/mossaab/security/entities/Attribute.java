@@ -2,17 +2,19 @@ package fr.mossaab.security.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Table(name="attributes")
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Attribute {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     private Long id;
 
     private String title;
@@ -21,13 +23,4 @@ public class Attribute {
     @JsonIgnore
     private Series series;
 
-    public Attribute() {
-        this("null", new Series());
-    }
-
-    public Attribute(String title, Series series) {
-        this.id = null;
-        this.title = title;
-        this.series = series;
-    }
 }

@@ -3,8 +3,7 @@ package fr.mossaab.security.entities;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
@@ -12,17 +11,18 @@ import java.util.List;
 @Table(name = "error")
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Error {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    @GeneratedValue
+    private Long id;
 
     private String code;
     private String cause;
     private String description;
-
-    @ManyToOne
-    @JoinColumn(name = "series_title_id")
-    @JsonBackReference
-    private SeriesTitle seriesTitle;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "series_id", nullable = true)
+    private Series series;
 }

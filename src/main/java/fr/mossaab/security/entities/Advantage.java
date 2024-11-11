@@ -3,8 +3,7 @@ package fr.mossaab.security.entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import fr.mossaab.security.enums.CategoryOfAdvantage;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,10 +12,13 @@ import java.util.List;
 @Table(name = "advantages")
 @Setter
 @Getter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Advantage {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     private Long id;
 
     private String title;
@@ -31,14 +33,4 @@ public class Advantage {
     @JsonIgnore
     private List<Series> series = new ArrayList<>();
 
-    public Advantage() {
-        this("null", "null", CategoryOfAdvantage.COMFORT);
-    }
-
-    public Advantage(String title, String iconPath, CategoryOfAdvantage category) {
-        this.id = null;
-        this.title = title;
-        this.iconPath = iconPath;
-        this.category = category;
-    }
 }

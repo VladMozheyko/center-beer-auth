@@ -7,6 +7,7 @@ import lombok.*;
 @Table(name = "barcode")
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Barcode {

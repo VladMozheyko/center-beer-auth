@@ -1,7 +1,6 @@
 package fr.mossaab.security.entities;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import jakarta.persistence.*;
 
@@ -9,22 +8,15 @@ import jakarta.persistence.*;
 @Table(name="units")
 @Setter
 @Getter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Unit {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     private Long id;
 
     private String shortName;
     private String longName;
-
-    public Unit() {
-        this("null", "null");
-    }
-
-    public Unit(String shortName, String longName) {
-        this.id = null;
-        this.shortName = shortName;
-        this.longName = longName;
-    }
 }

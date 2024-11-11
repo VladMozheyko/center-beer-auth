@@ -2,8 +2,7 @@ package fr.mossaab.security.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,10 +11,13 @@ import java.util.List;
 @Table(name="kinds")
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Kind {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     private Long id;
 
     private String title;
@@ -28,14 +30,4 @@ public class Kind {
     @OneToMany(mappedBy = "kind", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Series> series = new ArrayList<>();
 
-    public Kind() {
-        this("null", "null", new Type());
-    }
-
-    public Kind(String title, String description, Type type) {
-        this.id = null;
-        this.title = title;
-        this.description = description;
-        this.type = type;
-    }
 }

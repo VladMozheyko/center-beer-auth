@@ -3,30 +3,29 @@ package fr.mossaab.security.entities;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "passport_title")
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class PassportTitle {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    @GeneratedValue
+    private Long id;
 
-    private String title;
-    private String ruTitle;
-
-    @ManyToOne
-    @JoinColumn(name = "CATEGORY_ID")
-    @JsonBackReference
-    private PassportCategory category;
     @OneToOne(mappedBy = "passportTitle", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
     private FileData file;
+
+    @ManyToMany(mappedBy = "passportTitles")
+    private List<Series> seriesList = new ArrayList<>();
 
 }

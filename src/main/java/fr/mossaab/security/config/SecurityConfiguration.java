@@ -73,8 +73,9 @@ public class SecurityConfiguration {
                                         "/types/**",
                                         "/kinds/**",
                                         "/documents/**",
-                                        "/service-centres/**",
-                                        "/bonus-program/**"
+                                        "/service-centers/**",
+                                        "/bonus-program/**",
+                                        "/series/**"
                                 ).permitAll() // Разрешение доступа к определенным ресурсам без аутентификации
                                 .requestMatchers(HttpMethod.POST, "/api/v1/resource").hasRole("ADMIN") // Разрешение доступа с ролью ADMIN
                                 .anyRequest().authenticated()) // Аутентификация для остальных запросов

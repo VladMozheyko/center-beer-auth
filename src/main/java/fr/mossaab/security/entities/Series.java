@@ -2,8 +2,7 @@ package fr.mossaab.security.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import jakarta.persistence.*;
 
@@ -13,17 +12,27 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Series {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     private Long id;
-    private String title;
+    private String prefix;     // Префикс, например, "ST"
+    private int startRange;    // Начало диапазона, например, 20
+    private int endRange;      // Конец диапазона, например, 30
+    private String suffix;     // Суффикс, например, "M"
+
     private String description;
 
     @ManyToOne
     @JsonIgnore
     private Kind kind;
+
+    @ManyToMany(mappedBy = "seriesList")
+    private List<ServiceCenter> serviceCenters = new ArrayList<>();
 
     @ManyToMany(mappedBy = "series")
     private List<Characteristic> characteristics = new ArrayList<>();
@@ -41,16 +50,15 @@ public class Series {
     @JsonManagedReference
     private List<FileData> files = new ArrayList<>();
 
-    public Series() {
-        this("null","null", new Kind());
-    }
+    // Связь с классом Error
+    @OneToMany(mappedBy = "series", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Error> errors = new ArrayList<>();
 
-    public Series(String title,String description, Kind kind) {
-        this.id = null;
-        this.description = description;
-        this.kind = kind;
-        this.title = title;
-    }
+    @ManyToMany
+    @JoinTable(
+            name = "series_passport_titles",
+            joinColumns = @JoinColumn(name = "series_id"),
+            inverseJoinColumns = @JoinColumn(name = "passport_title_id")
+    )
+    private List<PassportTitle> passportTitles = new ArrayList<>();
 }
-/*@OneToMany(mappedBy = "series", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<ImageForSeries> images = new ArrayList<>();*/
