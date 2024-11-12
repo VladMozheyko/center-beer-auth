@@ -18,7 +18,7 @@
 //@NoArgsConstructor
 //public class PassportCreateService {
 //    @Autowired
-//    private PassportTitleRepository passportTitleRepository;
+//    private BoilerSeriesPassportRepository passportTitleRepository;
 //    @Autowired
 //    private PassportCategoryRepository passportCategoryRepository;
 //    @Autowired
@@ -51,75 +51,75 @@
 //            passportCategoryRepository.saveAll(List.of(category1, category2, category3, category4));
 //
 //            // Создание заголовков паспортов
-//            PassportTitle title1 = new PassportTitle();
+//            BoilerSeriesPassport title1 = new BoilerSeriesPassport();
 //            title1.setTitle("Passport_VHRM");
 //            title1.setRuTitle("Паспорт водонагреватель VHRM");
 //            title1.setCategory(category1);
 //
-//            PassportTitle title2 = new PassportTitle();
+//            BoilerSeriesPassport title2 = new BoilerSeriesPassport();
 //            title2.setTitle("Passport_HVFM");
 //            title2.setRuTitle("Паспорт водонагреватель HVFM");
 //            title2.setCategory(category1);
 //
-//            PassportTitle title3 = new PassportTitle();
+//            BoilerSeriesPassport title3 = new BoilerSeriesPassport();
 //            title3.setTitle("Passport_VFE_A5");
 //            title3.setRuTitle("Паспорт водонагреватель VFE_A5");
 //            title3.setCategory(category1);
 //
-//            PassportTitle title4 = new PassportTitle();
+//            BoilerSeriesPassport title4 = new BoilerSeriesPassport();
 //            title4.setTitle("Passport_KM_A5");
 //            title4.setRuTitle("Паспорт водонагреватель KM_A5");
 //            title4.setCategory(category1);
 //
-//            PassportTitle title5 = new PassportTitle();
+//            BoilerSeriesPassport title5 = new BoilerSeriesPassport();
 //            title5.setTitle("Passport_FRM_A5");
 //            title5.setRuTitle("Паспорт водонагреватель FRM_A5");
 //            title5.setCategory(category1);
 //
-//            PassportTitle title7 = new PassportTitle();
+//            BoilerSeriesPassport title7 = new BoilerSeriesPassport();
 //            title7.setTitle("Passport_QM");
 //            title7.setRuTitle("Паспорт электрический котел_QM");
 //            title7.setCategory(category2);
 //
-//            PassportTitle title8 = new PassportTitle();
+//            BoilerSeriesPassport title8 = new BoilerSeriesPassport();
 //            title8.setTitle("Passport_LT_D");
 //            title8.setRuTitle("Паспорт электрический котел_LT_D");
 //            title8.setCategory(category2);
 //
-//            PassportTitle title9 = new PassportTitle();
+//            BoilerSeriesPassport title9 = new BoilerSeriesPassport();
 //            title9.setTitle("Passport_Т30_40DK");
 //            title9.setRuTitle("Паспорт Т30-40DK");
 //            title9.setCategory(category3);
 //
-//            PassportTitle title10 = new PassportTitle();
+//            BoilerSeriesPassport title10 = new BoilerSeriesPassport();
 //            title10.setTitle("Passport_T10_24OK");
 //            title10.setRuTitle("Паспорт T10-24 OK");
 //            title10.setCategory(category3);
 //
-//            PassportTitle title11 = new PassportTitle();
+//            BoilerSeriesPassport title11 = new BoilerSeriesPassport();
 //            title11.setTitle("Passport_T10_24DK");
 //            title11.setRuTitle("Паспорт Т10-24DK");
 //            title11.setCategory(category3);
 //
-//            PassportTitle title12 = new PassportTitle();
+//            BoilerSeriesPassport title12 = new BoilerSeriesPassport();
 //            title12.setTitle("Passport_ST_FT");
 //            title12.setRuTitle("Паспорт колонка ST_FT");
 //            title12.setCategory(category4);
 //
-//            PassportTitle title13 = new PassportTitle();
+//            BoilerSeriesPassport title13 = new BoilerSeriesPassport();
 //            title13.setTitle("Passport_S10_12_S10_12EM");
 //            title13.setRuTitle("Паспорт колонка S10-12, S10-12EM");
 //            title13.setCategory(category4);
 //
 //            passportTitleRepository.saveAll(List.of(title1, title2, title3, title4, title5, title7, title8, title9, title10, title11, title12, title13));
 //
-//            List<PassportTitle> titles = Arrays.asList(
+//            List<BoilerSeriesPassport> titles = Arrays.asList(
 //                    title1, title2, title3, title4, title5,
 //                    title7, title8, title9, title10, title11,
 //                    title12, title13
 //            );
 //
-//            for (PassportTitle title : titles) {
+//            for (BoilerSeriesPassport title : titles) {
 //                storageService.uploadImageToFileSystem(null, title.getTitle(), title);
 //            }
 //            //////////////////////////////

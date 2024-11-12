@@ -23,14 +23,19 @@ public class Advantage {
 
     private String title;
 
-    @Column(name = "icon_path")
-    private String iconPath;
-
     @Enumerated(EnumType.STRING)
     private CategoryOfAdvantage category;
 
     @ManyToMany
     @JsonIgnore
     private List<Series> series = new ArrayList<>();
+
+    /**
+     * Связь с FileData один-к-одному.
+     */
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "file_data_id", referencedColumnName = "id")
+    private FileData fileData;
+
 
 }

@@ -5,7 +5,7 @@
 //import fr.mossaab.security.entities.Error;
 //import fr.mossaab.security.repository.FileDataRepository;
 //import fr.mossaab.security.repository.PassportCategoryRepository;
-//import fr.mossaab.security.repository.PassportTitleRepository;
+//import fr.mossaab.security.repository.BoilerSeriesPassportRepository;
 //import io.swagger.v3.oas.annotations.tags.Tag;
 //import lombok.Getter;
 //import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@
 //@RequiredArgsConstructor
 //public class PassportController {
 //    private final PassportCategoryRepository passportCategoryRepository;
-//    private final PassportTitleRepository passportTitleRepository;
+//    private final BoilerSeriesPassportRepository passportTitleRepository;
 //    private final FileDataRepository passportFileDataRepository;
 //    //private final PassportService passportService;
 //    @GetMapping("/categories")
@@ -31,8 +31,8 @@
 //        List<PassportCategory> categories = passportCategoryRepository.findAll();
 //        for (PassportCategory category : categories) {
 //            List<PassportTitleWithFilesDTO> titleWithFilesList = new ArrayList<>();
-//            List<PassportTitle> titles = passportTitleRepository.findAllByCategory(category);
-//            for (PassportTitle title : titles) {
+//            List<BoilerSeriesPassport> titles = passportTitleRepository.findAllByCategory(category);
+//            for (BoilerSeriesPassport title : titles) {
 //                FileData fileData = passportFileDataRepository.findByName(title.getTitle()+".pdf").orElse(null);
 //                // Используем цикл для добавления хоста к каждому имени файла
 //                String filePaths = "http://31.129.102.70:8080/user/fileSystemPdf/" + fileData.getName();

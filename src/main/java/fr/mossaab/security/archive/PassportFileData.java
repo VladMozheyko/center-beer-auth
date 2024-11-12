@@ -22,7 +22,7 @@ public class PassportFileData {
     @ManyToOne
     @JoinColumn(name = "PASSPORT_TITLE_ID")
     @JsonBackReference
-    private PassportTitle passportTitle;
+    private BoilerSeriesPassport boilerSeriesPassport;
 }*/
  /*@ManyToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "_presentation_id",referencedColumnName = "id",unique = true)

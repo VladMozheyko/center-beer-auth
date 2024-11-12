@@ -71,16 +71,16 @@ public class StorageService {
                 // Устанавливаем связь с бонусным запросом
                 builder.documentVerification(documentVerification);
                 break;
-            case "PassportTitle":
+            case "BoilerSeriesPassport":
                 builder.name(name + ".pdf");
                 builder.type("application/pdf");
                 builder.filePath("/var/www/vuary/Guidance_and_error_codes/" + name + ".pdf");
                 if (file != null && !file.isEmpty()) {
                     file.transferTo(new File("/var/www/vuary/Guidance_and_error_codes/" + name + ".pdf"));
                 }
-                if (relatedEntity instanceof PassportTitle) {
-                    PassportTitle passportTitle = (PassportTitle) relatedEntity;
-                    builder.passportTitle(passportTitle);
+                if (relatedEntity instanceof BoilerSeriesPassport) {
+                    BoilerSeriesPassport boilerSeriesPassport = (BoilerSeriesPassport) relatedEntity;
+                    builder.boilerSeriesPassport(boilerSeriesPassport);
                 }
                 break;  // Добавляем break для завершения этого case
 

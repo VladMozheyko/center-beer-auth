@@ -1,6 +1,5 @@
 package fr.mossaab.security.entities;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -15,17 +14,18 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class PassportTitle {
+public class BoilerSeriesPassport {
 
     @Id
     @GeneratedValue
     private Long id;
 
-    @OneToOne(mappedBy = "passportTitle", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    // Используем правильное имя, которое у вас есть в FileData
+    @OneToOne(mappedBy = "boilerSeriesPassport", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
     private FileData file;
 
-    @ManyToMany(mappedBy = "passportTitles")
+    @ManyToMany(mappedBy = "boilerSeriesPassports")
     private List<Series> seriesList = new ArrayList<>();
 
 }

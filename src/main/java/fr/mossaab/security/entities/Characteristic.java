@@ -22,8 +22,9 @@ public class Characteristic {
 
     private String title;
 
-    @ManyToOne
-    private Unit unit;
+    @ManyToMany(mappedBy = "characteristics")
+    @JsonIgnore
+    private List<Unit> units = new ArrayList<>();
 
     @ManyToMany
     @JsonIgnore

@@ -60,7 +60,7 @@ public class FileData {
     @JoinColumn(name = "passport_title_id", unique = true, nullable = true)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonBackReference
-    private PassportTitle passportTitle;
+    private BoilerSeriesPassport boilerSeriesPassport;
 
     /**
      * Родительская сущность Series, связанная с файлом.
@@ -76,4 +76,18 @@ public class FileData {
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonBackReference
     private DocumentVerificationRequest documentVerification;
+    /**
+     * Связь с запчастью (SparePart), к которой привязан файл.
+     */
+    @OneToOne(mappedBy = "fileData", optional = true)
+    @JsonBackReference
+    private SparePart sparePart;
+
+    @OneToOne(mappedBy = "fileData", optional = true)
+    @JsonBackReference
+    private Advantage advantage;
+
+    @OneToOne(mappedBy = "fileData", optional = true)
+    @JsonBackReference
+    private ExplosionDiagram explosionDiagram;
 }

@@ -56,9 +56,9 @@ public class Series {
 
     @ManyToMany
     @JoinTable(
-            name = "series_passport_titles",
+            name = "series_passport_titles", // Имя промежуточной таблицы
             joinColumns = @JoinColumn(name = "series_id"),
             inverseJoinColumns = @JoinColumn(name = "passport_title_id")
     )
-    private List<PassportTitle> passportTitles = new ArrayList<>();
+    private List<BoilerSeriesPassport> boilerSeriesPassports = new ArrayList<>();
 }

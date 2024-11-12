@@ -2,16 +2,8 @@ package fr.mossaab.security.controller;
 
 import fr.mossaab.security.entities.*;
 import fr.mossaab.security.entities.Error;
-import fr.mossaab.security.repository.SeriesRepository;
-import fr.mossaab.security.repository.KindRepository;
-import fr.mossaab.security.repository.ServiceCenterRepository;
-import fr.mossaab.security.repository.CharacteristicRepository;
-import fr.mossaab.security.repository.AdvantageRepository;
-import fr.mossaab.security.repository.AttributeRepository;
-import fr.mossaab.security.repository.BoilerRepository;
-import fr.mossaab.security.repository.FileDataRepository;
-import fr.mossaab.security.repository.ErrorRepository;
-import fr.mossaab.security.repository.PassportTitleRepository;
+import fr.mossaab.security.repository.*;
+import fr.mossaab.security.repository.BoilerSeriesPassportRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
@@ -40,7 +32,7 @@ public class SeriesController {
     private final BoilerRepository boilerRepository;
     private final FileDataRepository fileDataRepository;
     private final ErrorRepository errorRepository;
-    private final PassportTitleRepository passportTitleRepository;
+    private final BoilerSeriesPassportRepository passportTitleRepository;
 
     // DTOs
     @Data
@@ -198,9 +190,9 @@ public class SeriesController {
 
             // Обновление PassportTitles
             if (seriesDto.getPassportTitleIds() != null) {
-                series.getPassportTitles().clear();
+                series.getBoilerSeriesPassports().clear();
                 for (Long passportTitleId : seriesDto.getPassportTitleIds()) {
-                    passportTitleRepository.findById(passportTitleId).ifPresent(series.getPassportTitles()::add);
+                    passportTitleRepository.findById(passportTitleId).ifPresent(series.getBoilerSeriesPassports()::add);
                 }
             }
 
@@ -256,7 +248,7 @@ public class SeriesController {
         for (Error er : series.getErrors()) {
             dto.getErrorIds().add(er.getId());
         }
-        for (PassportTitle pt : series.getPassportTitles()) {
+        for (BoilerSeriesPassport pt : series.getBoilerSeriesPassports()) {
             dto.getPassportTitleIds().add(pt.getId());
         }
 
