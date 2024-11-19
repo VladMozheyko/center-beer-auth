@@ -25,8 +25,11 @@ public class Value {
     private Characteristic characteristic;
 
     private String sValue;
+    @Column(name = "d_value")
     private Double dValue;
+    @Column(name = "min_value")
     private Double minValue;
+    @Column(name = "max_value")
     private Double maxValue;
 
     @ManyToMany

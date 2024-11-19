@@ -78,7 +78,15 @@ public class SecurityConfiguration {
                                         "/series/**",
                                         "/unit/**",
                                         "/characteristic/**",
-                                        "/attribute/**","/error/**","/type/**","/kind/**"
+                                        "/attribute/**",
+                                        "/error/**",
+                                        "/type/**",
+                                        "/kind/**",
+                                        "/value/**",
+                                        "/boiler/**",
+                                        "/advantage/**",
+                                        "/spare-part/**",
+                                        "/boiler-series-passport/**","/explosion-diagram/**"
                                 ).permitAll() // Разрешение доступа к определенным ресурсам без аутентификации
                                 .requestMatchers(HttpMethod.POST, "/api/v1/resource").hasRole("ADMIN") // Разрешение доступа с ролью ADMIN
                                 .anyRequest().authenticated()) // Аутентификация для остальных запросов

@@ -6,10 +6,16 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface BoilerRepository extends JpaRepository<Boiler, Long> {
 
+    // Find a boiler by its unique barcode
+    Optional<Boiler> findByBarcode(Long barcode);
+
+    // Delete a boiler by its barcode
+    void deleteByBarcode(Long barcode);
     /*
     List<Boiler> findByCharacteristicsTitle(String title);
     List<Boiler> findBySeriesTitle(String title);

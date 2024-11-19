@@ -24,7 +24,7 @@ public class Boiler {
     private Long number;
 
     @Column(name = "barcode", nullable = false, unique = true)
-    private String barcode;
+    private Long barcode;
 
     @ManyToOne
     @JsonIgnore
