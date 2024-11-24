@@ -190,6 +190,9 @@ public class BonusService {
             for (BonusRequest bonusRequest : pendingBonusRequests) {
                 Map<String, Object> bonusRequestMap = new HashMap<>();
                 bonusRequestMap.put("bonusRequestId", bonusRequest.getId());
+                if(requestStatus == RequestStatus.REJECTED) {
+                    bonusRequestMap.put("rejectionMessage", bonusRequest.getRejectionMessage());
+                }
 
                 // Добавляем статус бонусного запроса
                 bonusRequestMap.put("status", bonusRequest.getStatus().name());
@@ -269,7 +272,7 @@ public class BonusService {
                 documentVerificationList.add(documentVerificationMap);
             }
 
-            userMap.put("documentVerifications", documentVerifications);
+            userMap.put("documentVerifications", documentVerificationList);
             result.add(userMap);
         }
 
