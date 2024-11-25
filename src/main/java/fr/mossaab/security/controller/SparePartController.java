@@ -3,13 +3,18 @@ package fr.mossaab.security.controller;
 import fr.mossaab.security.entities.SparePart;
 import fr.mossaab.security.entities.FileData;
 import fr.mossaab.security.entities.ExplosionDiagram;
+import fr.mossaab.security.repository.FileDataRepository;
 import fr.mossaab.security.repository.SparePartRepository;
+import fr.mossaab.security.service.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +27,8 @@ import java.util.Optional;
 public class SparePartController {
 
     private final SparePartRepository sparePartRepository;
-
+    private final StorageService storageService;
+    private final FileDataRepository fileDataRepository;
     // DTO для SparePart с идентификаторами связных сущностей
     public static class SparePartDto {
         public Long id;
@@ -157,8 +163,8 @@ public class SparePartController {
     }
 
     @Operation(summary = "Создать новую запчасть")
-    @PostMapping("add")
-    public ResponseEntity<SparePartDto> createSparePart(@RequestBody SparePartDto dto) {
+    @PostMapping(value =  "add", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
+    public ResponseEntity<String> createSparePart(@RequestBody SparePartDto dto,@RequestPart MultipartFile image) throws IOException {
         SparePart sparePart = new SparePart();
         sparePart.setArticleNumber(dto.articleNumber);
         sparePart.setName(dto.name);
@@ -168,17 +174,19 @@ public class SparePartController {
         sparePart.setAscPriceRub(dto.ascPriceRub);
         sparePart.setWholesalePriceRub(dto.wholesalePriceRub);
         sparePart.setRetailPriceRub(dto.retailPriceRub);
-        if (dto.fileDataId != null) {
-            FileData fileData = new FileData();
-            fileData.setId(dto.fileDataId);
-            sparePart.setFileData(fileData);
-        }
-        if (dto.explosionDiagramId != null) {
-            ExplosionDiagram explosionDiagram = new ExplosionDiagram();
-            explosionDiagram.setId(dto.explosionDiagramId);
-            sparePart.setExplosionDiagram(explosionDiagram);
-        }
+//        if (dto.fileDataId != null) {
+//            FileData fileData = new FileData();
+//            fileData.setId(dto.fileDataId);
+//            sparePart.setFileData(fileData);
+//        }
+//        if (dto.explosionDiagramId != null) {
+//            ExplosionDiagram explosionDiagram = new ExplosionDiagram();
+//            explosionDiagram.setId(dto.explosionDiagramId);
+//            sparePart.setExplosionDiagram(explosionDiagram);
+//        }
         SparePart savedSparePart = sparePartRepository.save(sparePart);
-        return ResponseEntity.ok(new SparePartDto(savedSparePart));
+        FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image,savedSparePart);
+        fileDataRepository.save(uploadImage);
+        return ResponseEntity.ok("Запчасть создана");
     }
 }

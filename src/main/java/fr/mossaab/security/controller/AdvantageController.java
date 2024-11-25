@@ -8,6 +8,7 @@ import fr.mossaab.security.repository.AdvantageRepository;
 import fr.mossaab.security.repository.SeriesRepository;
 import fr.mossaab.security.repository.FileDataRepository;
 
+import fr.mossaab.security.service.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Getter;
@@ -16,7 +17,9 @@ import lombok.Setter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +33,7 @@ public class AdvantageController {
     private final AdvantageRepository advantageRepository;
     private final SeriesRepository seriesRepository;
     private final FileDataRepository fileDataRepository;
+    private final StorageService storageService;
 
     // DTO for Advantage
     @Getter
@@ -93,18 +97,20 @@ public class AdvantageController {
     // 4. Create a new advantage
     @Operation(summary = "Создание преимущества", description = "Создать новое преимущество на основе полей")
     @PostMapping("/add")
-    public ResponseEntity<AdvantageDTO> createAdvantage(@RequestBody AdvantageDTO advantageDTO) {
+    public ResponseEntity<AdvantageDTO> createAdvantage(@RequestBody AdvantageDTO advantageDTO,@RequestPart MultipartFile image) throws IOException {
         Advantage advantage = new Advantage();
         advantage.setTitle(advantageDTO.getTitle());
         advantage.setCategory(advantageDTO.getCategory());
 
         // Set FileData if provided
-        if (advantageDTO.getFileDataId() != null) {
-            Optional<FileData> fileDataOptional = fileDataRepository.findById(advantageDTO.getFileDataId());
-            fileDataOptional.ifPresent(advantage::setFileData);
-        }
+//        if (advantageDTO.getFileDataId() != null) {
+//            Optional<FileData> fileDataOptional = fileDataRepository.findById(advantageDTO.getFileDataId());
+//            fileDataOptional.ifPresent(advantage::setFileData);
+//        }
 
         advantage = advantageRepository.save(advantage);
+        FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image,advantage);
+        fileDataRepository.save(uploadImage);
         return new ResponseEntity<>(new AdvantageDTO(advantage), HttpStatus.CREATED);
     }
 

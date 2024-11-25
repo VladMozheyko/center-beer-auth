@@ -65,7 +65,7 @@ public class BonusService {
 
         // Проходим по списку фотографий и сохраняем каждую
         for (MultipartFile photo : photos) {
-            FileData savedPhoto = (FileData) boilerPurchasePhotoService.uploadImageToFileSystem(photo,"", bonusRequest);
+            FileData savedPhoto = (FileData) boilerPurchasePhotoService.uploadImageToFileSystem(photo, bonusRequest);
             boilerPurchasePhotos.add(savedPhoto);
         }
 
@@ -98,7 +98,7 @@ public class BonusService {
 
         // Проходим по списку фотографий и сохраняем каждую
         for (MultipartFile photo : photos) {
-            FileData savedPhoto = (FileData) boilerPurchasePhotoService.uploadImageToFileSystem(photo,"", documentVerification);
+            FileData savedPhoto = (FileData) boilerPurchasePhotoService.uploadImageToFileSystem(photo, documentVerification);
             passportPhotos.add(savedPhoto);
         }
 

@@ -112,7 +112,7 @@ public class AuthenticationService {
                 .stream()
                 .map(SimpleGrantedAuthority::getAuthority)
                 .toList();
-        FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image,"" ,user);
+        FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image,user);
         fileDataRepository.save(uploadImage);
         return AuthenticationResponse.builder()
                 .accessToken(jwt)

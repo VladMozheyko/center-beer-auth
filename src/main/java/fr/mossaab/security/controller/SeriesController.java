@@ -4,14 +4,18 @@ import fr.mossaab.security.entities.*;
 import fr.mossaab.security.entities.Error;
 import fr.mossaab.security.repository.*;
 import fr.mossaab.security.repository.BoilerSeriesPassportRepository;
+import fr.mossaab.security.service.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -33,6 +37,7 @@ public class SeriesController {
     private final FileDataRepository fileDataRepository;
     private final ErrorRepository errorRepository;
     private final BoilerSeriesPassportRepository passportTitleRepository;
+    private final StorageService storageService;
 
     // DTOs
     @Data
@@ -106,8 +111,8 @@ public class SeriesController {
 
     // 4) Создание серии
     @Operation(summary = "Создать серию")
-    @PostMapping("/add-series")
-    public SeriesDto createSeries(@RequestBody SeriesDto seriesDto) {
+    @PostMapping(value =  "/add-series", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
+    public SeriesDto createSeries(@RequestBody SeriesDto seriesDto,@RequestPart MultipartFile image) throws IOException {
         Series series = new Series();
         series.setPrefix(seriesDto.getPrefix());
         series.setStartRange(seriesDto.getStartRange());
@@ -115,6 +120,8 @@ public class SeriesController {
         series.setSuffix(seriesDto.getSuffix());
         series.setDescription(seriesDto.getDescription());
         seriesRepository.save(series);
+        FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image,series);
+        fileDataRepository.save(uploadImage);
         return mapToDto(series);
     }
 

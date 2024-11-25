@@ -142,7 +142,7 @@ public class UserController {
         }
 
         if (image != null && !image.isEmpty()) {
-            FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image,"", user);
+            FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image, user);
             fileDataRepository.save(uploadImage);
             user.getProposedChanges().setProposedPhoto(uploadImage);
         }

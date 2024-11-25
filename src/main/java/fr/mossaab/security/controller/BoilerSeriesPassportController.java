@@ -6,13 +6,16 @@ import fr.mossaab.security.entities.Series;
 import fr.mossaab.security.repository.BoilerSeriesPassportRepository;
 import fr.mossaab.security.repository.FileDataRepository;
 import fr.mossaab.security.repository.SeriesRepository;
+import fr.mossaab.security.service.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +28,8 @@ public class BoilerSeriesPassportController {
     private final BoilerSeriesPassportRepository boilerSeriesPassportRepository;
     private final FileDataRepository fileDataRepository;
     private final SeriesRepository seriesRepository;
+    private final StorageService storageService;
+
 
     // DTO для вывода данных
     @Data
@@ -57,8 +62,11 @@ public class BoilerSeriesPassportController {
     // 2. Метод для создания нового BoilerSeriesPassport без связных сущностей
     @PostMapping("/add")
     @Operation(summary = "Создать новый паспорт продукции")
-    public BoilerSeriesPassport createBoilerSeriesPassport(@RequestBody BoilerSeriesPassport passport) {
-        return boilerSeriesPassportRepository.save(passport);
+    public BoilerSeriesPassport createBoilerSeriesPassport(@RequestBody BoilerSeriesPassport passport,@RequestPart MultipartFile image) throws IOException {
+        BoilerSeriesPassport boilerSeriesPassport = boilerSeriesPassportRepository.save(passport);
+        FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image,boilerSeriesPassport);
+        fileDataRepository.save(uploadImage);
+        return boilerSeriesPassport;
     }
 
     // 3. Метод для обновления BoilerSeriesPassport
