@@ -130,7 +130,7 @@ public class SeriesController {
     // 4) Создание серии
     @Operation(summary = "Создать серию")
     @PostMapping(value = "/add-series", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-    public SeriesDto createSeries(@RequestBody SeriesCreateDto seriesCreateDto, @RequestPart MultipartFile image) throws IOException {
+    public SeriesDto createSeries(@RequestPart SeriesCreateDto seriesCreateDto, @RequestPart MultipartFile image) throws IOException {
         Series series = new Series();
         series.setPrefix(seriesCreateDto.getPrefix());
         series.setStartRange(seriesCreateDto.getStartRange());
