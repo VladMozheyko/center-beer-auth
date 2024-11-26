@@ -71,14 +71,7 @@ public class ExplosionDiagramController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // 3. Получить ExplosionDiagram по наименованию
-    @Operation(summary = "Получить взрыв-схему по наименованию")
-    @GetMapping("/find-by-name/{name}")
-    public ResponseEntity<ExplosionDiagramDto> getExplosionDiagramByName(@PathVariable String name) {
-        Optional<ExplosionDiagram> diagram = explosionDiagramRepository.findByName(name);
-        return diagram.map(value -> ResponseEntity.ok(new ExplosionDiagramDto(value)))
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
+
 
     // 4. Удалить ExplosionDiagram по идентификатору
     @Operation(summary = "Удалить взрыв-схему по идентификатору")
@@ -92,18 +85,7 @@ public class ExplosionDiagramController {
         }
     }
 
-    // 5. Удалить ExplosionDiagram по наименованию
-    @Operation(summary = "Удалить взрыв-схему по наименованию")
-    @DeleteMapping("/delete-by-name/{name}")
-    public ResponseEntity<Void> deleteExplosionDiagramByName(@PathVariable String name) {
-        Optional<ExplosionDiagram> diagram = explosionDiagramRepository.findByName(name);
-        if (diagram.isPresent()) {
-            explosionDiagramRepository.deleteByName(name);
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
+
 
     // 6. Обновить ExplosionDiagram
     @Operation(summary = "Обновить взрыв-схему")

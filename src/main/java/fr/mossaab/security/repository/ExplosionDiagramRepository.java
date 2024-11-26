@@ -9,7 +9,4 @@ import java.util.Optional;
 
 @Repository
 public interface ExplosionDiagramRepository extends JpaRepository<ExplosionDiagram,Long>  {
-    Optional<ExplosionDiagram> findByName(String name);
-
-    void deleteByName(String name);
 }
