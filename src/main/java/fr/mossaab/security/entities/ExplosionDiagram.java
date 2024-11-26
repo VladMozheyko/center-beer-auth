@@ -24,17 +24,6 @@ public class ExplosionDiagram {
     private Long id;
 
     /**
-     * Наименование взрывной схемы.
-     */
-    @Column(nullable = false)
-    private String name;
-
-    /**
-     * Описание взрывной схемы.
-     */
-    @Column(length = 1000)
-    private String description;
-    /**
      * Список запчастей, относящихся к данной взрывной схеме.
      */
     @OneToMany(mappedBy = "explosionDiagram", cascade = CascadeType.ALL)

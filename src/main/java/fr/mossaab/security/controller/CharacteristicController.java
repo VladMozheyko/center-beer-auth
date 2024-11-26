@@ -7,6 +7,7 @@ import fr.mossaab.security.repository.CharacteristicRepository;
 import fr.mossaab.security.repository.SeriesRepository;
 import fr.mossaab.security.repository.UnitRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,11 +28,16 @@ public class CharacteristicController {
     private final CharacteristicRepository characteristicRepository;
     private final UnitRepository unitRepository;
     private final SeriesRepository seriesRepository;
-
+    @Data
+    public static class CharacteristicCreateDto {
+        @Schema(example = "Макс./мин. тепловая мощность в режиме отопление")
+        private String title;
+    }
     // DTO для вывода данных
     @Data
     public static class CharacteristicDto {
         private Long id;
+        @Schema(example = "Макс./мин. тепловая мощность в режиме отопление")
         private String title;
         private List<Long> unitIds;
         private List<Long> seriesIds;
@@ -80,9 +86,9 @@ public class CharacteristicController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Характеристика создана")
     })
-    public Characteristic createCharacteristic(@RequestBody CharacteristicDto characteristicDto) {
+    public Characteristic createCharacteristic(@RequestBody CharacteristicCreateDto characteristicCreateDto) {
         Characteristic characteristic = Characteristic.builder()
-                .title(characteristicDto.getTitle())
+                .title(characteristicCreateDto.getTitle())
                 .units(new ArrayList<>())
                 .series(new ArrayList<>())
                 .build();

@@ -6,6 +6,7 @@ import fr.mossaab.security.repository.BoilerRepository;
 import fr.mossaab.security.repository.SeriesRepository;
 import fr.mossaab.security.repository.ValueRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -26,13 +27,22 @@ public class BoilerController {
     private final BoilerRepository boilerRepository;
     private final SeriesRepository seriesRepository;
     private final ValueRepository valueRepository;
-
+    @Getter
+    @Setter
+    public static class BoilerCreateDTO {
+        @Schema(example = "100")
+        private Long number;
+        @Schema(example = "4640270282360")
+        private Long barcode;
+    }
     // DTO for Boiler
     @Getter
     @Setter
     public static class BoilerDTO {
         private Long id;
+        @Schema(example = "100")
         private Long number;
+        @Schema(example = "4640270282360")
         private Long barcode;
         private Long seriesId;
         private List<Long> valueIds;
@@ -89,10 +99,10 @@ public class BoilerController {
     // 4. Create a new boiler without related entities
     @Operation(summary = "Создание нового бойлера", description = "Создать новый бойлер с полями без связных сущностей")
     @PostMapping("/add")
-    public ResponseEntity<BoilerDTO> createBoiler(@RequestBody BoilerDTO boilerDTO) {
+    public ResponseEntity<BoilerDTO> createBoiler(@RequestBody BoilerCreateDTO boilerCreateDTO) {
         Boiler boiler = new Boiler();
-        boiler.setNumber(boilerDTO.getNumber());
-        boiler.setBarcode(boilerDTO.getBarcode());
+        boiler.setNumber(boilerCreateDTO.getNumber());
+        boiler.setBarcode(boilerCreateDTO.getBarcode());
         boiler = boilerRepository.save(boiler);
         return new ResponseEntity<>(new BoilerDTO(boiler), HttpStatus.CREATED);
     }

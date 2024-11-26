@@ -5,6 +5,7 @@ import fr.mossaab.security.entities.ServiceCenter;
 import fr.mossaab.security.repository.SeriesRepository;
 import fr.mossaab.security.repository.ServiceCenterRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
@@ -159,12 +160,19 @@ public class ServiceCenterController {
     @AllArgsConstructor
     static class ServiceCenterDto {
         private Long id;
+        @Schema(example = "ООО \"Гудмаер\"")
         private String title;
+        @Schema(example = "Ижевск")
         private String city;
+        @Schema(example = "с. Завьялово, ул. Гольянская, д. 2а")
         private String address;
+        @Schema(example = "(3412)77-11-04 доб. 2")
         private String phone;
+        @Schema(example = "Газовые котлы, колонки")
         private String servicedEquipment;
+        @Schema(example = "56.806787")
         private double latitude;
+        @Schema(example = "53.373223")
         private double longitude;
         private List<Long> seriesIds;
     }
@@ -173,6 +181,7 @@ public class ServiceCenterController {
     @AllArgsConstructor
     static class ServiceCenterWithSeriesDto {
         private Long id;
+        @Schema(example = "Ижевск")
         private String title;
         private List<Long> seriesIds;
     }
@@ -180,23 +189,37 @@ public class ServiceCenterController {
     @Data
     @Builder
     static class ServiceCenterCreateDto {
+        @Schema(example = "ООО \"Гудмаер\"")
         private String title;
+        @Schema(example = "Ижевск")
         private String city;
+        @Schema(example = "с. Завьялово, ул. Гольянская, д. 2а")
         private String address;
+        @Schema(example = "(3412)77-11-04 доб. 2")
         private String phone;
+        @Schema(example = "Газовые котлы, колонки")
         private String servicedEquipment;
-        private Double latitude;
-        private Double longitude;
+        @Schema(example = "56.806787")
+        private double latitude;
+        @Schema(example = "53.373223")
+        private double longitude;
     }
 
     @Data
     static class ServiceCenterUpdateDto {
+        @Schema(example = "ООО \"Гудмаер\"")
         private String title;
+        @Schema(example = "Ижевск")
         private String city;
+        @Schema(example = "с. Завьялово, ул. Гольянская, д. 2а")
         private String address;
+        @Schema(example = "(3412)77-11-04 доб. 2")
         private String phone;
+        @Schema(example = "Газовые котлы, колонки")
         private String servicedEquipment;
+        @Schema(example = "56.806787")
         private Double latitude;
+        @Schema(example = "53.373223")
         private Double longitude;
     }
 }

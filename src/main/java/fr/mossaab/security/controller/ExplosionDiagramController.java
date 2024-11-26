@@ -8,6 +8,7 @@ import fr.mossaab.security.repository.FileDataRepository;
 import fr.mossaab.security.repository.SparePartRepository;
 import fr.mossaab.security.service.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -38,27 +39,14 @@ public class ExplosionDiagramController {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class CreateExplosionDiagramDto {
-        private String name;
-        private String description;
-        private List<Long> sparePartIds;
-        private Long fileDataId;
-    }
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
     public static class ExplosionDiagramDto {
 
         private Long id;
-        private String name;
-        private String description;
         private List<Long> sparePartIds;
         private Long fileDataId;
 
         public ExplosionDiagramDto(ExplosionDiagram explosionDiagram) {
             this.id = explosionDiagram.getId();
-            this.name = explosionDiagram.getName();
-            this.description = explosionDiagram.getDescription();
             this.sparePartIds = explosionDiagram.getSpareParts().stream().map(SparePart::getId).collect(Collectors.toList());
             this.fileDataId = explosionDiagram.getFileData() != null ? explosionDiagram.getFileData().getId() : null;
         }
@@ -125,8 +113,6 @@ public class ExplosionDiagramController {
 
         if (optionalDiagram.isPresent()) {
             ExplosionDiagram diagram = optionalDiagram.get();
-            diagram.setName(diagramDto.getName());
-            diagram.setDescription(diagramDto.getDescription());
 
             // Обновление связных запчастей
             List<SparePart> updatedSpareParts = new ArrayList<>();
@@ -153,10 +139,8 @@ public class ExplosionDiagramController {
     // 9. Создать новый ExplosionDiagram
     @Operation(summary = "Создать взрыв-схему")
     @PostMapping(value = "/add", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<String> createExplosionDiagram(@RequestBody CreateExplosionDiagramDto createDto, @RequestPart MultipartFile image) throws IOException {
+    public ResponseEntity<String> createExplosionDiagram(@RequestBody ExplosionDiagramDto createDto, @RequestPart MultipartFile image) throws IOException {
         ExplosionDiagram diagram = new ExplosionDiagram();
-        diagram.setName(createDto.getName());
-        diagram.setDescription(createDto.getDescription());
         ExplosionDiagram savedDiagram = explosionDiagramRepository.save(diagram);
         FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image,savedDiagram);
         fileDataRepository.save(uploadImage);

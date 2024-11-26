@@ -62,7 +62,8 @@ public class BoilerSeriesPassportController {
     // 2. Метод для создания нового BoilerSeriesPassport без связных сущностей
     @PostMapping("/add")
     @Operation(summary = "Создать новый паспорт продукции")
-    public BoilerSeriesPassport createBoilerSeriesPassport(@RequestBody BoilerSeriesPassport passport,@RequestPart MultipartFile image) throws IOException {
+    public BoilerSeriesPassport createBoilerSeriesPassport(@RequestPart MultipartFile image) throws IOException {
+        BoilerSeriesPassport passport = new BoilerSeriesPassport();
         BoilerSeriesPassport boilerSeriesPassport = boilerSeriesPassportRepository.save(passport);
         FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image,boilerSeriesPassport);
         fileDataRepository.save(uploadImage);

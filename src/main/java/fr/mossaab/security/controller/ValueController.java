@@ -6,6 +6,7 @@ import fr.mossaab.security.repository.BoilerRepository;
 import fr.mossaab.security.repository.CharacteristicRepository;
 import fr.mossaab.security.repository.ValueRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -26,33 +27,7 @@ public class ValueController {
     private final ValueRepository valueRepository;
     private final CharacteristicRepository characteristicRepository;
     private final BoilerRepository boilerRepository;
-
-    // DTO for Value
-    @Getter
-    @Setter
-    public static class ValueDTO {
-        private Long id;
-        private Long characteristicId;
-        private String sValue;
-        private Double dValue;
-        private Double minValue;
-        private Double maxValue;
-        private List<Long> boilerIds;
-
-        // Constructor to map Value entity to DTO
-        public ValueDTO(Value value) {
-            this.id = value.getId();
-            this.characteristicId = value.getCharacteristic() != null ? value.getCharacteristic().getId() : null;
-            this.sValue = value.getSValue();
-            this.dValue = value.getDValue();
-            this.minValue = value.getMinValue();
-            this.maxValue = value.getMaxValue();
-            this.boilerIds = new ArrayList<>();
-            for (Boiler boiler : value.getBoilers()) {
-                this.boilerIds.add(boiler.getId());
-            }
-        }
-    }
+    // DTO for Value creation (без идентификатора)
 
     // 1. Method to find a value by ID
     @Operation(summary = "Поиск по идентификатору", description = "Найти значение по ID и показать все поля и идентификаторы всех связных сущностей")
@@ -90,39 +65,15 @@ public class ValueController {
         }
     }
 
-    // 4. Method to get values in a range
-//    @Operation(summary = "Поиск по диапазону", description = "Вывести все значения в диапазоне от minValue до maxValue")
-//    @GetMapping("/find-by-range")
-//    public List<ValueDTO> getValuesInRange(@RequestParam Double minValue, @RequestParam Double maxValue) {
-//        List<ValueDTO> valueDTOs = new ArrayList<>();
-//        List<Value> values = valueRepository.findByMinValueGreaterThanEqualAndMaxValueLessThanEqual(minValue, maxValue);
-//        for (Value value : values) {
-//            valueDTOs.add(new ValueDTO(value));
-//        }
-//        return valueDTOs;
-//    }
-
-    // 5. Method to get values by dValue
-//    @Operation(summary = "Поиск по dValue", description = "Вывести все значения по dValue")
-//    @GetMapping("/delete-by-dvalue")
-//    public List<ValueDTO> getValuesByDValue(@RequestParam Double dValue) {
-//        List<ValueDTO> valueDTOs = new ArrayList<>();
-//        List<Value> values = valueRepository.findByDValue(dValue);
-//        for (Value value : values) {
-//            valueDTOs.add(new ValueDTO(value));
-//        }
-//        return valueDTOs;
-//    }
-
-    // 6. Method to create a new value
+    // 6. Method to create a new value (using CreateValueDTO without ID)
     @Operation(summary = "Создание нового значения", description = "Создать новое значение с генерируемым идентификатором")
     @PostMapping("/add")
-    public ResponseEntity<ValueDTO> createValue(@RequestBody ValueDTO valueDTO) {
+    public ResponseEntity<ValueDTO> createValue(@RequestBody CreateValueDTO createValueDTO) {
         Value value = new Value();
-        value.setSValue(valueDTO.getSValue());
-        value.setDValue(valueDTO.getDValue());
-        value.setMinValue(valueDTO.getMinValue());
-        value.setMaxValue(valueDTO.getMaxValue());
+        value.setSValue(createValueDTO.getSValue());
+        value.setDValue(createValueDTO.getDValue());
+        value.setMinValue(createValueDTO.getMinValue());
+        value.setMaxValue(createValueDTO.getMaxValue());
         value = valueRepository.save(value);
         return new ResponseEntity<>(new ValueDTO(value), HttpStatus.CREATED);
     }
@@ -168,5 +119,48 @@ public class ValueController {
 
         value = valueRepository.save(value);
         return ResponseEntity.ok(new ValueDTO(value));
+    }
+    @Getter
+    @Setter
+    public static class CreateValueDTO {
+        @Schema(example = "700х400х299")
+        private String sValue;
+        @Schema(example = "8.0")
+        private Double dValue;
+        @Schema(example = "4.0")
+        private Double minValue;
+        @Schema(example = "10.0")
+        private Double maxValue;
+    }
+
+    // DTO for Value
+    @Getter
+    @Setter
+    public static class ValueDTO {
+        private Long id;
+        private Long characteristicId;
+        @Schema(example = "700х400х299")
+        private String sValue;
+        @Schema(example = "8.0")
+        private Double dValue;
+        @Schema(example = "4.0")
+        private Double minValue;
+        @Schema(example = "10.0")
+        private Double maxValue;
+        private List<Long> boilerIds;
+
+        // Constructor to map Value entity to DTO
+        public ValueDTO(Value value) {
+            this.id = value.getId();
+            this.characteristicId = value.getCharacteristic() != null ? value.getCharacteristic().getId() : null;
+            this.sValue = value.getSValue();
+            this.dValue = value.getDValue();
+            this.minValue = value.getMinValue();
+            this.maxValue = value.getMaxValue();
+            this.boilerIds = new ArrayList<>();
+            for (Boiler boiler : value.getBoilers()) {
+                this.boilerIds.add(boiler.getId());
+            }
+        }
     }
 }

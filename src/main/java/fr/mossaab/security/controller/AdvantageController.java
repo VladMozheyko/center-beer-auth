@@ -10,6 +10,7 @@ import fr.mossaab.security.repository.FileDataRepository;
 
 import fr.mossaab.security.service.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -34,13 +35,22 @@ public class AdvantageController {
     private final SeriesRepository seriesRepository;
     private final FileDataRepository fileDataRepository;
     private final StorageService storageService;
-
+    @Getter
+    @Setter
+    public static class AdvantageCreateDTO {
+        @Schema(example = "Режим работы с теплыми полами")
+        private String title;
+        @Schema(example = "COMFORT")
+        private CategoryOfAdvantage category;
+    }
     // DTO for Advantage
     @Getter
     @Setter
     public static class AdvantageDTO {
         private Long id;
+        @Schema(example = "Режим работы с теплыми полами")
         private String title;
+        @Schema(example = "COMFORT")
         private CategoryOfAdvantage category;
         private List<Long> seriesIds = new ArrayList<>();
         private Long fileDataId;
@@ -95,22 +105,25 @@ public class AdvantageController {
     }
 
     // 4. Create a new advantage
-    @Operation(summary = "Создание преимущества", description = "Создать новое преимущество на основе полей")
+    @Operation(summary = "Создание преимущества", description = "Создать новое преимущество на основе полей и загрузить изображение")
     @PostMapping("/add")
-    public ResponseEntity<AdvantageDTO> createAdvantage(@RequestBody AdvantageDTO advantageDTO,@RequestPart MultipartFile image) throws IOException {
+    public ResponseEntity<AdvantageDTO> createAdvantage(
+            @RequestPart AdvantageCreateDTO advantageCreateDTO,
+            @RequestPart MultipartFile image) throws IOException {
+
         Advantage advantage = new Advantage();
-        advantage.setTitle(advantageDTO.getTitle());
-        advantage.setCategory(advantageDTO.getCategory());
-
-        // Set FileData if provided
-//        if (advantageDTO.getFileDataId() != null) {
-//            Optional<FileData> fileDataOptional = fileDataRepository.findById(advantageDTO.getFileDataId());
-//            fileDataOptional.ifPresent(advantage::setFileData);
-//        }
-
+        advantage.setTitle(advantageCreateDTO.getTitle());
+        advantage.setCategory(advantageCreateDTO.getCategory());
         advantage = advantageRepository.save(advantage);
-        FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image,advantage);
+
+        // Загрузка изображения и связывание с преимуществом
+        FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image, advantage);
         fileDataRepository.save(uploadImage);
+        advantage.setFileData(uploadImage);
+
+        // Сохранение обновленного преимущества с привязкой к FileData
+        advantage = advantageRepository.save(advantage);
+
         return new ResponseEntity<>(new AdvantageDTO(advantage), HttpStatus.CREATED);
     }
 

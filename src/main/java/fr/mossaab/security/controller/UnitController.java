@@ -5,6 +5,7 @@ import fr.mossaab.security.entities.Unit;
 import fr.mossaab.security.repository.CharacteristicRepository;
 import fr.mossaab.security.repository.UnitRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
@@ -34,13 +35,25 @@ public class UnitController {
     @NoArgsConstructor
     public static class UnitDto {
         private Long id;
+        @Schema(example = "м³/ч")
         private String shortName;
+        @Schema(example = "Кубических метров в час")
         private String longName;
         private List<Long> characteristicIds;
 
         // Конструкторы, геттеры и сеттеры
     }
 
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class CreateUnitDto {
+        @Schema(example = "м³/ч")
+        private String shortName;
+
+        @Schema(example = "Кубических метров в час")
+        private String longName;
+    }
     // 1) Метод, который выводит все unit и к каждому юниту идентификаторы характеристик
     @GetMapping("/get-all")
     @Operation(summary = "Получить все единицы измерения и идентификаторы характеристик принадлежащих к каждой серии")
@@ -75,7 +88,7 @@ public class UnitController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Единица измерения создана")
     })
-    public Unit createUnit(@RequestBody UnitDto unitDto) {
+    public Unit createUnit(@RequestBody CreateUnitDto unitDto) {
         Unit unit = Unit.builder()
                 .shortName(unitDto.getShortName())
                 .longName(unitDto.getLongName())

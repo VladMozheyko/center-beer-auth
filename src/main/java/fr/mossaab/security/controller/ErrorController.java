@@ -5,6 +5,7 @@ import fr.mossaab.security.entities.Series;
 import fr.mossaab.security.repository.ErrorRepository;
 import fr.mossaab.security.repository.SeriesRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
@@ -139,23 +140,59 @@ public class ErrorController {
     @AllArgsConstructor
     public static class ErrorDto {
         private Long id;
+        @Schema(example = "Е1")
         private String code;
+        @Schema(example = "Нет подачи газа или не открыт газовый кран;\n" +
+                "Неисправны электроды розжига;\n" +
+                "Неисправность газового\n" +
+                "клапана;\n" +
+                "Пониженное давление\n" +
+                "газа;\n" +
+                "Неисправность датчика\n" +
+                "контроля пламени;\n" +
+                "Выход из строя платы\n" +
+                "управления.")
         private String cause;
+        @Schema(example = "Неполадки, связанные с\n" + "неудачным розжигом. Котел не\n" +"работает")
         private String description;
         private Long seriesId;
     }
 
     @Data
     public static class CreateErrorDto {
+        @Schema(example = "Е1")
         private String code;
+        @Schema(example = "Нет подачи газа или не открыт газовый кран;\n" +
+                "Неисправны электроды розжига;\n" +
+                "Неисправность газового\n" +
+                "клапана;\n" +
+                "Пониженное давление\n" +
+                "газа;\n" +
+                "Неисправность датчика\n" +
+                "контроля пламени;\n" +
+                "Выход из строя платы\n" +
+                "управления.")
         private String cause;
+        @Schema(example = "Неполадки, связанные с\n" + "неудачным розжигом. Котел не\n" +"работает")
         private String description;
     }
 
     @Data
     public static class UpdateErrorDto {
+        @Schema(example = "Е1")
         private String code;
+        @Schema(example = "Нет подачи газа или не открыт газовый кран;\n" +
+                "Неисправны электроды розжига;\n" +
+                "Неисправность газового\n" +
+                "клапана;\n" +
+                "Пониженное давление\n" +
+                "газа;\n" +
+                "Неисправность датчика\n" +
+                "контроля пламени;\n" +
+                "Выход из строя платы\n" +
+                "управления.")
         private String cause;
+        @Schema(example = "Неполадки, связанные с\n" + "неудачным розжигом. Котел не\n" +"работает")
         private String description;
         private Long seriesId;
     }

@@ -4,6 +4,7 @@ import fr.mossaab.security.entities.Kind;
 import fr.mossaab.security.repository.KindRepository;
 import fr.mossaab.security.repository.TypeRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
@@ -146,20 +147,26 @@ public class TypeController {
     @AllArgsConstructor
     public static class TypeDto {
         private Long id;
+        @Schema(example = "TOIVO")
         private String title;
+        @Schema(example = "Котлы настенные газовые")
         private String description;
         private List<Long> kindIds;
     }
 
     @Data
     public static class CreateTypeDto {
+        @Schema(example = "TOIVO")
         private String title;
+        @Schema(example = "Котлы настенные газовые")
         private String description;
     }
 
     @Data
     public static class UpdateTypeDto {
+        @Schema(example = "TOIVO")
         private String title;
+        @Schema(example = "Котлы настенные газовые")
         private String description;
         private Long kindId; // ID of the Kind to be added to the Type
     }

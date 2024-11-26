@@ -7,7 +7,9 @@ import fr.mossaab.security.repository.FileDataRepository;
 import fr.mossaab.security.repository.SparePartRepository;
 import fr.mossaab.security.service.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -30,15 +32,45 @@ public class SparePartController {
     private final StorageService storageService;
     private final FileDataRepository fileDataRepository;
     // DTO для SparePart с идентификаторами связных сущностей
+    @Data
+    public static class CreateSparePartDto {
+        @Schema(example = "AA0101014")
+        public String articleNumber;
+        @Schema(example = "Электронная плата")
+        public String name;
+        @Schema(example = "447")
+        public BigDecimal ascPriceYuan;
+        @Schema(example = "469.35")
+        public BigDecimal wholesalePriceYuan;
+        @Schema(example = "603.45")
+        public BigDecimal retailPriceYuan;
+        @Schema(example = "5900.40")
+        public BigDecimal ascPriceRub;
+        @Schema(example = "6195.42")
+        public BigDecimal wholesalePriceRub;
+        @Schema(example = "7965.54")
+        public BigDecimal retailPriceRub;
+        public Long fileDataId;
+        public Long explosionDiagramId;
+    }
+
     public static class SparePartDto {
         public Long id;
+        @Schema(example = "AA0101014")
         public String articleNumber;
+        @Schema(example = "Электронная плата")
         public String name;
+        @Schema(example = "447")
         public BigDecimal ascPriceYuan;
+        @Schema(example = "469.35")
         public BigDecimal wholesalePriceYuan;
+        @Schema(example = "603.45")
         public BigDecimal retailPriceYuan;
+        @Schema(example = "5900.40")
         public BigDecimal ascPriceRub;
+        @Schema(example = "6195.42")
         public BigDecimal wholesalePriceRub;
+        @Schema(example = "7965.54")
         public BigDecimal retailPriceRub;
         public Long fileDataId;
         public Long explosionDiagramId;
@@ -163,8 +195,8 @@ public class SparePartController {
     }
 
     @Operation(summary = "Создать новую запчасть")
-    @PostMapping(value =  "add", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<String> createSparePart(@RequestBody SparePartDto dto,@RequestPart MultipartFile image) throws IOException {
+    @PostMapping(value = "add", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
+    public ResponseEntity<String> createSparePart(@RequestBody CreateSparePartDto dto, @RequestPart MultipartFile image) throws IOException {
         SparePart sparePart = new SparePart();
         sparePart.setArticleNumber(dto.articleNumber);
         sparePart.setName(dto.name);
@@ -174,19 +206,11 @@ public class SparePartController {
         sparePart.setAscPriceRub(dto.ascPriceRub);
         sparePart.setWholesalePriceRub(dto.wholesalePriceRub);
         sparePart.setRetailPriceRub(dto.retailPriceRub);
-//        if (dto.fileDataId != null) {
-//            FileData fileData = new FileData();
-//            fileData.setId(dto.fileDataId);
-//            sparePart.setFileData(fileData);
-//        }
-//        if (dto.explosionDiagramId != null) {
-//            ExplosionDiagram explosionDiagram = new ExplosionDiagram();
-//            explosionDiagram.setId(dto.explosionDiagramId);
-//            sparePart.setExplosionDiagram(explosionDiagram);
-//        }
         SparePart savedSparePart = sparePartRepository.save(sparePart);
-        FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image,savedSparePart);
+        // Загрузка и сохранение изображения
+        FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image, savedSparePart);
         fileDataRepository.save(uploadImage);
+
         return ResponseEntity.ok("Запчасть создана");
     }
 }

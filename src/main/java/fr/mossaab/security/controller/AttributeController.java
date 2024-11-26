@@ -6,6 +6,7 @@ import fr.mossaab.security.entities.Series;
 import fr.mossaab.security.repository.AttributeRepository;
 import fr.mossaab.security.repository.SeriesRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
@@ -110,17 +111,20 @@ public class AttributeController {
     @AllArgsConstructor
     static class AttributeDto {
         private Long id;
+        @Schema(example = "Высококачественная латунная гидрогруппа")
         private String title;
         private Long seriesId; // ID связной сущности, если она есть
     }
 
     @Data
     static class CreateAttributeDto {
+        @Schema(example = "Высококачественная латунная гидрогруппа")
         private String title;
     }
 
     @Data
     static class UpdateAttributeDto {
+        @Schema(example = "Высококачественная латунная гидрогруппа")
         private String title;
         private Long seriesId; // ID связной сущности, если нужно обновить
     }

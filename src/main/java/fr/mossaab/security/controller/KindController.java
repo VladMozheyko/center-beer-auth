@@ -7,6 +7,7 @@ import fr.mossaab.security.repository.KindRepository;
 import fr.mossaab.security.repository.SeriesRepository;
 import fr.mossaab.security.repository.TypeRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
@@ -139,7 +140,9 @@ public class KindController {
     @AllArgsConstructor
     public static class KindDto {
         private Long id;
+        @Schema(example = "Одноконтурные")
         private String title;
+        @Schema(example = "(с закрытой камерой) без трёхходового клапана")
         private String description;
         private Long typeId;
         private List<Long> seriesIds;
@@ -147,13 +150,17 @@ public class KindController {
 
     @Data
     public static class CreateKindDto {
+        @Schema(example = "Одноконтурные")
         private String title;
+        @Schema(example = "(с закрытой камерой) без трёхходового клапана")
         private String description;
     }
 
     @Data
     public static class UpdateKindDto {
+        @Schema(example = "Одноконтурные")
         private String title;
+        @Schema(example = "(с закрытой камерой) без трёхходового клапана")
         private String description;
         private Long typeId;    // ID of the Type to be associated with the Kind
         private Long seriesId;  // ID of the Series to be added to the Kind's list

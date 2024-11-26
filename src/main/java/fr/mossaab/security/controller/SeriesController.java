@@ -6,6 +6,7 @@ import fr.mossaab.security.repository.*;
 import fr.mossaab.security.repository.BoilerSeriesPassportRepository;
 import fr.mossaab.security.service.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import lombok.Data;
@@ -38,15 +39,32 @@ public class SeriesController {
     private final ErrorRepository errorRepository;
     private final BoilerSeriesPassportRepository passportTitleRepository;
     private final StorageService storageService;
-
+    @Data
+    private static class SeriesCreateDto {
+        @Schema(example = "T")
+        private String prefix;
+        @Schema(example = "100")
+        private int startRange;
+        @Schema(example = "240")
+        private int endRange;
+        @Schema(example = "K")
+        private String suffix;
+        @Schema(example = "Одноконтурные котлы, с закрытой камерой сгорания, с трёхходовым клапаном, модели (T10OK-T24OK)")
+        private String description;
+    }
     // DTOs
     @Data
     private static class SeriesDto {
         private Long id;
+        @Schema(example = "T")
         private String prefix;
+        @Schema(example = "100")
         private int startRange;
+        @Schema(example = "240")
         private int endRange;
+        @Schema(example = "K")
         private String suffix;
+        @Schema(example = "Одноконтурные котлы, с закрытой камерой сгорания, с трёхходовым клапаном, модели (T10OK-T24OK)")
         private String description;
         private Long kindId;
         private List<Long> serviceCenterIds = new ArrayList<>();
@@ -111,17 +129,19 @@ public class SeriesController {
 
     // 4) Создание серии
     @Operation(summary = "Создать серию")
-    @PostMapping(value =  "/add-series", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-    public SeriesDto createSeries(@RequestBody SeriesDto seriesDto,@RequestPart MultipartFile image) throws IOException {
+    @PostMapping(value = "/add-series", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
+    public SeriesDto createSeries(@RequestBody SeriesCreateDto seriesCreateDto, @RequestPart MultipartFile image) throws IOException {
         Series series = new Series();
-        series.setPrefix(seriesDto.getPrefix());
-        series.setStartRange(seriesDto.getStartRange());
-        series.setEndRange(seriesDto.getEndRange());
-        series.setSuffix(seriesDto.getSuffix());
-        series.setDescription(seriesDto.getDescription());
+        series.setPrefix(seriesCreateDto.getPrefix());
+        series.setStartRange(seriesCreateDto.getStartRange());
+        series.setEndRange(seriesCreateDto.getEndRange());
+        series.setSuffix(seriesCreateDto.getSuffix());
+        series.setDescription(seriesCreateDto.getDescription());
         seriesRepository.save(series);
-        FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image,series);
+
+        FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image, series);
         fileDataRepository.save(uploadImage);
+
         return mapToDto(series);
     }
 
