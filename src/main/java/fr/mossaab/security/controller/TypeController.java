@@ -164,10 +164,11 @@ public class TypeController {
 
     @Data
     public static class UpdateTypeDto {
-        @Schema(example = "TOIVO")
+        @Schema(example = "TOIVO", nullable = true)
         private String title;
-        @Schema(example = "Котлы настенные газовые")
+        @Schema(example = "Котлы настенные газовые", nullable = true)
         private String description;
+        @Schema(nullable = true)
         private Long kindId; // ID of the Kind to be added to the Type
     }
 }

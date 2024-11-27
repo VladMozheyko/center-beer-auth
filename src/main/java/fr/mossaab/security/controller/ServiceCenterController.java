@@ -62,6 +62,7 @@ public class ServiceCenterController {
                 .build();
         return ResponseEntity.ok(serviceCenterRepository.save(serviceCenter));
     }
+
     @Operation(summary = "Найти все сервисные центры по городу и вывести список серий")
     @GetMapping("/find-all-by-city/{city}")
     public ResponseEntity<List<ServiceCenterWithSeriesDto>> getServiceCentersByCity(@PathVariable String city) {
@@ -92,6 +93,7 @@ public class ServiceCenterController {
         }
         return ResponseEntity.notFound().build();
     }
+
     @Operation(summary = "Найти сервисный центр по названию и вывести список идентификаторов серий")
     @GetMapping("/find-by-title/{title}")
     public ResponseEntity<ServiceCenterWithSeriesDto> getServiceCenterByTitle(@PathVariable String title) {
@@ -160,7 +162,9 @@ public class ServiceCenterController {
     @AllArgsConstructor
     static class ServiceCenterDto {
         private Long id;
-        @Schema(example = "ООО \"Гудмаер\"")
+        @Schema(example = """
+                ООО "Гудмаер"
+                """)
         private String title;
         @Schema(example = "Ижевск")
         private String city;
@@ -189,7 +193,9 @@ public class ServiceCenterController {
     @Data
     @Builder
     static class ServiceCenterCreateDto {
-        @Schema(example = "ООО \"Гудмаер\"")
+        @Schema(example = """
+                ООО "Гудмаер"
+                """)
         private String title;
         @Schema(example = "Ижевск")
         private String city;
@@ -207,19 +213,21 @@ public class ServiceCenterController {
 
     @Data
     static class ServiceCenterUpdateDto {
-        @Schema(example = "ООО \"Гудмаер\"")
+        @Schema(example = """
+                ООО "Гудмаер"
+                """, nullable = true)
         private String title;
-        @Schema(example = "Ижевск")
+        @Schema(example = "Ижевск", nullable = true)
         private String city;
-        @Schema(example = "с. Завьялово, ул. Гольянская, д. 2а")
+        @Schema(example = "с. Завьялово, ул. Гольянская, д. 2а", nullable = true)
         private String address;
-        @Schema(example = "(3412)77-11-04 доб. 2")
+        @Schema(example = "(3412)77-11-04 доб. 2", nullable = true)
         private String phone;
-        @Schema(example = "Газовые котлы, колонки")
+        @Schema(example = "Газовые котлы, колонки", nullable = true)
         private String servicedEquipment;
-        @Schema(example = "56.806787")
+        @Schema(example = "56.806787", nullable = true)
         private Double latitude;
-        @Schema(example = "53.373223")
+        @Schema(example = "53.373223", nullable = true)
         private Double longitude;
     }
 }

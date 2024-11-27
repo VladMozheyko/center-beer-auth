@@ -8,6 +8,7 @@ import fr.mossaab.security.repository.ValueRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -83,7 +84,7 @@ public class ValueController {
     @PatchMapping("/update/{id}")
     public ResponseEntity<ValueDTO> updateValue(
             @PathVariable Long id,
-            @RequestBody ValueDTO valueDTO,
+            @RequestBody UpdateValueDTO valueDTO,
             @RequestParam(required = false) Long boilerId,
             @RequestParam(required = false) Long characteristicId) {
 
@@ -162,5 +163,21 @@ public class ValueController {
                 this.boilerIds.add(boiler.getId());
             }
         }
+    }
+    @Getter
+    @Setter
+    @Data
+    public static class UpdateValueDTO {
+        @Schema(nullable = true)
+        private Long characteristicId;
+        @Schema(example = "700х400х299", nullable = true)
+        private String sValue;
+        @Schema(example = "8.0", nullable = true)
+        private Double dValue;
+        @Schema(example = "4.0", nullable = true)
+        private Double minValue;
+        @Schema(example = "10.0", nullable = true)
+        private Double maxValue;
+
     }
 }

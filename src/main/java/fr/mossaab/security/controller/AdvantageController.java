@@ -1,13 +1,13 @@
 package fr.mossaab.security.controller;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import fr.mossaab.security.entities.Advantage;
-import fr.mossaab.security.entities.Series;
 import fr.mossaab.security.entities.FileData;
+import fr.mossaab.security.entities.Series;
 import fr.mossaab.security.enums.CategoryOfAdvantage;
 import fr.mossaab.security.repository.AdvantageRepository;
-import fr.mossaab.security.repository.SeriesRepository;
 import fr.mossaab.security.repository.FileDataRepository;
-
+import fr.mossaab.security.repository.SeriesRepository;
 import fr.mossaab.security.service.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -35,38 +35,6 @@ public class AdvantageController {
     private final SeriesRepository seriesRepository;
     private final FileDataRepository fileDataRepository;
     private final StorageService storageService;
-    @Getter
-    @Setter
-    public static class AdvantageCreateDTO {
-        @Schema(example = "Режим работы с теплыми полами")
-        private String title;
-        @Schema(example = "COMFORT")
-        private CategoryOfAdvantage category;
-    }
-    // DTO for Advantage
-    @Getter
-    @Setter
-    public static class AdvantageDTO {
-        private Long id;
-        @Schema(example = "Режим работы с теплыми полами")
-        private String title;
-        @Schema(example = "COMFORT")
-        private CategoryOfAdvantage category;
-        private List<Long> seriesIds = new ArrayList<>();
-        private Long fileDataId;
-
-        // Constructor to map Advantage entity to DTO
-        public AdvantageDTO(Advantage advantage) {
-            this.id = advantage.getId();
-            this.title = advantage.getTitle();
-            this.category = advantage.getCategory();
-            this.fileDataId = advantage.getFileData() != null ? advantage.getFileData().getId() : null;
-
-            for (Series s : advantage.getSeries()) {
-                this.seriesIds.add(s.getId());
-            }
-        }
-    }
 
     // 1. Get an advantage by ID with related entities
     @Operation(summary = "Поиск преимущества по ID", description = "Найти преимущество по ID и показать его поля и идентификаторы связных сущностей")
@@ -132,9 +100,9 @@ public class AdvantageController {
     @PatchMapping("/update/{id}")
     public ResponseEntity<AdvantageDTO> updateAdvantage(
             @PathVariable Long id,
-            @RequestBody AdvantageDTO advantageDTO,
+            @RequestBody AdvantageUpdateDTO advantageUpdateDTO,
             @RequestParam(required = false) List<Long> seriesIds,
-            @RequestParam(required = false) Long fileDataId) {
+            @RequestParam(required = false) MultipartFile image) throws IOException {
 
         Optional<Advantage> advantageOptional = advantageRepository.findById(id);
         if (advantageOptional.isEmpty()) {
@@ -144,14 +112,8 @@ public class AdvantageController {
         Advantage advantage = advantageOptional.get();
 
         // Update fields if provided
-        if (advantageDTO.getTitle() != null) advantage.setTitle(advantageDTO.getTitle());
-        if (advantageDTO.getCategory() != null) advantage.setCategory(advantageDTO.getCategory());
-
-        // Update FileData if provided
-        if (fileDataId != null) {
-            Optional<FileData> fileDataOptional = fileDataRepository.findById(fileDataId);
-            fileDataOptional.ifPresent(advantage::setFileData);
-        }
+        if (advantageUpdateDTO.getTitle() != null) advantage.setTitle(advantageUpdateDTO.getTitle());
+        if (advantageUpdateDTO.getCategory() != null) advantage.setCategory(advantageUpdateDTO.getCategory());
 
         // Update Series if provided
         if (seriesIds != null) {
@@ -162,9 +124,70 @@ public class AdvantageController {
             }
             advantage.setSeries(seriesList);
         }
+        // Удаление предыдущего изображения, если передано новое
+        if (image != null) {
+            FileData currentFileData = advantage.getFileData();
+            if (currentFileData != null) {
+                // Удаление записи из базы данных
+                fileDataRepository.delete(currentFileData);
+            }
+            // Загрузка нового изображения и привязка к Advantage
+            FileData newFileData = (FileData) storageService.uploadImageToFileSystem(image, advantage);
+            fileDataRepository.save(newFileData);
+            advantage.setFileData(newFileData);
+        }
 
+        // Сохранение обновленного преимущества с привязкой к FileData
         advantage = advantageRepository.save(advantage);
         return ResponseEntity.ok(new AdvantageDTO(advantage));
+    }
+
+    @Getter
+    @Setter
+    public static class AdvantageCreateDTO {
+        @Schema(example = "Режим работы с теплыми полами")
+        private String title;
+        @Schema(example = "COMFORT")
+        private CategoryOfAdvantage category;
+    }
+
+    @Getter
+    @Setter
+    @JsonInclude(JsonInclude.Include.NON_NULL) // Исключает null-поля при сериализации
+    public static class AdvantageUpdateDTO {
+        @Schema(example = "Режим работы с теплыми полами", nullable = true)
+        private String title;
+
+        @Schema(example = "COMFORT", nullable = true)
+        private CategoryOfAdvantage category;
+
+        @Schema(description = "Список идентификаторов связанных Series", nullable = true)
+        private List<Long> seriesIds = new ArrayList<>();
+    }
+
+    // DTO for Advantage
+    @Getter
+    @Setter
+    public static class AdvantageDTO {
+        private Long id;
+        @Schema(example = "Режим работы с теплыми полами")
+        private String title;
+        @Schema(example = "COMFORT")
+        private CategoryOfAdvantage category;
+        private List<Long> seriesIds = new ArrayList<>();
+        private Long fileDataId;
+
+        // Constructor to map Advantage entity to DTO
+        public AdvantageDTO(Advantage advantage) {
+            this.id = advantage.getId();
+            this.title = advantage.getTitle();
+            this.category = advantage.getCategory();
+            this.fileDataId = advantage.getFileData() != null ? advantage.getFileData().getId() : null;
+
+            for (Series s : advantage.getSeries()) {
+                this.seriesIds.add(s.getId());
+            }
+        }
     }
 }
 

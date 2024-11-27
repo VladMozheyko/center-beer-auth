@@ -1,14 +1,13 @@
 package fr.mossaab.security.controller;
 
-import fr.mossaab.security.entities.*;
 import fr.mossaab.security.entities.Error;
+import fr.mossaab.security.entities.*;
 import fr.mossaab.security.repository.*;
-import fr.mossaab.security.repository.BoilerSeriesPassportRepository;
 import fr.mossaab.security.service.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -39,44 +38,6 @@ public class SeriesController {
     private final ErrorRepository errorRepository;
     private final BoilerSeriesPassportRepository passportTitleRepository;
     private final StorageService storageService;
-    @Data
-    private static class SeriesCreateDto {
-        @Schema(example = "T")
-        private String prefix;
-        @Schema(example = "100")
-        private int startRange;
-        @Schema(example = "240")
-        private int endRange;
-        @Schema(example = "K")
-        private String suffix;
-        @Schema(example = "Одноконтурные котлы, с закрытой камерой сгорания, с трёхходовым клапаном, модели (T10OK-T24OK)")
-        private String description;
-    }
-    // DTOs
-    @Data
-    private static class SeriesDto {
-        private Long id;
-        @Schema(example = "T")
-        private String prefix;
-        @Schema(example = "100")
-        private int startRange;
-        @Schema(example = "240")
-        private int endRange;
-        @Schema(example = "K")
-        private String suffix;
-        @Schema(example = "Одноконтурные котлы, с закрытой камерой сгорания, с трёхходовым клапаном, модели (T10OK-T24OK)")
-        private String description;
-        private Long kindId;
-        private List<Long> serviceCenterIds = new ArrayList<>();
-        private List<Long> characteristicIds = new ArrayList<>();
-        private List<Long> advantageIds = new ArrayList<>();
-        private List<Long> attributeIds = new ArrayList<>();
-        private List<Long> boilerIds = new ArrayList<>();
-        private List<Long> fileDataIds = new ArrayList<>();
-        private List<Long> errorIds = new ArrayList<>();
-        private List<Long> passportTitleIds = new ArrayList<>();
-    }
-
 
     // 1) Получение всех серий
     @Operation(summary = "Получить все серии")
@@ -148,7 +109,7 @@ public class SeriesController {
     // 5) Обновление связных сущностей
     @Operation(summary = "Обновить связные сущности серии")
     @PutMapping("/update-related/{id}")
-    public ResponseEntity<SeriesDto> updateRelatedEntities(@PathVariable Long id, @RequestBody SeriesDto seriesDto) {
+    public ResponseEntity<SeriesDto> updateRelatedEntities(@PathVariable Long id, @RequestBody SeriesUpdateDto seriesDto) {
         Optional<Series> optionalSeries = seriesRepository.findById(id);
 
         if (optionalSeries.isPresent()) {
@@ -280,5 +241,76 @@ public class SeriesController {
         }
 
         return dto;
+    }
+
+    @Data
+    private static class SeriesCreateDto {
+        @Schema(example = "T")
+        private String prefix;
+        @Schema(example = "100")
+        private int startRange;
+        @Schema(example = "240")
+        private int endRange;
+        @Schema(example = "K")
+        private String suffix;
+        @Schema(example = "Одноконтурные котлы, с закрытой камерой сгорания, с трёхходовым клапаном, модели (T10OK-T24OK)")
+        private String description;
+    }
+
+    // DTOs
+    @Data
+    private static class SeriesDto {
+        private Long id;
+        @Schema(example = "T")
+        private String prefix;
+        @Schema(example = "100")
+        private int startRange;
+        @Schema(example = "240")
+        private int endRange;
+        @Schema(example = "K")
+        private String suffix;
+        @Schema(example = "Одноконтурные котлы, с закрытой камерой сгорания, с трёхходовым клапаном, модели (T10OK-T24OK)")
+        private String description;
+        private Long kindId;
+        private List<Long> serviceCenterIds = new ArrayList<>();
+        private List<Long> characteristicIds = new ArrayList<>();
+        private List<Long> advantageIds = new ArrayList<>();
+        private List<Long> attributeIds = new ArrayList<>();
+        private List<Long> boilerIds = new ArrayList<>();
+        private List<Long> fileDataIds = new ArrayList<>();
+        private List<Long> errorIds = new ArrayList<>();
+        private List<Long> passportTitleIds = new ArrayList<>();
+    }
+
+    @Data
+    private static class SeriesUpdateDto {
+        @Schema(example = "T", nullable = true)
+        private String prefix;
+        @Schema(example = "100", nullable = true)
+        private int startRange;
+        @Schema(example = "240", nullable = true)
+        private int endRange;
+        @Schema(example = "K", nullable = true)
+        private String suffix;
+        @Schema(example = "Одноконтурные котлы, с закрытой камерой сгорания, с трёхходовым клапаном, модели (T10OK-T24OK)", nullable = true)
+        private String description;
+        @Schema(nullable = true)
+        private Long kindId;
+        @Schema(nullable = true)
+        private List<Long> serviceCenterIds = new ArrayList<>();
+        @Schema(nullable = true)
+        private List<Long> characteristicIds = new ArrayList<>();
+        @Schema(nullable = true)
+        private List<Long> advantageIds = new ArrayList<>();
+        @Schema(nullable = true)
+        private List<Long> attributeIds = new ArrayList<>();
+        @Schema(nullable = true)
+        private List<Long> boilerIds = new ArrayList<>();
+        @Schema(nullable = true)
+        private List<Long> fileDataIds = new ArrayList<>();
+        @Schema(nullable = true)
+        private List<Long> errorIds = new ArrayList<>();
+        @Schema(nullable = true)
+        private List<Long> passportTitleIds = new ArrayList<>();
     }
 }

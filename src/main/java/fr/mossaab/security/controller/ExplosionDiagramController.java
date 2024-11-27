@@ -36,21 +36,6 @@ public class ExplosionDiagramController {
     private final StorageService storageService;
     private final FileDataRepository fileDataRepository;
 
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class ExplosionDiagramDto {
-
-        private Long id;
-        private List<Long> sparePartIds;
-        private Long fileDataId;
-
-        public ExplosionDiagramDto(ExplosionDiagram explosionDiagram) {
-            this.id = explosionDiagram.getId();
-            this.sparePartIds = explosionDiagram.getSpareParts().stream().map(SparePart::getId).collect(Collectors.toList());
-            this.fileDataId = explosionDiagram.getFileData() != null ? explosionDiagram.getFileData().getId() : null;
-        }
-    }
     // 1. Получить все ExplosionDiagram
     @Operation(summary = "Получить все взрыв-схемы")
     @GetMapping("/get-all")
@@ -71,8 +56,6 @@ public class ExplosionDiagramController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-
-
     // 4. Удалить ExplosionDiagram по идентификатору
     @Operation(summary = "Удалить взрыв-схему по идентификатору")
     @DeleteMapping("/delete-by-id/{id}")
@@ -85,12 +68,10 @@ public class ExplosionDiagramController {
         }
     }
 
-
-
     // 6. Обновить ExplosionDiagram
     @Operation(summary = "Обновить взрыв-схему")
     @PutMapping("/update/{id}")
-    public ResponseEntity<ExplosionDiagramDto> updateExplosionDiagram(@PathVariable Long id, @RequestBody ExplosionDiagramDto diagramDto) {
+    public ResponseEntity<ExplosionDiagramDto> updateExplosionDiagram(@PathVariable Long id, @RequestBody ExplosionDiagramUpdateDto diagramDto) {
         Optional<ExplosionDiagram> optionalDiagram = explosionDiagramRepository.findById(id);
 
         if (optionalDiagram.isPresent()) {
@@ -121,12 +102,38 @@ public class ExplosionDiagramController {
     // 9. Создать новый ExplosionDiagram
     @Operation(summary = "Создать взрыв-схему")
     @PostMapping(value = "/add", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<String> createExplosionDiagram(@RequestBody ExplosionDiagramDto createDto, @RequestPart MultipartFile image) throws IOException {
+    public ResponseEntity<String> createExplosionDiagram(@RequestPart MultipartFile image) throws IOException {
         ExplosionDiagram diagram = new ExplosionDiagram();
         ExplosionDiagram savedDiagram = explosionDiagramRepository.save(diagram);
-        FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image,savedDiagram);
+        FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image, savedDiagram);
         fileDataRepository.save(uploadImage);
         return ResponseEntity.ok("Взрыв-схема создана");
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ExplosionDiagramDto {
+
+        private Long id;
+        private List<Long> sparePartIds;
+        private Long fileDataId;
+
+        public ExplosionDiagramDto(ExplosionDiagram explosionDiagram) {
+            this.id = explosionDiagram.getId();
+            this.sparePartIds = explosionDiagram.getSpareParts().stream().map(SparePart::getId).collect(Collectors.toList());
+            this.fileDataId = explosionDiagram.getFileData() != null ? explosionDiagram.getFileData().getId() : null;
+        }
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ExplosionDiagramUpdateDto {
+        @Schema(nullable = true)
+        private List<Long> sparePartIds;
+        @Schema(nullable = true)
+        private Long fileDataId;
     }
 }
 

@@ -87,12 +87,12 @@ public class AuthController {
         return authenticationService.refreshTokenUsingCookie(request);
     }
 
-    @Operation(summary = "Получение аутентификации", description = "Этот endpoint позволяет получить аутентификацию.")
-    @GetMapping("/info")
-    public Authentication getAuthentication(@RequestBody AuthenticationRequest request) {
-        return authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-        }
+//    @Operation(summary = "Получение аутентификации", description = "Этот endpoint позволяет получить аутентификацию.")
+//    @GetMapping("/info")
+//    public Authentication getAuthentication(@RequestBody AuthenticationRequest request) {
+//        return authenticationManager.authenticate(
+//                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+//        }
 
     @Operation(summary = "Выход из системы", description = "Этот endpoint позволяет пользователю выйти из системы.")
     @PostMapping("/logout")

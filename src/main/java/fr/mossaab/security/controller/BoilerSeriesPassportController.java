@@ -62,10 +62,10 @@ public class BoilerSeriesPassportController {
     // 2. Метод для создания нового BoilerSeriesPassport без связных сущностей
     @PostMapping("/add")
     @Operation(summary = "Создать новый паспорт продукции")
-    public BoilerSeriesPassport createBoilerSeriesPassport(@RequestPart MultipartFile image) throws IOException {
+    public BoilerSeriesPassport createBoilerSeriesPassport(@RequestPart MultipartFile pdf) throws IOException {
         BoilerSeriesPassport passport = new BoilerSeriesPassport();
         BoilerSeriesPassport boilerSeriesPassport = boilerSeriesPassportRepository.save(passport);
-        FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image,boilerSeriesPassport);
+        FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(pdf,boilerSeriesPassport);
         fileDataRepository.save(uploadImage);
         return boilerSeriesPassport;
     }
@@ -75,17 +75,11 @@ public class BoilerSeriesPassportController {
     @Operation(summary = "Обновить паспорт продукции")
     public BoilerSeriesPassport updateBoilerSeriesPassport(
             @PathVariable Long id,
-            @RequestParam(required = false) Long fileDataId,
-            @RequestParam(required = false) List<Long> seriesIds) {
+            @RequestPart(required = false) MultipartFile pdf,
+            @RequestPart(required = false) List<Long> seriesIds) throws IOException {
 
         BoilerSeriesPassport passport = boilerSeriesPassportRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Passport not found"));
-
-        if (fileDataId != null) {
-            FileData fileData = fileDataRepository.findById(fileDataId)
-                    .orElseThrow(() -> new RuntimeException("FileData not found"));
-            passport.setFile(fileData);
-        }
 
         if (seriesIds != null) {
             List<Series> seriesList = new ArrayList<>();
@@ -97,6 +91,17 @@ public class BoilerSeriesPassportController {
             passport.setSeriesList(seriesList);
         }
 
+        if (pdf != null) {
+            FileData currentFileData = passport.getFile();
+            if (currentFileData != null) {
+                // Удаление записи из базы данных
+                fileDataRepository.delete(currentFileData);
+            }
+            // Загрузка нового изображения и привязка к Advantage
+            FileData newFileData = (FileData) storageService.uploadImageToFileSystem(pdf, passport);
+            fileDataRepository.save(newFileData);
+            passport.setFile(newFileData);
+        }
         return boilerSeriesPassportRepository.save(passport);
     }
 

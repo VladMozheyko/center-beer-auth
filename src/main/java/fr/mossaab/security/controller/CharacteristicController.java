@@ -45,6 +45,16 @@ public class CharacteristicController {
         // Конструкторы, геттеры и сеттеры
     }
 
+    @Data
+    public static class CharacteristicUpdateDto {
+        @Schema(example = "Макс./мин. тепловая мощность в режиме отопление", nullable = true)
+        private String title;
+        @Schema(nullable = true)
+        private List<Long> unitIds;
+        @Schema(nullable = true)
+        private List<Long> seriesIds;
+    }
+
     // 1) Метод, который выводит все Characteristic с идентификаторами Units и Series
     @GetMapping("/get-all")
     @Operation(summary = "Получить все характеристики")
@@ -102,7 +112,7 @@ public class CharacteristicController {
             @ApiResponse(responseCode = "200", description = "Характеристика обновлена"),
             @ApiResponse(responseCode = "404", description = "Характеристика не найдена")
     })
-    public Characteristic updateCharacteristic(@PathVariable Long id, @RequestBody CharacteristicDto characteristicDto) {
+    public Characteristic updateCharacteristic(@PathVariable Long id, @RequestBody CharacteristicUpdateDto characteristicDto) {
         Optional<Characteristic> optionalCharacteristic = characteristicRepository.findById(id);
         if (optionalCharacteristic.isEmpty()) {
             throw new RuntimeException("Characteristic not found");

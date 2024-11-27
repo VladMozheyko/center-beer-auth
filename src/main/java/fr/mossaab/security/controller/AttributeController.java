@@ -124,8 +124,9 @@ public class AttributeController {
 
     @Data
     static class UpdateAttributeDto {
-        @Schema(example = "Высококачественная латунная гидрогруппа")
+        @Schema(example = "Высококачественная латунная гидрогруппа",nullable = true)
         private String title;
+        @Schema(nullable = true)
         private Long seriesId; // ID связной сущности, если нужно обновить
     }
 }

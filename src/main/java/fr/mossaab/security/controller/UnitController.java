@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -29,31 +28,6 @@ public class UnitController {
     private final UnitRepository unitRepository;
     private final CharacteristicRepository characteristicRepository;
 
-    // DTO для вывода данных
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class UnitDto {
-        private Long id;
-        @Schema(example = "м³/ч")
-        private String shortName;
-        @Schema(example = "Кубических метров в час")
-        private String longName;
-        private List<Long> characteristicIds;
-
-        // Конструкторы, геттеры и сеттеры
-    }
-
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class CreateUnitDto {
-        @Schema(example = "м³/ч")
-        private String shortName;
-
-        @Schema(example = "Кубических метров в час")
-        private String longName;
-    }
     // 1) Метод, который выводит все unit и к каждому юниту идентификаторы характеристик
     @GetMapping("/get-all")
     @Operation(summary = "Получить все единицы измерения и идентификаторы характеристик принадлежащих к каждой серии")
@@ -104,7 +78,7 @@ public class UnitController {
             @ApiResponse(responseCode = "200", description = "Единица измерения обновлена"),
             @ApiResponse(responseCode = "404", description = "Единица измерения не найдена")
     })
-    public Unit updateUnit(@PathVariable Long id, @RequestBody UnitDto unitDto) {
+    public Unit updateUnit(@PathVariable Long id, @RequestBody UpdateUnitDto unitDto) {
         Optional<Unit> optionalUnit = unitRepository.findById(id);
         if (optionalUnit.isEmpty()) {
             throw new RuntimeException("Unit not found");
@@ -170,5 +144,45 @@ public class UnitController {
         dto.setCharacteristicIds(characteristicIds);
 
         return dto;
+    }
+
+    // DTO для вывода данных
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class UnitDto {
+        private Long id;
+        @Schema(example = "м³/ч")
+        private String shortName;
+        @Schema(example = "Кубических метров в час")
+        private String longName;
+        private List<Long> characteristicIds;
+
+        // Конструкторы, геттеры и сеттеры
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class UpdateUnitDto {
+        @Schema(example = "м³/ч", nullable = true)
+        private String shortName;
+        @Schema(example = "Кубических метров в час", nullable = true)
+        private String longName;
+        @Schema(nullable = true)
+        private List<Long> characteristicIds;
+        // Конструкторы, геттеры и сеттеры
+    }
+
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class CreateUnitDto {
+        @Schema(example = "м³/ч")
+        private String shortName;
+
+        @Schema(example = "Кубических метров в час")
+        private String longName;
     }
 }

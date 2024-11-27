@@ -38,6 +38,20 @@ public class BoilerController {
     // DTO for Boiler
     @Getter
     @Setter
+    public static class BoilerUpdateDTO {
+        @Schema(example = "100", nullable = true)
+        private Long number;
+        @Schema(example = "4640270282360", nullable = true)
+        private Long barcode;
+        @Schema(nullable = true)
+        private Long seriesId;
+        @Schema(nullable = true)
+        private List<Long> valueIds;
+
+        // Constructor to map Boiler entity to DTO
+    }
+    @Getter
+    @Setter
     public static class BoilerDTO {
         private Long id;
         @Schema(example = "100")
@@ -112,7 +126,7 @@ public class BoilerController {
     @PatchMapping("/update/{id}")
     public ResponseEntity<BoilerDTO> updateBoiler(
             @PathVariable Long id,
-            @RequestBody BoilerDTO boilerDTO,
+            @RequestBody BoilerUpdateDTO boilerDTO,
             @RequestParam(required = false) Long seriesId,
             @RequestParam(required = false) List<Long> valueIds) {
 

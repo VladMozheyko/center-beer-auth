@@ -158,11 +158,13 @@ public class KindController {
 
     @Data
     public static class UpdateKindDto {
-        @Schema(example = "Одноконтурные")
+        @Schema(example = "Одноконтурные", nullable = true)
         private String title;
-        @Schema(example = "(с закрытой камерой) без трёхходового клапана")
+        @Schema(example = "(с закрытой камерой) без трёхходового клапана", nullable = true)
         private String description;
+        @Schema(nullable = true)
         private Long typeId;    // ID of the Type to be associated with the Kind
+        @Schema(nullable = true)
         private Long seriesId;  // ID of the Series to be added to the Kind's list
     }
 }

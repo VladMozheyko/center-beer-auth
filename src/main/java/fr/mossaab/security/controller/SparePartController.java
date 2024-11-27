@@ -1,8 +1,8 @@
 package fr.mossaab.security.controller;
 
-import fr.mossaab.security.entities.SparePart;
-import fr.mossaab.security.entities.FileData;
 import fr.mossaab.security.entities.ExplosionDiagram;
+import fr.mossaab.security.entities.FileData;
+import fr.mossaab.security.entities.SparePart;
 import fr.mossaab.security.repository.FileDataRepository;
 import fr.mossaab.security.repository.SparePartRepository;
 import fr.mossaab.security.service.StorageService;
@@ -31,65 +31,6 @@ public class SparePartController {
     private final SparePartRepository sparePartRepository;
     private final StorageService storageService;
     private final FileDataRepository fileDataRepository;
-    // DTO для SparePart с идентификаторами связных сущностей
-    @Data
-    public static class CreateSparePartDto {
-        @Schema(example = "AA0101014")
-        public String articleNumber;
-        @Schema(example = "Электронная плата")
-        public String name;
-        @Schema(example = "447")
-        public BigDecimal ascPriceYuan;
-        @Schema(example = "469.35")
-        public BigDecimal wholesalePriceYuan;
-        @Schema(example = "603.45")
-        public BigDecimal retailPriceYuan;
-        @Schema(example = "5900.40")
-        public BigDecimal ascPriceRub;
-        @Schema(example = "6195.42")
-        public BigDecimal wholesalePriceRub;
-        @Schema(example = "7965.54")
-        public BigDecimal retailPriceRub;
-        public Long fileDataId;
-        public Long explosionDiagramId;
-    }
-
-    public static class SparePartDto {
-        public Long id;
-        @Schema(example = "AA0101014")
-        public String articleNumber;
-        @Schema(example = "Электронная плата")
-        public String name;
-        @Schema(example = "447")
-        public BigDecimal ascPriceYuan;
-        @Schema(example = "469.35")
-        public BigDecimal wholesalePriceYuan;
-        @Schema(example = "603.45")
-        public BigDecimal retailPriceYuan;
-        @Schema(example = "5900.40")
-        public BigDecimal ascPriceRub;
-        @Schema(example = "6195.42")
-        public BigDecimal wholesalePriceRub;
-        @Schema(example = "7965.54")
-        public BigDecimal retailPriceRub;
-        public Long fileDataId;
-        public Long explosionDiagramId;
-
-        // Конструктор для создания DTO из сущности SparePart
-        public SparePartDto(SparePart sparePart) {
-            this.id = sparePart.getId();
-            this.articleNumber = sparePart.getArticleNumber();
-            this.name = sparePart.getName();
-            this.ascPriceYuan = sparePart.getAscPriceYuan();
-            this.wholesalePriceYuan = sparePart.getWholesalePriceYuan();
-            this.retailPriceYuan = sparePart.getRetailPriceYuan();
-            this.ascPriceRub = sparePart.getAscPriceRub();
-            this.wholesalePriceRub = sparePart.getWholesalePriceRub();
-            this.retailPriceRub = sparePart.getRetailPriceRub();
-            this.fileDataId = sparePart.getFileData() != null ? sparePart.getFileData().getId() : null;
-            this.explosionDiagramId = sparePart.getExplosionDiagram() != null ? sparePart.getExplosionDiagram().getId() : null;
-        }
-    }
 
     @Operation(summary = "Получить все запчасти с идентификаторами связных сущностей")
     @GetMapping("get-all")
@@ -164,7 +105,8 @@ public class SparePartController {
 
     @Operation(summary = "Обновить запчасть по идентификатору")
     @PutMapping("/update-by-id/{id}")
-    public ResponseEntity<SparePartDto> updateSparePart(@PathVariable Long id, @RequestBody SparePartDto dto) {
+    public ResponseEntity<SparePartDto> updateSparePart(@PathVariable Long id, @RequestBody UpdateSparePartDto dto,
+                                                        @RequestParam(required = false) MultipartFile image) throws IOException {
         Optional<SparePart> sparePartOpt = sparePartRepository.findById(id);
         if (sparePartOpt.isPresent()) {
             SparePart sparePart = sparePartOpt.get();
@@ -176,16 +118,21 @@ public class SparePartController {
             sparePart.setAscPriceRub(dto.ascPriceRub);
             sparePart.setWholesalePriceRub(dto.wholesalePriceRub);
             sparePart.setRetailPriceRub(dto.retailPriceRub);
-            // Обновление связных сущностей, если они уже существуют
-            if (dto.fileDataId != null) {
-                FileData fileData = new FileData();
-                fileData.setId(dto.fileDataId);
-                sparePart.setFileData(fileData);
-            }
             if (dto.explosionDiagramId != null) {
                 ExplosionDiagram explosionDiagram = new ExplosionDiagram();
                 explosionDiagram.setId(dto.explosionDiagramId);
                 sparePart.setExplosionDiagram(explosionDiagram);
+            }
+            if (image != null) {
+                FileData currentFileData = sparePart.getFileData();
+                if (currentFileData != null) {
+                    // Удаление записи из базы данных
+                    fileDataRepository.delete(currentFileData);
+                }
+                // Загрузка нового изображения и привязка к Advantage
+                FileData newFileData = (FileData) storageService.uploadImageToFileSystem(image, sparePart);
+                fileDataRepository.save(newFileData);
+                sparePart.setFileData(newFileData);
             }
             sparePartRepository.save(sparePart);
             return ResponseEntity.ok(new SparePartDto(sparePart));
@@ -212,5 +159,86 @@ public class SparePartController {
         fileDataRepository.save(uploadImage);
 
         return ResponseEntity.ok("Запчасть создана");
+    }
+
+    // DTO для SparePart с идентификаторами связных сущностей
+    @Data
+    public static class CreateSparePartDto {
+        @Schema(example = "AA0101014")
+        public String articleNumber;
+        @Schema(example = "Электронная плата")
+        public String name;
+        @Schema(example = "447")
+        public BigDecimal ascPriceYuan;
+        @Schema(example = "469.35")
+        public BigDecimal wholesalePriceYuan;
+        @Schema(example = "603.45")
+        public BigDecimal retailPriceYuan;
+        @Schema(example = "5900.40")
+        public BigDecimal ascPriceRub;
+        @Schema(example = "6195.42")
+        public BigDecimal wholesalePriceRub;
+        @Schema(example = "7965.54")
+        public BigDecimal retailPriceRub;
+        public Long explosionDiagramId;
+    }
+
+    @Data
+    public static class UpdateSparePartDto {
+        @Schema(example = "AA0101014", nullable = true)
+        public String articleNumber;
+        @Schema(example = "Электронная плата", nullable = true)
+        public String name;
+        @Schema(example = "447", nullable = true)
+        public BigDecimal ascPriceYuan;
+        @Schema(example = "469.35", nullable = true)
+        public BigDecimal wholesalePriceYuan;
+        @Schema(example = "603.45", nullable = true)
+        public BigDecimal retailPriceYuan;
+        @Schema(example = "5900.40", nullable = true)
+        public BigDecimal ascPriceRub;
+        @Schema(example = "6195.42", nullable = true)
+        public BigDecimal wholesalePriceRub;
+        @Schema(example = "7965.54", nullable = true)
+        public BigDecimal retailPriceRub;
+        @Schema(nullable = true)
+        public Long explosionDiagramId;
+    }
+
+    public static class SparePartDto {
+        public Long id;
+        @Schema(example = "AA0101014")
+        public String articleNumber;
+        @Schema(example = "Электронная плата")
+        public String name;
+        @Schema(example = "447")
+        public BigDecimal ascPriceYuan;
+        @Schema(example = "469.35")
+        public BigDecimal wholesalePriceYuan;
+        @Schema(example = "603.45")
+        public BigDecimal retailPriceYuan;
+        @Schema(example = "5900.40")
+        public BigDecimal ascPriceRub;
+        @Schema(example = "6195.42")
+        public BigDecimal wholesalePriceRub;
+        @Schema(example = "7965.54")
+        public BigDecimal retailPriceRub;
+        public Long fileDataId;
+        public Long explosionDiagramId;
+
+        // Конструктор для создания DTO из сущности SparePart
+        public SparePartDto(SparePart sparePart) {
+            this.id = sparePart.getId();
+            this.articleNumber = sparePart.getArticleNumber();
+            this.name = sparePart.getName();
+            this.ascPriceYuan = sparePart.getAscPriceYuan();
+            this.wholesalePriceYuan = sparePart.getWholesalePriceYuan();
+            this.retailPriceYuan = sparePart.getRetailPriceYuan();
+            this.ascPriceRub = sparePart.getAscPriceRub();
+            this.wholesalePriceRub = sparePart.getWholesalePriceRub();
+            this.retailPriceRub = sparePart.getRetailPriceRub();
+            this.fileDataId = sparePart.getFileData() != null ? sparePart.getFileData().getId() : null;
+            this.explosionDiagramId = sparePart.getExplosionDiagram() != null ? sparePart.getExplosionDiagram().getId() : null;
+        }
     }
 }
