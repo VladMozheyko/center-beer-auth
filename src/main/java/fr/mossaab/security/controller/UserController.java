@@ -55,7 +55,7 @@ public class UserController {
         FileData fileData = fileDataRepository.findById(fileDataId)
                 .orElseThrow(() -> new RuntimeException("Файл с указанным идентификатором не найден"));
 
-        byte[] pdfData = storageService.downloadImageFromFileSystem(fileData.getFilePath());
+        byte[] pdfData = storageService.downloadImageFromFileSystem(fileData.getName());
 
         return ResponseEntity.status(HttpStatus.OK)
                 .contentType(MediaType.valueOf("application/pdf"))
@@ -67,7 +67,7 @@ public class UserController {
         FileData fileData = fileDataRepository.findById(fileDataId)
                 .orElseThrow(() -> new RuntimeException("Файл с указанным идентификатором не найден"));
 
-        byte[] imageData = storageService.downloadImageFromFileSystem(fileData.getFilePath());
+        byte[] imageData = storageService.downloadImageFromFileSystem(fileData.getName());
 
         return ResponseEntity.status(HttpStatus.OK)
                 .contentType(MediaType.valueOf("image/png"))
