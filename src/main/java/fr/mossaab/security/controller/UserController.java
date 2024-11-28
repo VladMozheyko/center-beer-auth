@@ -49,7 +49,30 @@ public class UserController {
                 .contentType(MediaType.valueOf("image/png"))
                 .body(imageData);
     }
+    @Operation(summary = "Загрузка PDF-файла по идентификатору", description = "Этот эндпоинт позволяет загрузить PDF-файл по идентификатору.")
+    @GetMapping("/fileSystemPdfById/{fileDataId}")
+    public ResponseEntity<?> downloadPdfById(@PathVariable Long fileDataId) throws IOException {
+        FileData fileData = fileDataRepository.findById(fileDataId)
+                .orElseThrow(() -> new RuntimeException("Файл с указанным идентификатором не найден"));
 
+        byte[] pdfData = storageService.downloadImageFromFileSystem(fileData.getFilePath());
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .contentType(MediaType.valueOf("application/pdf"))
+                .body(pdfData);
+    }
+    @Operation(summary = "Загрузка изображения по идентификатору", description = "Этот эндпоинт позволяет загрузить изображение по идентификатору.")
+    @GetMapping("/fileSystemImageById/{fileDataId}")
+    public ResponseEntity<?> downloadImageById(@PathVariable Long fileDataId) throws IOException {
+        FileData fileData = fileDataRepository.findById(fileDataId)
+                .orElseThrow(() -> new RuntimeException("Файл с указанным идентификатором не найден"));
+
+        byte[] imageData = storageService.downloadImageFromFileSystem(fileData.getFilePath());
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .contentType(MediaType.valueOf("image/png"))
+                .body(imageData);
+    }
     @Operation(summary = "Получить данные пользователя", description = "Этот эндпоинт возвращает данные пользователя на основе предоставленного куки.")
     @GetMapping("/user")
     public ResponseEntity<GetUserResponse> getUser(@CookieValue("refresh-jwt-cookie") String cookie) {
