@@ -39,7 +39,6 @@ public class AuthController {
             Pattern.compile("^\\+?[78][-\\(]?\\d{3}\\)?-?\\d{3}-?\\d{2}-?\\d{2}$", Pattern.CASE_INSENSITIVE);
     private final AuthenticationService authenticationService;
     private final RefreshTokenService refreshTokenService;
-    private final AuthenticationManager authenticationManager;
 
     @Operation(summary = "Регистрация пользователя", description = "Позволяет новому пользователю зарегистрироваться в системе.")
     @PostMapping(value = "/register", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
@@ -50,9 +49,9 @@ public class AuthController {
 
 
     @Operation(summary = "Активация пользователя", description = "Позволяет отправить код активации для регистрации.")
-    @PostMapping("/activate")
-    public ResponseEntity<Object> activateUser(@RequestBody Map<String, String> requestBody) {
-        authenticationService.activateUser(requestBody.get("code"));
+    @GetMapping("/activate/{code}")
+    public ResponseEntity<Object> activateUser(@PathVariable String code) {
+        authenticationService.activateUser(String.valueOf(code));
         return new ResponseEntity<>("Пользователь успешно зарегистрирован", HttpStatus.OK);
 
     }
@@ -87,12 +86,6 @@ public class AuthController {
         return authenticationService.refreshTokenUsingCookie(request);
     }
 
-//    @Operation(summary = "Получение аутентификации", description = "Этот endpoint позволяет получить аутентификацию.")
-//    @GetMapping("/info")
-//    public Authentication getAuthentication(@RequestBody AuthenticationRequest request) {
-//        return authenticationManager.authenticate(
-//                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-//        }
 
     @Operation(summary = "Выход из системы", description = "Этот endpoint позволяет пользователю выйти из системы.")
     @PostMapping("/logout")

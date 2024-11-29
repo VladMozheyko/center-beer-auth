@@ -173,13 +173,13 @@ public class UserController {
         userRepository.save(user);
 
         // Отправка кода подтверждения на почту пользователя
-        String activationCode = generateActivationCode();
+        String activationCode = UUID.randomUUID().toString();
         user.setActivationCode(activationCode);
         userRepository.save(user);
 
         String message = String.format(
                 "Здравствуйте, %s! \n" +
-                        "Для подтверждения изменений профиля используйте следующий код: %s",
+                        "Для подтверждения изменений профиля перейдите по этой ссылке: http://31.129.102.70:8080/user/confirm-changes/%s",
                 user.getFirstname(),
                 user.getActivationCode()
         );
@@ -189,9 +189,8 @@ public class UserController {
         return ResponseEntity.ok("Изменения предложены, подтвердите изменения через код, отправленный на вашу почту.");
     }
     @Operation(summary = "Подтверждение изменений профиля")
-    @PostMapping("/confirm-changes")
-    public ResponseEntity<Object> confirmChanges(@RequestBody Map<String, String> requestBody) {
-        String code = requestBody.get("code");
+    @PostMapping("/confirm-changes/{code}")
+    public ResponseEntity<Object> confirmChanges(@PathVariable String code) {
         User user = userRepository.findByActivationCode(code);
 
         if (user == null) {
@@ -225,17 +224,5 @@ public class UserController {
         userRepository.save(user);
 
         return ResponseEntity.ok("Изменения профиля успешно подтверждены.");
-    }
-    private String generateActivationCode() {
-        int length = 4;
-        String digits = "0123456789";
-        Random random = new Random();
-
-        StringBuilder code = new StringBuilder(length);
-        for (int i = 0; i < length; i++) {
-            code.append(digits.charAt(random.nextInt(digits.length())));
-        }
-
-        return code.toString();
     }
 }

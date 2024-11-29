@@ -106,6 +106,11 @@
             <version>1.4.2.Final</version> <!-- Версия должна совпадать с версией mapstruct -->
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.pusher</groupId>
+            <artifactId>pusher-http-java</artifactId>
+            <version>1.0.0</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -28,7 +28,7 @@ import org.springframework.context.annotation.Configuration;
                 ),
                 title = "Kotitonttu API",
                 description = """
-                        API для отопительных систем.
+                        <strong>API для отопительных систем.</strong>
                         
                         В системе котлов сначала создается сущность на основе полей
                         посредством методов create, а позже привязываются связные сущности
@@ -36,7 +36,7 @@ import org.springframework.context.annotation.Configuration;
                         Для создания объектов, в которых присутствует связная сущность в виде файла
                         тестируется посредством Postman.
                         
-                        Шаги для скачивания OpenAPI спецификации:
+                        <strong>Шаги для скачивания OpenAPI спецификации:</strong>
                         1. Перейдите к файлу спецификации OpenAPI:
                             http://31.129.102.70:8080/v3/api-docs
                         2. Загрузка спецификации:
@@ -49,7 +49,7 @@ import org.springframework.context.annotation.Configuration;
                                                
                         Теперь у вас в Postman будут все запросы API, описанные в спецификации.
                         
-                        Шаги для установки cookie для запросов, где он нужен: 
+                        <strong>Шаги для установки cookie для запросов, где он нужен:</strong>
                         1. Правой кнопкой мыши в браузере нажмите "Посмотреть код"
                            после того как успешно выполните запрос /authentication/login
                         2. Перейдите во вкладу Application

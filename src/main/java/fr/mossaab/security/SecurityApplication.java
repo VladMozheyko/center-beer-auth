@@ -1,7 +1,7 @@
 package fr.mossaab.security;
 
 //import fr.mossaab.security.service.init.CreateServiceCentreService;
-import fr.mossaab.security.service.init.UserCreatService;
+import fr.mossaab.security.service.init.UserCreateService;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -22,7 +22,7 @@ public class SecurityApplication {
 //    @Autowired
 //    private CreateServiceCentreService createServiceCentreService;
     @Autowired
-    private UserCreatService userCreationService;
+    private UserCreateService userCreationService;
 
     public static void main(String[] args) {
 

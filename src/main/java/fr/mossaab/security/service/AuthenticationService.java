@@ -36,6 +36,7 @@ import java.text.SimpleDateFormat;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
+import java.util.UUID;
 
 /**
  * Реализация интерфейса AuthenticationService.
@@ -53,25 +54,6 @@ public class AuthenticationService {
     private final RefreshTokenService refreshTokenService;
     private final MailSender mailSender;
     private final StorageService storageService;
-
-
-    /**
-     * Генерирует активационный код для пользователя.
-     *
-     * @return Сгенерированный активационный код.
-     */
-    private String generateActivationCode() {
-        int length = 4;
-        String digits = "0123456789";
-        Random random = new Random();
-
-        StringBuilder code = new StringBuilder(length);
-        for (int i = 0; i < length; i++) {
-            code.append(digits.charAt(random.nextInt(digits.length())));
-        }
-
-        return code.toString();
-    }
 
     /**
      * Регистрирует нового пользователя.
@@ -92,17 +74,17 @@ public class AuthenticationService {
                 .workerRoles(WorkerRole.valueOf(request.getWorkerRole()))
                 .phoneNumber(request.getPhoneNumber())
                 .build();
-        String activationCode = generateActivationCode();
+        String activationCode = UUID.randomUUID().toString();
         user.setActivationCode(activationCode);
         if (!StringUtils.isEmpty(user.getEmail())) {
             String message = String.format(
                     "Здравствуйте, %s! \n" +
-                            "Добро пожаловать в Kotitonttu. Ваш код активации: %s",
+                            "Добро пожаловать в Kotitonttu. Ваша ссылка для активации: http://31.129.102.70:8080/authentication/activate/%s",
                     user.getUsername(),
                     user.getActivationCode()
             );
 
-            mailSender.send(user.getEmail(), "Код активации Kotitonttu", message);
+            mailSender.send(user.getEmail(), "Ссылка активации Kotitonttu", message);
         }
         user = userRepository.save(user);
         var jwt = jwtService.generateToken(user);
@@ -131,13 +113,13 @@ public class AuthenticationService {
         }
 
         User user = userOptional.get();
-        String activationCode = generateActivationCode(); // Генерация нового кода
+        String activationCode = UUID.randomUUID().toString(); // Генерация нового кода
         user.setActivationCode(activationCode);
         userRepository.save(user);
 
         String message = String.format(
                 "Здравствуйте, %s! \n" +
-                        "Ваш код смены для смены пароля: %s",
+                        "Ваша ссылка для смены пароля: http://31.129.102.70:8080/authentication/activate/%s",
                 user.getUsername(),
                 user.getActivationCode()
         );
@@ -181,17 +163,17 @@ public class AuthenticationService {
     public void  resendActivationCode(String email) throws ParseException {
         Optional<User> userOptional = userRepository.findByEmail(email);
         User user = userOptional.get();
-        String activationCode = generateActivationCode();
+        String activationCode = UUID.randomUUID().toString();
         user.setActivationCode(activationCode);
         if (!StringUtils.isEmpty(user.getEmail())) {
             String message = String.format(
                     "Здравствуйте, %s! \n" +
-                            "Добро пожаловать в Kotitonttu. Ваш код активации: %s",
+                            "Добро пожаловать в Kotitonttu. Ваш ссылка активации: http://31.129.102.70:8080/authentication/activate/%s",
                     user.getUsername(),
                     user.getActivationCode()
             );
 
-            mailSender.send(user.getEmail(), "Код активации Kotitonttu", message);
+            mailSender.send(user.getEmail(), "Ссылка активации Kotitonttu", message);
         }
         userRepository.save(user);
     }
