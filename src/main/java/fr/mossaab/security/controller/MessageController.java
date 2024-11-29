@@ -7,6 +7,7 @@ import fr.mossaab.security.entities.User;
 import fr.mossaab.security.repository.MessageRepository;
 import fr.mossaab.security.repository.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
+@Tag(name = "Чат", description = "API для работы администратором с пользователями")
 @RestController
 @RequestMapping("/messages")
 public class MessageController {
