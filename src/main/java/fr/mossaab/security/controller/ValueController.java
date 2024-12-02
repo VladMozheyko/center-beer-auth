@@ -81,7 +81,7 @@ public class ValueController {
 
     // 7. Method to update a value and add an existing boiler or characteristic
     @Operation(summary = "Обновление значения", description = "Обновить поля значения и добавить существующие бойлеры и характеристики")
-    @PatchMapping("/update/{id}")
+    @PutMapping("/update/{id}")
     public ResponseEntity<ValueDTO> updateValue(
             @PathVariable Long id,
             @RequestBody UpdateValueDTO valueDTO,
@@ -95,13 +95,13 @@ public class ValueController {
 
         Value value = valueOptional.get();
 
-        // Update fields if they are present
+        // Обновляем поля, если они предоставлены
         if (valueDTO.getSValue() != null) value.setSValue(valueDTO.getSValue());
         if (valueDTO.getDValue() != null) value.setDValue(valueDTO.getDValue());
         if (valueDTO.getMinValue() != null) value.setMinValue(valueDTO.getMinValue());
         if (valueDTO.getMaxValue() != null) value.setMaxValue(valueDTO.getMaxValue());
 
-        // Add existing boiler to the list if ID is provided
+        // Добавляем существующий бойлер в список, если ID предоставлен
         if (boilerId != null) {
             Optional<Boiler> boilerOptional = boilerRepository.findById(boilerId);
             if (boilerOptional.isPresent()) {
@@ -112,7 +112,7 @@ public class ValueController {
             }
         }
 
-        // Set existing characteristic if ID is provided
+        // Устанавливаем существующую характеристику, если ID предоставлен
         if (characteristicId != null) {
             Optional<Characteristic> characteristicOptional = characteristicRepository.findById(characteristicId);
             characteristicOptional.ifPresent(value::setCharacteristic);
@@ -121,6 +121,7 @@ public class ValueController {
         value = valueRepository.save(value);
         return ResponseEntity.ok(new ValueDTO(value));
     }
+
     @Getter
     @Setter
     public static class CreateValueDTO {

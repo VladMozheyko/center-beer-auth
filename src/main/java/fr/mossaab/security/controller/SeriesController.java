@@ -70,7 +70,7 @@ public class SeriesController {
     // 3) Обновление серии
     @Operation(summary = "Обновить серию")
     @PutMapping("/update-series/{id}")
-    public ResponseEntity<SeriesDto> updateSeries(@PathVariable Long id, @RequestBody SeriesDto seriesDto) {
+    public ResponseEntity<SeriesDto> updateSeries(@PathVariable Long id, @RequestBody SeriesUpdateDto seriesDto) {
         Optional<Series> optionalSeries = seriesRepository.findById(id);
 
         if (optionalSeries.isPresent()) {

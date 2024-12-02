@@ -123,7 +123,7 @@ public class BoilerController {
 
     // 5. Update a boiler and link it to existing related entities
     @Operation(summary = "Обновление бойлера", description = "Обновить бойлер и добавить существующие связные сущности")
-    @PatchMapping("/update/{id}")
+    @PutMapping("/update/{id}")
     public ResponseEntity<BoilerDTO> updateBoiler(
             @PathVariable Long id,
             @RequestBody BoilerUpdateDTO boilerDTO,
@@ -137,17 +137,17 @@ public class BoilerController {
 
         Boiler boiler = boilerOptional.get();
 
-        // Update fields if present
+        // Обновляем поля, если они предоставлены
         if (boilerDTO.getNumber() != null) boiler.setNumber(boilerDTO.getNumber());
         if (boilerDTO.getBarcode() != null) boiler.setBarcode(boilerDTO.getBarcode());
 
-        // Link to an existing Series if ID is provided
+        // Связываем с существующей серией, если ID предоставлен
         if (seriesId != null) {
             Optional<Series> seriesOptional = seriesRepository.findById(seriesId);
             seriesOptional.ifPresent(boiler::setSeries);
         }
 
-        // Link to existing Values if IDs are provided
+        // Связываем с существующими значениями, если их ID предоставлены
         if (valueIds != null) {
             List<Value> values = new ArrayList<>();
             for (Long valueId : valueIds) {
