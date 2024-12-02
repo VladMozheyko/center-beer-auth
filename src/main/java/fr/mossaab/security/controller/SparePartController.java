@@ -157,6 +157,8 @@ public class SparePartController {
         // Загрузка и сохранение изображения
         FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image, savedSparePart);
         fileDataRepository.save(uploadImage);
+        sparePart.setFileData(uploadImage);
+        sparePartRepository.save(sparePart);
 
         return ResponseEntity.ok("Запчасть создана");
     }
