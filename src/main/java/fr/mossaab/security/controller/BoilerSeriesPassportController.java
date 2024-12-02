@@ -36,6 +36,7 @@ public class BoilerSeriesPassportController {
     @AllArgsConstructor
     public static class BoilerSeriesPassportDTO {
         private Long id;
+        private String ruTitle;
         private Long fileDataId;
         private List<Long> seriesIds;
     }
@@ -53,7 +54,7 @@ public class BoilerSeriesPassportController {
             for (Series series : passport.getSeriesList()) {
                 seriesIds.add(series.getId());
             }
-            dtos.add(new BoilerSeriesPassportDTO(passport.getId(), fileDataId, seriesIds));
+            dtos.add(new BoilerSeriesPassportDTO(passport.getId(), passport.getRuTitle(), fileDataId, seriesIds));
         }
 
         return dtos;
@@ -76,10 +77,15 @@ public class BoilerSeriesPassportController {
     public BoilerSeriesPassport updateBoilerSeriesPassport(
             @PathVariable Long id,
             @RequestPart(required = false) MultipartFile pdf,
-            @RequestPart(required = false) List<Long> seriesIds) throws IOException {
+            @RequestPart(required = false) List<Long> seriesIds,
+            @RequestParam(required = false) String ruTitle) throws IOException {
 
         BoilerSeriesPassport passport = boilerSeriesPassportRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Passport not found"));
+
+        if (ruTitle != null) {
+            passport.setRuTitle(ruTitle); // Обновляем ruTitle
+        }
 
         if (seriesIds != null) {
             List<Series> seriesList = new ArrayList<>();
@@ -94,10 +100,8 @@ public class BoilerSeriesPassportController {
         if (pdf != null) {
             FileData currentFileData = passport.getFile();
             if (currentFileData != null) {
-                // Удаление записи из базы данных
                 fileDataRepository.delete(currentFileData);
             }
-            // Загрузка нового изображения и привязка к Advantage
             FileData newFileData = (FileData) storageService.uploadImageToFileSystem(pdf, passport);
             fileDataRepository.save(newFileData);
             passport.setFile(newFileData);
@@ -125,6 +129,6 @@ public class BoilerSeriesPassportController {
             seriesIds.add(series.getId());
         }
 
-        return new BoilerSeriesPassportDTO(passport.getId(), fileDataId, seriesIds);
+        return new BoilerSeriesPassportDTO(passport.getId(), passport.getRuTitle(), fileDataId, seriesIds);
     }
 }

@@ -19,7 +19,8 @@ public class BoilerSeriesPassport {
     @Id
     @GeneratedValue
     private Long id;
-
+    @Column(name = "ru_title", nullable = false)
+    private String ruTitle;
     // Используем правильное имя, которое у вас есть в FileData
     @OneToOne(mappedBy = "boilerSeriesPassport", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
