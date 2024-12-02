@@ -143,7 +143,7 @@ public class SparePartController {
 
     @Operation(summary = "Создать новую запчасть")
     @PostMapping(value = "add", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<String> createSparePart(@RequestBody CreateSparePartDto dto, @RequestPart MultipartFile image) throws IOException {
+    public ResponseEntity<String> createSparePart(@RequestPart CreateSparePartDto dto, @RequestPart MultipartFile image) throws IOException {
         SparePart sparePart = new SparePart();
         sparePart.setArticleNumber(dto.articleNumber);
         sparePart.setName(dto.name);
