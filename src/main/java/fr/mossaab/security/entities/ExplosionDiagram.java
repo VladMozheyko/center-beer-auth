@@ -23,6 +23,8 @@ public class ExplosionDiagram {
     @GeneratedValue
     private Long id;
 
+    @Column(nullable = false)
+    private String name;
     /**
      * Список запчастей, относящихся к данной взрывной схеме.
      */

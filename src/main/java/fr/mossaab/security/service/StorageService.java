@@ -9,7 +9,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -147,10 +146,30 @@ public class StorageService {
                 builder.series(series);
                 break;
 
-                // Можно добавить дополнительные случаи для других типов объектов
+            // Можно добавить дополнительные случаи для других типов объектов
             default:
                 throw new IllegalArgumentException("Unsupported related entity type: " + relatedEntity.getClass().getSimpleName());
         }
+
+        // Строим объект после завершения конфигурации
+        FileData fileData = builder.build();
+
+        // Сохраняем объект в соответствующем репозитории
+        fileData = fileDataRepository.save(fileData);
+
+
+        return fileData;
+    }
+
+    public Object uploadImageToFileSystemWithName(MultipartFile file, String name) throws IOException {
+        FileData.FileDataBuilder builder = FileData.builder();
+        builder.name(name + ".png");
+        builder.type("image/png");
+        builder.filePath("/var/www/vuary/explosion_diagram_files/" + name + ".png");
+        if (file != null && !file.isEmpty()) {
+            file.transferTo(new File("/var/www/vuary/explosion_diagram_files/" + name + ".png"));
+        }
+
 
         // Строим объект после завершения конфигурации
         FileData fileData = builder.build();

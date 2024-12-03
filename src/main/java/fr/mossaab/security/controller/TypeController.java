@@ -1,8 +1,12 @@
 package fr.mossaab.security.controller;
+import fr.mossaab.security.entities.FileData;
+import fr.mossaab.security.entities.Series;
 import fr.mossaab.security.entities.Type;
 import fr.mossaab.security.entities.Kind;
+import fr.mossaab.security.repository.FileDataRepository;
 import fr.mossaab.security.repository.KindRepository;
 import fr.mossaab.security.repository.TypeRepository;
+import fr.mossaab.security.service.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
@@ -11,9 +15,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -27,7 +34,8 @@ public class TypeController {
 
     private final TypeRepository typeRepository;
     private final KindRepository kindRepository;
-
+    private final FileDataRepository fileDataRepository;
+    private final StorageService storageService;
     @Operation(summary = "Поиск типа по идентификатору")
     @GetMapping("/find-by-id/{id}")
     public ResponseEntity<TypeDto> getTypeById(@PathVariable Long id) {
@@ -40,6 +48,13 @@ public class TypeController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
+    @Operation(summary = "Подгрузка фотографий типов")
+    @PostMapping(value = "/add-image-for-type", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
+    public ResponseEntity<String> createSeries(@RequestPart String name, @RequestPart MultipartFile image) throws IOException {
+        FileData uploadImage = (FileData) storageService.uploadImageToFileSystemWithName(image,name);
+        fileDataRepository.save(uploadImage);
+        return ResponseEntity.ok("Фотография для типа подгружена");
+    }
     @Operation(summary = "Поиск типа по названию")
     @GetMapping("/find-by-title/{title}")
     public ResponseEntity<TypeDto> getTypeByTitle(@PathVariable String title) {

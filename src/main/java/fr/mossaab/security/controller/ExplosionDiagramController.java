@@ -84,7 +84,9 @@ public class ExplosionDiagramController {
                 optionalSparePart.ifPresent(updatedSpareParts::add);
             }
             diagram.setSpareParts(updatedSpareParts);
-
+            if(diagramDto.getName() != null){
+                diagram.setName(diagramDto.getName());
+            }
             // Обновление данных файла
             if (diagramDto.getFileDataId() != null) {
                 FileData fileData = new FileData();
@@ -102,8 +104,9 @@ public class ExplosionDiagramController {
     // 9. Создать новый ExplosionDiagram
     @Operation(summary = "Создать взрыв-схему")
     @PostMapping(value = "/add", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<String> createExplosionDiagram(@RequestPart MultipartFile image) throws IOException {
+    public ResponseEntity<String> createExplosionDiagram(@RequestPart String name,@RequestPart MultipartFile image) throws IOException {
         ExplosionDiagram diagram = new ExplosionDiagram();
+        diagram.setName(name);
         ExplosionDiagram savedDiagram = explosionDiagramRepository.save(diagram);
         FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image, savedDiagram);
         fileDataRepository.save(uploadImage);
@@ -116,6 +119,7 @@ public class ExplosionDiagramController {
     public static class ExplosionDiagramDto {
 
         private Long id;
+        private String name; // Новое поле
         private List<Long> sparePartIds;
         private Long fileDataId;
 
@@ -130,6 +134,7 @@ public class ExplosionDiagramController {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class ExplosionDiagramUpdateDto {
+        private String name; // Новое поле
         @Schema(nullable = true)
         private List<Long> sparePartIds;
         @Schema(nullable = true)
