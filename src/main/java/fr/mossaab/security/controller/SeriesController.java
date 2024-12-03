@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -196,12 +197,30 @@ public class SeriesController {
     @Operation(summary = "Удалить серию по идентификатору")
     @DeleteMapping("/delete-by-id/{id}")
     public ResponseEntity<Void> deleteSeries(@PathVariable Long id) {
-        if (seriesRepository.existsById(id)) {
-            seriesRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
-        }
+        // Проверяем, существует ли серия
+        Series series = seriesRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Серия с ID " + id + " не найдена."));
 
-        return ResponseEntity.notFound().build();
+        // Удаляем связи с сущностью `Characteristic`
+        series.getCharacteristics().forEach(characteristic -> characteristic.getSeries().remove(series));
+        series.getCharacteristics().clear();
+
+        // Удаляем связи с сущностью `ServiceCenter`
+        series.getServiceCenters().forEach(serviceCenter -> serviceCenter.getSeriesList().remove(series));
+        series.getServiceCenters().clear();
+
+        // Удаляем связи с сущностью `Advantage`
+        series.getAdvantages().forEach(advantage -> advantage.getSeries().remove(series));
+        series.getAdvantages().clear();
+
+        // Удаляем связи с сущностью `BoilerSeriesPassport`
+        series.getBoilerSeriesPassports().forEach(passport -> passport.getSeriesList().remove(series));
+        series.getBoilerSeriesPassports().clear();
+
+        // После очистки зависимостей удаляем саму серию
+        seriesRepository.delete(series);
+
+        return ResponseEntity.noContent().build();
     }
 
     // Метод для маппинга сущности Series в DTO
