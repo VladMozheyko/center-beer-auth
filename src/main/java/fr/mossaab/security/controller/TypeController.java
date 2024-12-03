@@ -107,14 +107,18 @@ public class TypeController {
             if (updateTypeDto.getDescription() != null) {
                 type.setDescription(updateTypeDto.getDescription());
             }
-            if (updateTypeDto.getKindId() != null) {
-                Optional<Kind> kindOptional = kindRepository.findById(updateTypeDto.getKindId());
-                if (kindOptional.isPresent()) {
-                    Kind kind = kindOptional.get();
-                    if (type.getKinds() == null) {
-                        type.setKinds(new ArrayList<>());
+            if (updateTypeDto.getKindIds() != null && !updateTypeDto.getKindIds().isEmpty()) {
+                for (Long kindId : updateTypeDto.getKindIds()) {
+                    Optional<Kind> kindOptional = kindRepository.findById(kindId);
+                    if (kindOptional.isPresent()) {
+                        Kind kind = kindOptional.get();
+                        if (type.getKinds() == null) {
+                            type.setKinds(new ArrayList<>());
+                        }
+                        if (!type.getKinds().contains(kind)) {
+                            type.getKinds().add(kind);
+                        }
                     }
-                    type.getKinds().add(kind);
                 }
             }
             type = typeRepository.save(type);
@@ -184,6 +188,6 @@ public class TypeController {
         @Schema(example = "Котлы настенные газовые", nullable = true)
         private String description;
         @Schema(nullable = true)
-        private Long kindId; // ID of the Kind to be added to the Type
+        private List<Long> kindIds; // Список ID Kind для добавления к Type
     }
 }
