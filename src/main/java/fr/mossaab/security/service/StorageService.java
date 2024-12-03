@@ -38,9 +38,9 @@ public class StorageService {
                 }
                 builder.name(name + ".png");
                 builder.type("image/png");
-                builder.filePath("/var/www/vuary/explosion_diagram_files/" + name + ".png");
+                builder.filePath("/var/www/vuary/explosion_diagram_files/" + name + ".pdf");
                 if (file != null && !file.isEmpty()) {
-                    file.transferTo(new File("/var/www/vuary/explosion_diagram_files/" + name + ".png"));
+                    file.transferTo(new File("/var/www/vuary/explosion_diagram_files/" + name + ".pdf"));
                 }
                 // Устанавливаем связь с пользователем
                 builder.explosionDiagram(explosionDiagram);
