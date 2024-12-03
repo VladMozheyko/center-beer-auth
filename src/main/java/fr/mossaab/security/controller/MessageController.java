@@ -32,14 +32,22 @@ public class MessageController {
     }
 
     // Метод для отправки сообщения
-    @Operation(summary = "Отправка сообщения", description = "Отправка сообщения пользователю по идентификатору")
-    @PostMapping("/send/{userId}")
-    public String sendMessage(@PathVariable Long userId, @RequestParam String messageContent) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+    @Operation(summary = "Отправка сообщения", description = "Отправка сообщения от одного пользователя другому")
+    @PostMapping("/send")
+    public String sendMessage(
+            @RequestParam Long senderId,
+            @RequestParam Long receiverId,
+            @RequestParam String messageContent) {
 
-        // Сохраняем сообщение в базе данных
+        User sender = userRepository.findById(senderId)
+                .orElseThrow(() -> new RuntimeException("Sender not found"));
+        User receiver = userRepository.findById(receiverId)
+                .orElseThrow(() -> new RuntimeException("Receiver not found"));
+
+        // Сохраняем сообщение
         Message message = new Message();
-        message.setUser(user);
+        message.setSender(sender);
+        message.setReceiver(receiver);
         message.setMessageContent(messageContent);
         messageRepository.save(message);
 
@@ -48,32 +56,47 @@ public class MessageController {
         pusher.setCluster("eu");
         pusher.setEncrypted(true);
 
-        // Отправка сообщения пользователю через Pusher
-        pusher.trigger("my-channel-" + userId, "my-event", Collections.singletonMap("message", messageContent));
+        // Отправка сообщения через Pusher
+        pusher.trigger("my-channel-" + receiverId, "my-event", Collections.singletonMap("message", messageContent));
 
-        return "Message sent to user " + user.getFirstname() + " " + user.getLastname();
+        return "Message sent from " + sender.getFirstname() + " to " + receiver.getFirstname();
     }
 
-    // Метод для вывода всех сообщений для пользователя
-    @Operation(summary = "Вывод всех сообщений", description = "Вывод всех сообщений отправленных пользователю найденному по идентификатору")
-    @GetMapping("/history/{userId}")
-    public MessageHistoryResponseDTO getMessagesHistory(@PathVariable Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Получаем все сообщения для данного пользователя
-        List<Message> messages = messageRepository.findByUserId(userId);
+    @Operation(summary = "Получить все диалоги пользователя", description = "Получить все сообщения, где пользователь участвует как отправитель или получатель")
+    @GetMapping("/dialogues/{userId}")
+    public List<DialogueDTO> getUserDialogues(@PathVariable Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Создаем объект UserDTO для пользователя
-        UserDTO userDTO = new UserDTO(user.getFirstname(), user.getLastname(), user.getEmail());
+        // Получаем все сообщения, где пользователь отправитель или получатель
+        List<Message> messages = messageRepository.findBySenderIdOrReceiverIdOrderByCreatedAt(userId, userId);
 
-        // Преобразуем все сообщения в список MessageDTO
-        List<MessageDTO> messageDTOs = messages.stream()
-                .map(message -> new MessageDTO(message.getMessageContent(), message.getCreatedAt().toString()))
+        // Группируем сообщения по собеседнику
+        return messages.stream()
+                .collect(Collectors.groupingBy(message -> {
+                    // Определяем собеседника
+                    return message.getSender().getId().equals(userId)
+                            ? message.getReceiver()
+                            : message.getSender();
+                }))
+                .entrySet().stream()
+                .map(entry -> {
+                    User interlocutor = entry.getKey();
+                    List<MessageDTO> messageDTOs = entry.getValue().stream()
+                            .map(msg -> new MessageDTO(
+                                    msg.getMessageContent(),
+                                    msg.getCreatedAt().toString(),
+                                    msg.getSender().getId().equals(userId) ? "outgoing" : "incoming"))
+                            .collect(Collectors.toList());
+                    return new DialogueDTO(
+                            new UserDTO(interlocutor.getFirstname(), interlocutor.getLastname(), interlocutor.getEmail()),
+                            messageDTOs
+                    );
+                })
                 .collect(Collectors.toList());
-
-        // Возвращаем объект с информацией о пользователе и его сообщениях
-        return new MessageHistoryResponseDTO(userDTO, messageDTOs);
     }
+
 
     @Getter
     @Setter
@@ -81,14 +104,17 @@ public class MessageController {
     public static class MessageDTO {
         private String messageContent;
         private String createdAt;
+        private String direction; // "incoming" или "outgoing"
     }
+
     @Getter
     @Setter
     @AllArgsConstructor
-    public static class MessageHistoryResponseDTO {
-        private UserDTO user;
-        private List<MessageDTO> messages;
+    public static class DialogueDTO {
+        private UserDTO interlocutor; // Собеседник
+        private List<MessageDTO> messages; // Сообщения
     }
+
     @Getter
     @Setter
     @AllArgsConstructor
@@ -97,4 +123,5 @@ public class MessageController {
         private String lastname;
         private String email;
     }
+
 }
