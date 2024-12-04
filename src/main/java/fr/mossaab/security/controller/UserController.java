@@ -78,33 +78,41 @@ public class UserController {
     public ResponseEntity<GetUserResponse> getUser(@CookieValue("refresh-jwt-cookie") String cookie) {
         GetUserResponse response = new GetUserResponse();
         UserDTO userDTO = new UserDTO();
-        List<FileData> allFileData = fileDataRepository.findAll();
+
+        // Поиск refresh-токена и связанного пользователя
+        User user = refreshTokenRepository.findByToken(cookie)
+                .map(RefreshToken::getUser)
+                .orElse(null);
+
+        if (user == null) {
+            response.setStatus("error");
+            response.setAnswer("User not found");
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+
+        // Ищем фото пользователя, если оно существует
         String fileDataPath = null;
+        List<FileData> allFileData = fileDataRepository.findAll();
+
         for (FileData fileData : allFileData) {
-            if (fileData.getUser().getId() == refreshTokenRepository.findByToken(cookie).orElse(null).getUser().getId()) {
+            if (fileData != null && fileData.getUser() != null && fileData.getUser().getId() == user.getId()) {
                 fileDataPath = fileData.getName();
                 break;
             }
         }
 
-        User user = refreshTokenRepository.findByToken(cookie).orElse(null).getUser();
+        // Заполняем данные пользователя
+        userDTO.setRole(user.getRole().toString());
+        userDTO.setTypeOfWorker(user.getWorkerRoles().toString());
+        userDTO.setFirstName(user.getFirstname());
+        userDTO.setLastName(user.getLastname());
+        userDTO.setPhoto(fileDataPath);
 
-        if (user != null) {
-            userDTO.setRole(user.getRole().toString());
-            userDTO.setTypeOfWorker(user.getWorkerRoles().toString());
-            userDTO.setFirstName(user.getFirstname());
-            userDTO.setLastName(user.getLastname());
-            userDTO.setPhoto(fileDataPath);
-
-            response.setStatus("success");
-            response.setAnswer(userDTO);
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } else {
-            response.setStatus("error");
-            response.setAnswer("User not found");
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-        }
+        response.setStatus("success");
+        response.setAnswer(userDTO);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
 
     @Operation(summary = "Получить профиль", description = "Этот эндпоинт возвращает профиль пользователя на основе предоставленного куки.")
     @GetMapping("/profile")
