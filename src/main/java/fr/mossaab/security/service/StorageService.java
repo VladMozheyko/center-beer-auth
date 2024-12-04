@@ -36,7 +36,7 @@ public class StorageService {
                 if (explosionDiagram.getFileData() != null) {
                     fileDataRepository.delete(explosionDiagram.getFileData());
                 }
-                builder.name(name + ".png");
+                builder.name(name + ".pdf");
                 builder.type("image/png");
                 builder.filePath("/var/www/vuary/explosion_diagram_files/" + name + ".pdf");
                 if (file != null && !file.isEmpty()) {
