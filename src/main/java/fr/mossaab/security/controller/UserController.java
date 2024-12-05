@@ -160,11 +160,13 @@ public class UserController {
         answer.setLastName(user.getLastname());
         answer.setEmail(user.getEmail());
         answer.setPhoto(fileDataPath); // Если фото не найдено, вернется null или пустое значение
+        answer.setUserId(user.getId()); // Добавляем идентификатор пользователя
 
         response.setAnswer(answer);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
 
     @Operation(summary = "Отправка запроса на подтверждение изменения профиля через почту")
     @PostMapping(value = "/edit-profile", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})

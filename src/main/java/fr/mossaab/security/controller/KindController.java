@@ -78,6 +78,7 @@ public class KindController {
         Optional<Kind> kindOptional = kindRepository.findById(id);
         if (kindOptional.isPresent()) {
             Kind kind = kindOptional.get();
+
             if (updateKindDto.getTitle() != null) {
                 kind.setTitle(updateKindDto.getTitle());
             }
@@ -94,17 +95,28 @@ public class KindController {
                 Optional<Series> seriesOptional = seriesRepository.findById(updateKindDto.getSeriesId());
                 if (seriesOptional.isPresent()) {
                     Series series = seriesOptional.get();
+
+                    // Устанавливаем связь с Kind
+                    series.setKind(kind);  // Связываем Series с Kind
+
+                    // Если коллекция не была инициализирована, создаем новую
                     if (kind.getSeries() == null) {
                         kind.setSeries(new ArrayList<>());
                     }
+
+                    // Добавляем Series в коллекцию Kind
                     kind.getSeries().add(series);
                 }
             }
+
+            // Сохраняем обновленный объект Kind
             kind = kindRepository.save(kind);
 
+            // Конвертируем в DTO и возвращаем ответ
             KindDto kindDto = convertToDto(kind);
             return ResponseEntity.ok(kindDto);
         }
+
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 

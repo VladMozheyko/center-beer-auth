@@ -11,4 +11,5 @@ public class AnswerGetProfile {
     private String lastName;
     private String email;
     private String photo;
+    private Long userId;  // Добавляем идентификатор пользователя
 }
