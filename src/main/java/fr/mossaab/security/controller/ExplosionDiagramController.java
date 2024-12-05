@@ -125,17 +125,23 @@ public class ExplosionDiagramController {
         ExplosionDiagram diagram = new ExplosionDiagram();
         diagram.setName(name);
 
+        // Сохранение взрыв-схемы для получения ID
+        ExplosionDiagram savedDiagram = explosionDiagramRepository.save(diagram);
+
         // Создание файла данных
-        FileData fileData = (FileData) storageService.uploadImageToFileSystem(image, diagram);
-        fileData.setExplosionDiagram(diagram); // Установление связи
+        FileData fileData = (FileData) storageService.uploadImageToFileSystem(image, savedDiagram);
+        fileData.setExplosionDiagram(savedDiagram); // Установка обратной связи
 
-        diagram.setFileData(fileData); // Установление обратной связи
+        // Сохранение файла данных
+        fileDataRepository.save(fileData);
 
-        // Сохранение взрыв-схемы (каскадно сохраняет FileData)
-        explosionDiagramRepository.save(diagram);
+        // Установка ссылки в диаграмме и сохранение диаграммы
+        savedDiagram.setFileData(fileData);
+        explosionDiagramRepository.save(savedDiagram);
 
         return ResponseEntity.ok("Взрыв-схема создана");
     }
+
 
     @Data
     @AllArgsConstructor
