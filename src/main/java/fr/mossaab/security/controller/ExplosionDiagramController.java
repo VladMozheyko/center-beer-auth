@@ -120,12 +120,20 @@ public class ExplosionDiagramController {
     // 9. Создать новый ExplosionDiagram
     @Operation(summary = "Создать взрыв-схему")
     @PostMapping(value = "/add", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<String> createExplosionDiagram(@RequestPart String name,@RequestPart MultipartFile image) throws IOException {
+    public ResponseEntity<String> createExplosionDiagram(@RequestPart String name, @RequestPart MultipartFile image) throws IOException {
+        // Создание взрыв-схемы
         ExplosionDiagram diagram = new ExplosionDiagram();
         diagram.setName(name);
-        ExplosionDiagram savedDiagram = explosionDiagramRepository.save(diagram);
-        FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image, savedDiagram);
-        fileDataRepository.save(uploadImage);
+
+        // Создание файла данных
+        FileData fileData = (FileData) storageService.uploadImageToFileSystem(image, diagram);
+        fileData.setExplosionDiagram(diagram); // Установление связи
+
+        diagram.setFileData(fileData); // Установление обратной связи
+
+        // Сохранение взрыв-схемы (каскадно сохраняет FileData)
+        explosionDiagramRepository.save(diagram);
+
         return ResponseEntity.ok("Взрыв-схема создана");
     }
 
