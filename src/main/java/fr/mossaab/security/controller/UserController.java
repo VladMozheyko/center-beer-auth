@@ -122,30 +122,50 @@ public class UserController {
         response.setStatus("success");
         response.setNotify("Профиль получен");
 
-        List<FileData> allFileData = fileDataRepository.findAll();
+        // Ищем ID пользователя по куки
+        Long userId = refreshTokenRepository.findByToken(cookie)
+                .map(RefreshToken::getUser)
+                .map(User::getId)
+                .orElse(null);
+
+        if (userId == null) {
+            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+        }
+
+        // Ищем фото пользователя, если оно существует
         String fileDataPath = null;
-        Long userId = refreshTokenRepository.findByToken(cookie).orElse(null).getUser().getId();
+        List<FileData> allFileData = fileDataRepository.findAll();
 
         for (FileData fileData : allFileData) {
-            if (fileData.getUser().getId().equals(userId)) {
+            if (fileData != null && fileData.getUser() != null && fileData.getUser().getId().equals(userId)) {
                 fileDataPath = fileData.getName();
                 break;
             }
         }
 
-        var user = refreshTokenRepository.findByToken(cookie).orElse(null).getUser();
+        // Получаем пользователя
+        User user = refreshTokenRepository.findByToken(cookie)
+                .map(RefreshToken::getUser)
+                .orElse(null);
+
+        if (user == null) {
+            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+        }
+
+        // Заполняем данные профиля
         answer.setPhone(user.getPhoneNumber());
-        answer.setDateOfBirth(user.getDateOfBirth().toString());
+        answer.setDateOfBirth(user.getDateOfBirth() != null ? user.getDateOfBirth().toString() : null);
         answer.setTypeOfWorker(user.getWorkerRoles().toString());
         answer.setFirstName(user.getFirstname());
         answer.setLastName(user.getLastname());
         answer.setEmail(user.getEmail());
-        answer.setPhoto(fileDataPath);
+        answer.setPhoto(fileDataPath); // Если фото не найдено, вернется null или пустое значение
 
         response.setAnswer(answer);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
     @Operation(summary = "Отправка запроса на подтверждение изменения профиля через почту")
     @PostMapping(value = "/edit-profile", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<Object> editProfile(@RequestPart EditProfileDto request, @RequestPart(required = false) MultipartFile image, @CookieValue("refresh-jwt-cookie") String cookie) throws IOException {
