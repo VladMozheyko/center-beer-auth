@@ -3,6 +3,7 @@ package fr.mossaab.security.controller;
 import fr.mossaab.security.dto.request.EditProfileDto;
 import fr.mossaab.security.dto.response.*;
 import fr.mossaab.security.entities.*;
+import fr.mossaab.security.enums.RequestStatus;
 import fr.mossaab.security.repository.*;
 import fr.mossaab.security.service.MailSender;
 import fr.mossaab.security.service.StorageService;
@@ -152,6 +153,11 @@ public class UserController {
             return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
         }
 
+        // Проверяем статус верификации документов
+        boolean isVerified = user.getDocumentVerifications()
+                .stream()
+                .anyMatch(request -> request.getStatus() == RequestStatus.APPROVED);
+
         // Заполняем данные профиля
         answer.setPhone(user.getPhoneNumber());
         answer.setDateOfBirth(user.getDateOfBirth() != null ? user.getDateOfBirth().toString() : null);
@@ -159,13 +165,16 @@ public class UserController {
         answer.setFirstName(user.getFirstname());
         answer.setLastName(user.getLastname());
         answer.setEmail(user.getEmail());
-        answer.setPhoto(fileDataPath); // Если фото не найдено, вернется null или пустое значение
-        answer.setUserId(user.getId()); // Добавляем идентификатор пользователя
+        answer.setPhoto(fileDataPath);
+        answer.setUserId(user.getId());
+        answer.setBalance(user.getBalance()); // Установка баланса пользователя
+        answer.setVerified(isVerified); // Установка статуса верификации
 
         response.setAnswer(answer);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
 
 
     @Operation(summary = "Отправка запроса на подтверждение изменения профиля через почту")

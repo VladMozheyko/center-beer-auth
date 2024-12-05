@@ -155,6 +155,7 @@ public class ExplosionDiagramController {
 
         public ExplosionDiagramDto(ExplosionDiagram explosionDiagram) {
             this.id = explosionDiagram.getId();
+            this.name = explosionDiagram.getName();
             this.sparePartIds = explosionDiagram.getSpareParts().stream().map(SparePart::getId).collect(Collectors.toList());
             this.fileDataId = explosionDiagram.getFileData() != null ? explosionDiagram.getFileData().getId() : null;
         }

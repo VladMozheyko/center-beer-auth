@@ -11,5 +11,7 @@ public class AnswerGetProfile {
     private String lastName;
     private String email;
     private String photo;
-    private Long userId;  // Добавляем идентификатор пользователя
+    private Long userId;
+    private int balance; // Баланс пользователя
+    private boolean isVerified; // Статус верификации документов
 }
