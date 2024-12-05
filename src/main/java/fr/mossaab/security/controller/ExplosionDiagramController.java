@@ -57,16 +57,32 @@ public class ExplosionDiagramController {
     }
 
     // 4. Удалить ExplosionDiagram по идентификатору
-    @Operation(summary = "Удалить взрыв-схему по идентификатору")
+    @Operation(summary = "Удалить взрыв-схему по идентификатору с отвязкой от связанных сущностей")
     @DeleteMapping("/delete-by-id/{id}")
     public ResponseEntity<Void> deleteExplosionDiagramById(@PathVariable Long id) {
-        if (explosionDiagramRepository.existsById(id)) {
+        Optional<ExplosionDiagram> diagramOptional = explosionDiagramRepository.findById(id);
+        if (diagramOptional.isPresent()) {
+            ExplosionDiagram diagram = diagramOptional.get();
+
+            // Отвязываем все связанные запчасти
+            for (SparePart sparePart : diagram.getSpareParts()) {
+                sparePart.setExplosionDiagram(null);  // Убираем связь с текущей диаграммой
+                sparePartRepository.save(sparePart);   // Сохраняем изменения
+            }
+
+            // Отвязываем файл, если он существует
+            if (diagram.getFileData() != null) {
+                diagram.setFileData(null);  // Убираем связь с файлом
+                fileDataRepository.save(diagram.getFileData());  // Сохраняем изменения
+            }
+
+            // После отвязки удаляем саму диаграмму
             explosionDiagramRepository.deleteById(id);
             return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.notFound().build();
         }
+        return ResponseEntity.notFound().build();
     }
+
 
     // 6. Обновить ExplosionDiagram
     @Operation(summary = "Обновить взрыв-схему")

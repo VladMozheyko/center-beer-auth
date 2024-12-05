@@ -162,27 +162,34 @@ public class BoilerController {
     }
 
     // 6. Delete a boiler by ID
-    @Operation(summary = "Удаление бойлера по идентификатору", description = "Удалить бойлер по идентификатору")
     @DeleteMapping("/delete-by-id/{id}")
+    @Operation(summary = "Удаление бойлера по идентификатору", description = "Удалить бойлер по идентификатору")
     public ResponseEntity<Void> deleteBoilerById(@PathVariable Long id) {
-        if (boilerRepository.existsById(id)) {
-            boilerRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
-        } else {
+        Optional<Boiler> boilerOptional = boilerRepository.findById(id);
+        if (boilerOptional.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+
+        Boiler boiler = boilerOptional.get();
+
+        // Отвязываем бойлер от серии
+        if (boiler.getSeries() != null) {
+            boiler.getSeries().getBoilers().remove(boiler); // Убираем из списка бойлеров серии
+            seriesRepository.save(boiler.getSeries()); // Сохраняем изменения в серии
+        }
+
+        // Отвязываем бойлер от значений
+        if (!boiler.getValues().isEmpty()) {
+            for (Value value : boiler.getValues()) {
+                value.getBoilers().remove(boiler); // Убираем из списка бойлеров значения
+                valueRepository.save(value); // Сохраняем изменения в значении
+            }
+        }
+
+        // Удаляем сам бойлер
+        boilerRepository.delete(boiler);
+
+        return ResponseEntity.noContent().build(); // Возвращаем успешный ответ
     }
 
-    // 7. Delete a boiler by barcode
-    @Operation(summary = "Удаление бойлера по штрих коду", description = "Удалить бойлер по штрих коду")
-    @DeleteMapping("/delete-by-barcode/{barcode}")
-    public ResponseEntity<Void> deleteBoilerByBarcode(@PathVariable Long barcode) {
-        Optional<Boiler> boilerOptional = boilerRepository.findByBarcode(barcode);
-        if (boilerOptional.isPresent()) {
-            boilerRepository.delete(boilerOptional.get());
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
 }

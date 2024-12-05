@@ -109,10 +109,18 @@ public class ServiceCenterController {
         return ResponseEntity.notFound().build();
     }
 
-    @Operation(summary = "Удалить сервисный центр по идентификатору")
+    @Operation(summary = "Удалить сервисный центр по идентификатору, отвязав связанные сущности")
     @DeleteMapping("/delete-by-id/{id}")
     public ResponseEntity<Void> deleteServiceCenterById(@PathVariable Long id) {
-        if (serviceCenterRepository.existsById(id)) {
+        Optional<ServiceCenter> optionalServiceCenter = serviceCenterRepository.findById(id);
+        if (optionalServiceCenter.isPresent()) {
+            ServiceCenter serviceCenter = optionalServiceCenter.get();
+
+            // Отвязать связанные сущности
+            serviceCenter.getSeriesList().clear();
+            serviceCenterRepository.save(serviceCenter);
+
+            // Удалить сам сервисный центр
             serviceCenterRepository.deleteById(id);
             return ResponseEntity.noContent().build();
         }

@@ -9,6 +9,7 @@ import fr.mossaab.security.service.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -71,37 +72,27 @@ public class SparePartController {
     @Operation(summary = "Удалить запчасть по идентификатору")
     @DeleteMapping("/delete-by-id/{id}")
     public ResponseEntity<Void> deleteSparePartById(@PathVariable Long id) {
-        if (sparePartRepository.existsById(id)) {
-            sparePartRepository.deleteById(id);
-            return ResponseEntity.ok().build();
-        } else {
-            return ResponseEntity.notFound().build();
+        // Проверяем, существует ли запчасть
+        SparePart sparePart = sparePartRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Запчасть с ID " + id + " не найдена."));
+
+        // Удаляем связь с сущностью `FileData`
+        if (sparePart.getFileData() != null) {
+            fileDataRepository.delete(sparePart.getFileData());
+            sparePart.setFileData(null);
         }
+
+        // Удаляем связь с сущностью `ExplosionDiagram`
+        if (sparePart.getExplosionDiagram() != null) {
+            sparePart.setExplosionDiagram(null);
+        }
+
+        // После очистки зависимостей удаляем саму запчасть
+        sparePartRepository.delete(sparePart);
+
+        return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Удалить запчасть по артикулу")
-    @DeleteMapping("/delete-by-article/{articleNumber}")
-    public ResponseEntity<Void> deleteSparePartByArticle(@PathVariable String articleNumber) {
-        Optional<SparePart> sparePart = sparePartRepository.findByArticleNumber(articleNumber);
-        if (sparePart.isPresent()) {
-            sparePartRepository.delete(sparePart.get());
-            return ResponseEntity.ok().build();
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    @Operation(summary = "Удалить запчасть по наименованию")
-    @DeleteMapping("/delete-by-name/{name}")
-    public ResponseEntity<Void> deleteSparePartByName(@PathVariable String name) {
-        List<SparePart> spareParts = sparePartRepository.findByName(name);
-        if (!spareParts.isEmpty()) {
-            sparePartRepository.deleteAll(spareParts);
-            return ResponseEntity.ok().build();
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
 
     @Operation(summary = "Обновить запчасть по идентификатору")
     @PutMapping("/update-by-id/{id}")

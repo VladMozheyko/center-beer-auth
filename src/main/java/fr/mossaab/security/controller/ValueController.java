@@ -8,6 +8,7 @@ import fr.mossaab.security.repository.ValueRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -55,16 +56,31 @@ public class ValueController {
     }
 
     // 3. Method to delete a value by ID
-    @Operation(summary = "Удаление значения", description = "Удалить значение по идентификатору")
+    @Operation(summary = "Удаление значения", description = "Удалить значение по идентификатору, предварительно отвязав все связи")
     @DeleteMapping("/delete-by-id/{id}")
     public ResponseEntity<Void> deleteValueById(@PathVariable Long id) {
-        if (valueRepository.existsById(id)) {
-            valueRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.notFound().build();
+        // Проверяем, существует ли значение
+        Value value = valueRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Значение с ID " + id + " не найдено."));
+
+        // Удаляем связь с характеристикой, если она существует
+        if (value.getCharacteristic() != null) {
+            Characteristic characteristic = value.getCharacteristic();
+            value.setCharacteristic(null); // Убираем связь со стороны Value
+            characteristicRepository.save(characteristic); // Сохраняем характеристику для фиксации изменений
         }
+
+        // Удаляем связи с бойлерами
+        value.getBoilers().forEach(boiler -> boiler.getValues().remove(value));
+        value.getBoilers().clear();
+
+        // Удаляем саму сущность
+        valueRepository.delete(value);
+
+        return ResponseEntity.noContent().build();
     }
+
+
 
     // 6. Method to create a new value (using CreateValueDTO without ID)
     @Operation(summary = "Создание нового значения", description = "Создать новое значение с генерируемым идентификатором")

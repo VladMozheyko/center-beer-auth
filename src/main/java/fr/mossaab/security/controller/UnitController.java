@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -105,18 +106,26 @@ public class UnitController {
 
     // 4) Удаление unit по идентификатору
     @DeleteMapping("/delete-by-id/{id}")
-    @Operation(summary = "Удалить единицу измерения по идентификаторы")
+    @Operation(summary = "Удалить единицу измерения по идентификатору")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Единица измерения удалена"),
+            @ApiResponse(responseCode = "204", description = "Единица измерения удалена"),
             @ApiResponse(responseCode = "404", description = "Единица измерения не найдена")
     })
-    public void deleteUnit(@PathVariable Long id) {
-        Optional<Unit> unit = unitRepository.findById(id);
-        if (unit.isEmpty()) {
-            throw new RuntimeException("Unit not found");
-        }
-        unitRepository.delete(unit.get());
+    public ResponseEntity<Void> deleteUnit(@PathVariable Long id) {
+        // Поиск Unit по идентификатору
+        Unit unit = unitRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Unit not found"));
+
+        // Разрываем связи с характеристиками
+        unit.getCharacteristics().forEach(characteristic -> characteristic.getUnits().remove(unit));
+        unit.getCharacteristics().clear();
+
+        // Удаление Unit
+        unitRepository.delete(unit);
+
+        return ResponseEntity.noContent().build();
     }
+
 
     // 5) Поиск unit по идентификатору и вывод всех полей и идентификаторов характеристик
     @GetMapping("/find-by-id/{id}")

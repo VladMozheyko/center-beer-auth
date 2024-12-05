@@ -125,15 +125,26 @@ public class ErrorController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
-    @Operation(summary = "Удаление ошибки по идентификатору")
+    @Operation(summary = "Удаление ошибки по идентификатору с отвязкой от серии")
     @DeleteMapping("/delete-by-id/{id}")
     public ResponseEntity<Void> deleteError(@PathVariable Long id) {
-        if (errorRepository.existsById(id)) {
+        Optional<Error> errorOptional = errorRepository.findById(id);
+        if (errorOptional.isPresent()) {
+            Error error = errorOptional.get();
+
+            // Отвязываем ошибку от серии
+            if (error.getSeries() != null) {
+                error.setSeries(null);  // Убираем связь с серией
+                errorRepository.save(error);  // Сохраняем изменения
+            }
+
+            // Теперь удаляем саму ошибку
             errorRepository.deleteById(id);
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
+
 
     // DTO Classes
     @Data

@@ -113,7 +113,26 @@ public class BoilerSeriesPassportController {
     @DeleteMapping("/delete-by-id/{id}")
     @Operation(summary = "Удалить паспорт продукции по идентификатору")
     public void deleteBoilerSeriesPassport(@PathVariable Long id) {
-        boilerSeriesPassportRepository.deleteById(id);
+        BoilerSeriesPassport passport = boilerSeriesPassportRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Passport not found"));
+
+        // Отвязываем связанные сущности Series
+        for (Series series : passport.getSeriesList()) {
+            series.getBoilerSeriesPassports().remove(passport); // Убираем связь у Series
+        }
+
+        // Сохраняем изменения в сущностях Series
+        for (Series series : passport.getSeriesList()) {
+            seriesRepository.save(series);
+        }
+
+        // Удаляем файл, если он есть
+        if (passport.getFile() != null) {
+            fileDataRepository.delete(passport.getFile());
+        }
+
+        // Удаляем паспорт
+        boilerSeriesPassportRepository.delete(passport);
     }
 
     // 5. Метод для поиска по идентификатору и вывода идентификаторов связных сущностей

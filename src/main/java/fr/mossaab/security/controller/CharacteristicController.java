@@ -150,11 +150,31 @@ public class CharacteristicController {
             @ApiResponse(responseCode = "404", description = "Характеристика не найдена")
     })
     public void deleteCharacteristic(@PathVariable Long id) {
-        Optional<Characteristic> characteristic = characteristicRepository.findById(id);
-        if (characteristic.isEmpty()) {
+        Optional<Characteristic> characteristicOptional = characteristicRepository.findById(id);
+        if (characteristicOptional.isEmpty()) {
             throw new RuntimeException("Characteristic not found");
         }
-        characteristicRepository.delete(characteristic.get());
+
+        Characteristic characteristic = characteristicOptional.get();
+
+        // Отвязываем связанные сущности (Unit и Series)
+        for (Unit unit : characteristic.getUnits()) {
+            unit.getCharacteristics().remove(characteristic); // Убираем связь у Unit
+        }
+        for (Series series : characteristic.getSeries()) {
+            series.getCharacteristics().remove(characteristic); // Убираем связь у Series
+        }
+
+        // Сохраняем изменения в связанных сущностях
+        for (Unit unit : characteristic.getUnits()) {
+            unitRepository.save(unit);
+        }
+        for (Series series : characteristic.getSeries()) {
+            seriesRepository.save(series);
+        }
+
+        // Удаляем характеристику
+        characteristicRepository.delete(characteristic);
     }
 
     // 5) Поиск Characteristic по идентификатору и вывод всех полей и идентификаторов связных сущностей

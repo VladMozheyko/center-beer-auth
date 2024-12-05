@@ -129,22 +129,48 @@ public class TypeController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
-    @Operation(summary = "Удаление типа по идентификатору")
+    @Operation(summary = "Удаление типа по идентификатору с разрывом связей")
     @DeleteMapping("/delete-by-id/{id}")
     public ResponseEntity<Void> deleteTypeById(@PathVariable Long id) {
-        if (typeRepository.existsById(id)) {
-            typeRepository.deleteById(id);
+        Optional<Type> typeOptional = typeRepository.findById(id);
+        if (typeOptional.isPresent()) {
+            Type type = typeOptional.get();
+
+            // Разрыв связей с Kind
+            if (type.getKinds() != null) {
+                for (Kind kind : type.getKinds()) {
+                    kind.setType(null);
+                }
+                type.getKinds().clear();
+            }
+
+            // Удаление типа
+            typeRepository.delete(type);
+
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
-    @Operation(summary = "Удаление типа по названию")
+
+    @Operation(summary = "Удаление типа по названию с разрывом связей")
     @DeleteMapping("/delete-by-title/{title}")
     public ResponseEntity<Void> deleteTypeByTitle(@PathVariable String title) {
         Optional<Type> typeOptional = typeRepository.findByTitle(title);
         if (typeOptional.isPresent()) {
-            typeRepository.delete(typeOptional.get());
+            Type type = typeOptional.get();
+
+            // Разрыв связей с Kind
+            if (type.getKinds() != null) {
+                for (Kind kind : type.getKinds()) {
+                    kind.setType(null);
+                }
+                type.getKinds().clear();
+            }
+
+            // Удаление типа
+            typeRepository.delete(type);
+
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();

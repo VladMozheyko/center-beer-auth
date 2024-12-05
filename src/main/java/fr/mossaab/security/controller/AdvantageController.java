@@ -61,16 +61,33 @@ public class AdvantageController {
     }
 
     // 3. Delete an advantage by ID
-    @Operation(summary = "Удаление преимущества по ID", description = "Удалить преимущество по идентификатору")
+    @Operation(summary = "Удаление преимущества по ID", description = "Удалить преимущество по идентификатору с отвязыванием от связанных сущностей")
     @DeleteMapping("/delete-by-id/{id}")
     public ResponseEntity<Void> deleteAdvantageById(@PathVariable Long id) {
-        if (advantageRepository.existsById(id)) {
-            advantageRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
-        } else {
+        Optional<Advantage> advantageOptional = advantageRepository.findById(id);
+        if (advantageOptional.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+
+        Advantage advantage = advantageOptional.get();
+
+        // Отвязать все связанные Series
+        if (!advantage.getSeries().isEmpty()) {
+            advantage.getSeries().clear(); // Убираем все связи с Series
+        }
+
+        // Удалить связанный FileData (из базы данных)
+        FileData fileData = advantage.getFileData();
+        if (fileData != null) {
+            fileDataRepository.delete(fileData); // Удалить запись из FileData
+        }
+
+        // Удаление преимущества
+        advantageRepository.delete(advantage);
+
+        return ResponseEntity.noContent().build(); // Возвращаем успешный ответ
     }
+
 
     // 4. Create a new advantage
     @Operation(summary = "Создание преимущества", description = "Создать новое преимущество на основе полей и загрузить изображение")

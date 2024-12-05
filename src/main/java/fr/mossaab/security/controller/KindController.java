@@ -108,11 +108,20 @@ public class KindController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
-    @Operation(summary = "Удаление вида по идентификатору")
+    @Operation(summary = "Удаление вида по идентификатору с отвязкой от связанных сущностей")
     @DeleteMapping("/delete-by-id/{id}")
     public ResponseEntity<Void> deleteKindById(@PathVariable Long id) {
-        if (kindRepository.existsById(id)) {
-            kindRepository.deleteById(id);
+        Optional<Kind> kindOptional = kindRepository.findById(id);
+        if (kindOptional.isPresent()) {
+            Kind kind = kindOptional.get();
+
+            // Отвязываем связанные сущности
+            kind.setType(null);  // Убираем связь с типом
+            kind.getSeries().clear();  // Убираем все связи с сериями
+
+            kindRepository.save(kind);  // Сохраняем изменения без удаления
+
+            kindRepository.deleteById(id);  // Удаляем сам объект Kind
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();

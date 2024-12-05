@@ -96,15 +96,28 @@ public class AttributeController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
-    @Operation(summary = "Удаление атрибута по идентификатору")
     @DeleteMapping("/delete-by-id/{id}")
+    @Operation(summary = "Удаление атрибута по идентификатору")
     public ResponseEntity<Void> deleteAttribute(@PathVariable Long id) {
-        if (attributeRepository.existsById(id)) {
-            attributeRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
+        Optional<Attribute> attributeOptional = attributeRepository.findById(id);
+        if (attributeOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+
+        Attribute attribute = attributeOptional.get();
+
+        // Отвязываем атрибут от связанной серии (если существует)
+        if (attribute.getSeries() != null) {
+            attribute.setSeries(null); // Отвязываем от серии
+            attributeRepository.save(attribute); // Сохраняем изменения
+        }
+
+        // Удаляем атрибут
+        attributeRepository.delete(attribute);
+
+        return ResponseEntity.noContent().build(); // Возвращаем успешный ответ
     }
+
 
     // DTO classes
     @Data
