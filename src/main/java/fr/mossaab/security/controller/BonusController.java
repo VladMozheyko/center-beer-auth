@@ -120,7 +120,11 @@ public class BonusController {
             @RequestParam(value = "rejectionMessage", required = false) String rejectionMessage) {
         return bonusService.updatePassportStatus(documentVerificationId, status, rejectionMessage);
     }
-
+    @Operation(summary = "Получить все запросы пользователя по бонусной программе по email")
+    @GetMapping("/get-user-bonus-requests")
+    public ResponseEntity<List<Map<String, Object>>> getUserBonusRequests(@RequestParam String email) {
+        return ResponseEntity.ok(bonusService.getUserBonusRequests(email));
+    }
     @Operation(summary = "Получить по почтам все ожидающие/одобренные/отказанные запросы по бонусной программе: их статус, id, а также фотки котлов")
     @GetMapping("/get-all-bonus-requests-by-parameter")
     public ResponseEntity<List<Map<String, Object>>> getBonusRequests(RequestStatus requestStatus) {

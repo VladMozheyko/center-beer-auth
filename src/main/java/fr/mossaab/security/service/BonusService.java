@@ -7,6 +7,7 @@ import fr.mossaab.security.dto.request.BarcodeUpdateDto;
 import fr.mossaab.security.entities.*;
 import fr.mossaab.security.enums.RequestStatus;
 import fr.mossaab.security.repository.*;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -218,6 +219,40 @@ public class BonusService {
         return ResponseEntity.ok(result);
     }
 
+    public List<Map<String, Object>> getUserBonusRequests(String email) {
+        // Находим пользователя по email
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь с email " + email + " не найден"));
+
+        List<Map<String, Object>> bonusRequestList = new ArrayList<>();
+
+        // Получаем все бонусные запросы пользователя
+        List<BonusRequest> bonusRequests = new ArrayList<>(user.getBonusRequests());
+
+        // Проходим по всем бонусным запросам
+        for (BonusRequest bonusRequest : bonusRequests) {
+            Map<String, Object> bonusRequestMap = new HashMap<>();
+            bonusRequestMap.put("bonusRequestId", bonusRequest.getId());
+            bonusRequestMap.put("status", bonusRequest.getStatus().name());
+            bonusRequestMap.put("requestDate", bonusRequest.getRequestDate());
+
+            // Добавляем сообщения для отклоненных заявок
+            if (bonusRequest.getStatus() == RequestStatus.REJECTED) {
+                bonusRequestMap.put("rejectionMessage", bonusRequest.getRejectionMessage());
+            }
+
+            List<String> photoUrls = new ArrayList<>();
+            // Получаем ссылки на фотографии
+            for (FileData photo : bonusRequest.getFiles()) {
+                photoUrls.add("http://31.129.102.70:8080/user/fileSystem/" + photo.getName());
+            }
+
+            bonusRequestMap.put("photos", photoUrls);
+            bonusRequestList.add(bonusRequestMap);
+        }
+
+        return bonusRequestList;
+    }
 
     public ResponseEntity<List<Map<String, Object>>> getDocumentVerifications(RequestStatus requestStatus) {
         // Получаем всех пользователей
@@ -376,107 +411,3 @@ public class BonusService {
 
 
 }
-
-
-/*
-public ResponseEntity<List<Map<String, Object>>> getRejectedBonusRequests() {
-    // Получаем всех пользователей
-    List<User> users = userRepository.findAll();
-    List<Map<String, Object>> result = new ArrayList<>();
-
-    // Проходим по каждому пользователю
-    for (User user : users) {
-        Map<String, Object> userMap = new HashMap<>();
-        userMap.put("email", user.getEmail());
-
-        List<Map<String, Object>> bonusRequestList = new ArrayList<>();
-
-        // Получаем все бонусные запросы пользователя
-        List<BonusRequest> bonusRequests = new ArrayList<>(user.getBonusRequests());
-
-        // Фильтруем по статусу ОТКАЗАН
-        List<BonusRequest> rejectedBonusRequests = bonusRequests.stream()
-                .filter(br -> br.getStatus() == RequestStatus.REJECTED)
-                .sorted(Comparator.comparing(BonusRequest::getRequestDate, Comparator.nullsLast(Comparator.reverseOrder())))
-                .collect(Collectors.toList());
-
-        // Проходим по отсортированным бонусным запросам
-        for (BonusRequest bonusRequest : rejectedBonusRequests) {
-            Map<String, Object> bonusRequestMap = new HashMap<>();
-            bonusRequestMap.put("bonusRequestId", bonusRequest.getId());
-
-            // Добавляем статус бонусного запроса
-            bonusRequestMap.put("status", bonusRequest.getStatus().name());
-            bonusRequestMap.put("requestDate", bonusRequest.getRequestDate());
-            bonusRequestMap.put("responseDate", bonusRequest.getResponseDate());
-
-            // Добавляем сообщение об отказе
-            bonusRequestMap.put("rejectionMessage", bonusRequest.getRejectionMessage());
-
-            List<String> photoNames = new ArrayList<>();
-            // Получаем все фотографии покупки котла для этого бонусного запроса
-            for (FileData photo : bonusRequest.getFiles()) {
-                photoNames.add("http://31.129.102.70:8080/user/fileSystem/" + photo.getName());
-            }
-
-            bonusRequestMap.put("photos", photoNames);
-            bonusRequestList.add(bonusRequestMap);
-        }
-
-        userMap.put("bonusRequests", bonusRequestList);
-        result.add(userMap);
-    }
-
-    // Возвращаем результат в виде JSON
-    return ResponseEntity.ok(result);
-}
-
-
-    public ResponseEntity<List<Map<String, Object>>> getApprovedBonusRequests() {
-        // Получаем всех пользователей
-        List<User> users = userRepository.findAll();
-        List<Map<String, Object>> result = new ArrayList<>();
-
-        // Проходим по каждому пользователю
-        for (User user : users) {
-            Map<String, Object> userMap = new HashMap<>();
-            userMap.put("email", user.getEmail());
-
-            List<Map<String, Object>> bonusRequestList = new ArrayList<>();
-
-            // Получаем все бонусные запросы пользователя
-            List<BonusRequest> bonusRequests = new ArrayList<>(user.getBonusRequests());
-
-            // Фильтруем по статусу
-            List<BonusRequest> approvedBonusRequests = bonusRequests.stream()
-                    .filter(br -> br.getStatus() == RequestStatus.APPROVED)
-                    .sorted(Comparator.comparing(BonusRequest::getRequestDate, Comparator.nullsLast(Comparator.reverseOrder())))
-                    .collect(Collectors.toList());
-
-            // Проходим по отсортированным бонусным запросам
-            for (BonusRequest bonusRequest : approvedBonusRequests) {
-                Map<String, Object> bonusRequestMap = new HashMap<>();
-                bonusRequestMap.put("bonusRequestId", bonusRequest.getId());
-
-                // Добавляем статус бонусного запроса
-                bonusRequestMap.put("status", bonusRequest.getStatus().name());
-                bonusRequestMap.put("requestDate", bonusRequest.getRequestDate());
-                bonusRequestMap.put("responseDate", bonusRequest.getResponseDate());
-
-                List<String> photoNames = new ArrayList<>();
-                // Получаем все фотографии покупки котла для этого бонусного запроса
-                for (FileData photo : bonusRequest.getFiles()) {
-                    photoNames.add("http://31.129.102.70:8080/user/fileSystem/" + photo.getName());
-                }
-
-                bonusRequestMap.put("photos", photoNames);
-                bonusRequestList.add(bonusRequestMap);
-            }
-
-            userMap.put("bonusRequests", bonusRequestList);
-            result.add(userMap);
-        }
-
-        // Возвращаем результат в виде JSON
-        return ResponseEntity.ok(result);
-    }*/
