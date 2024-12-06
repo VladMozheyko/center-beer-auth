@@ -57,7 +57,7 @@ public class BonusController {
     }
 
     @Operation(summary = "Удаление штрих кода по его id")
-    @DeleteMapping("delete-barcode/{id}")
+    @DeleteMapping("/delete-barcode/{id}")
     public ResponseEntity<Void> deleteBarcode(@PathVariable Long id) {
         return bonusService.deleteBarcode(id);
     }
@@ -69,13 +69,13 @@ public class BonusController {
     }
 
     @Operation(summary = "Редактирование типа штрих-кода по его id")
-    @PutMapping("update-barcode-type/{id}/type")
+    @PutMapping("/update-barcode-type/{id}/type")
     public ResponseEntity<BarcodeType> updateBarcodeType(@PathVariable Long id, @RequestBody BarcodeTypeUpdateDto updateDto) {
         return bonusService.updateBarcodeType(id, updateDto);
     }
 
     @Operation(summary = "Редактирование штрих-кода по его id")
-    @PutMapping("update-barcode/{id}")
+    @PutMapping("/update-barcode/{id}")
     public ResponseEntity<Barcode> updateBarcode(@PathVariable Long id, @RequestBody BarcodeUpdateDto updateDto) {
         return bonusService.updateBarcode(id, updateDto);
     }

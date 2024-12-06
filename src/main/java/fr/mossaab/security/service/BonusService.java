@@ -49,7 +49,34 @@ public class BonusService {
             throw new SecurityException("Invalid or expired token.");
         }
 
+        // Проверяем существование штрих-кода
         var barcode = barcodeRepository.findByCode(barcodeCode).orElse(null);
+        if (barcode == null) {
+            throw new IllegalArgumentException("Barcode not found.");
+        }
+
+        // Проверяем, был ли этот штрих-код уже использован
+        if (barcode.isUsed()) {
+            throw new IllegalArgumentException("This barcode has already been successfully activated.");
+        }
+
+        // Получаем все запросы пользователя
+        List<BonusRequest> userRequests = bonusRequestRepository.findAll().stream()
+                .filter(request -> request.getUser().equals(user))
+                .toList();
+
+        // Проверяем, существует ли запрос с данным штрих-кодом
+        for (BonusRequest request : userRequests) {
+            if (request.getBarcode().equals(barcode)) {
+                if (request.getStatus() == RequestStatus.PENDING) {
+                    throw new IllegalStateException("A request for this barcode is already pending approval.");
+                }
+                if (request.getStatus() == RequestStatus.REJECTED) {
+                    bonusRequestRepository.delete(request);
+                    break; // Прекращаем проверку, так как удаляем запрос
+                }
+            }
+        }
 
         // Создание нового BonusRequest
         BonusRequest bonusRequest = BonusRequest.builder()
