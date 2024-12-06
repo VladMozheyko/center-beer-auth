@@ -33,8 +33,8 @@ public class AdminController {
         return ResponseEntity.ok(adminService.getAllUsers(page, size));
     }
 
-
-    @GetMapping
+    @Operation(summary = "Вернуть логи", description = "Вернуть логи сервера")
+    @GetMapping("/get-logs")
     public ResponseEntity<String> getLogs() {
         try {
             // Читаем содержимое файла
