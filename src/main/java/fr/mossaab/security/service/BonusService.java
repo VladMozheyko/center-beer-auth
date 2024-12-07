@@ -281,6 +281,52 @@ public class BonusService {
         return bonusRequestList;
     }
 
+    public List<Map<String, Object>> getUserBonusRequestsByStatus(String email, RequestStatus status) {
+        // Находим пользователя по email
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь с email " + email + " не найден"));
+
+        // Фильтруем запросы пользователя по статусу и сортируем их
+        List<BonusRequest> filteredBonusRequests = user.getBonusRequests().stream()
+                .filter(bonusRequest -> bonusRequest.getStatus() == status)
+                .sorted((br1, br2) -> {
+                    if (br1.getRequestDate() == null && br2.getRequestDate() == null) {
+                        return 0;
+                    } else if (br1.getRequestDate() == null) {
+                        return 1;
+                    } else if (br2.getRequestDate() == null) {
+                        return -1;
+                    } else {
+                        return br2.getRequestDate().compareTo(br1.getRequestDate());
+                    }
+                })
+                .collect(Collectors.toList());
+
+        // Формируем список результатов
+        List<Map<String, Object>> bonusRequestList = new ArrayList<>();
+        for (BonusRequest bonusRequest : filteredBonusRequests) {
+            Map<String, Object> bonusRequestMap = new HashMap<>();
+            bonusRequestMap.put("bonusRequestId", bonusRequest.getId());
+            bonusRequestMap.put("status", bonusRequest.getStatus().name());
+            bonusRequestMap.put("requestDate", bonusRequest.getRequestDate());
+
+            // Добавляем сообщение об отклонении, если статус - ОТКЛОНЕН
+            if (bonusRequest.getStatus() == RequestStatus.REJECTED) {
+                bonusRequestMap.put("rejectionMessage", bonusRequest.getRejectionMessage());
+            }
+
+            // Добавляем ссылки на фотографии
+            List<String> photoUrls = bonusRequest.getFiles().stream()
+                    .map(photo -> "http://31.129.102.70:8080/user/fileSystem/" + photo.getName())
+                    .collect(Collectors.toList());
+
+            bonusRequestMap.put("photos", photoUrls);
+            bonusRequestList.add(bonusRequestMap);
+        }
+
+        return bonusRequestList;
+    }
+
     public ResponseEntity<List<Map<String, Object>>> getDocumentVerifications(RequestStatus requestStatus) {
         // Получаем всех пользователей
         List<User> users = userRepository.findAll();

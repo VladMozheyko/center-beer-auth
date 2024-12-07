@@ -130,6 +130,13 @@ public class BonusController {
     public ResponseEntity<List<Map<String, Object>>> getBonusRequests(RequestStatus requestStatus) {
         return bonusService.getBonusRequests(requestStatus);
     }
+    @Operation(summary = "Получить бонусные запросы пользователя по email и статусу")
+    @GetMapping("/get-user-bonus-requests-by-status")
+    public ResponseEntity<List<Map<String, Object>>> getUserBonusRequestsByStatus(
+            @RequestParam String email,
+            @RequestParam RequestStatus status) {
+        return ResponseEntity.ok(bonusService.getUserBonusRequestsByStatus(email, status));
+    }
     @Operation(summary = "Получить по почтам все ожидающие/одобренные/отказанные запросы по паспортам: их статус, id, а также фотки паспортов")
     @GetMapping("/get-all-document-verifications-request-by-parameter")
     public ResponseEntity<List<Map<String, Object>>> getDocumentVerifications(RequestStatus requestStatus) {
