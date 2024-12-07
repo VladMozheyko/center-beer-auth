@@ -20,7 +20,7 @@ public class Boiler {
     @GeneratedValue
     private Long id;
 
-    @Column(name = "number", nullable = false, unique = true)
+    @Column(name = "number", nullable = false)
     private Long number;
 
     @Column(name = "barcode", nullable = false, unique = true)
