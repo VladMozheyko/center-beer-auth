@@ -9,6 +9,9 @@ import fr.mossaab.security.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +19,12 @@ import java.util.List;
 @AllArgsConstructor
 public class AdminService {
     private UserRepository userRepository;
+    private static final String LOG_FILE_PATH = "/root/kotitonttu/log.txt";
 
+    public String getLogs() throws IOException {
+        Path logPath = Path.of(LOG_FILE_PATH);
+        return Files.readString(logPath);
+    }
     public GetAllUsersResponse getAllUsers(int page, int size) {
         List<User> users = userRepository.findAll();
         List<GetUsersDto> userDtos = new ArrayList<>();

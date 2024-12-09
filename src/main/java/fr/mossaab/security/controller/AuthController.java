@@ -17,16 +17,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 
 @Tag(name = "Аутентификация", description = "API для работы с аутентификацией пользователей")
@@ -35,8 +31,6 @@ import java.util.regex.Pattern;
 @SecurityRequirements()
 @RequiredArgsConstructor
 public class AuthController {
-    public static final Pattern VALID_PHONE_NUMBER_REGEX =
-            Pattern.compile("^\\+?[78][-\\(]?\\d{3}\\)?-?\\d{3}-?\\d{2}-?\\d{2}$", Pattern.CASE_INSENSITIVE);
     private final AuthenticationService authenticationService;
     private final RefreshTokenService refreshTokenService;
 

@@ -33,8 +33,7 @@ public class BonusController {
     @Operation(summary = "Позволяет получить все типы штрих кодов администратором")
     @GetMapping("/get-all-barcode-types")
     public ResponseEntity<List<BarcodeTypeDto>> getAllBarcodeTypesByAdmin() {
-        List<BarcodeTypeDto> barcodeTypeDtoList = bonusService.getAllBarcodeTypes();
-        return ResponseEntity.ok(barcodeTypeDtoList);
+        return ResponseEntity.ok(bonusService.getAllBarcodeTypes());
     }
 
 
@@ -99,8 +98,7 @@ public class BonusController {
     @PostMapping("/add-barcode")
     @Operation(summary = "Добавление нового штрих-кода")
     public ResponseEntity<Barcode> addBarcode(@RequestParam Long code, @RequestParam Long barcodeTypeId) {
-        Barcode createdBarcode = barcodeService.addBarcode(code, barcodeTypeId);
-        return ResponseEntity.ok(createdBarcode);
+        return ResponseEntity.ok(barcodeService.addBarcode(code, barcodeTypeId));
     }
 
     @PostMapping("/updateStatus")
