@@ -198,8 +198,8 @@ public class BonusService {
             // Получаем все бонусные запросы пользователя
             List<BonusRequest> bonusRequests = new ArrayList<>(user.getBonusRequests());
 
-            // Фильтруем по статусу и сортируем по requestSentDate от новых к старым
-            List<BonusRequest> pendingBonusRequests = bonusRequests.stream()
+            // Фильтруем по статусу и сортируем по requestDate от новых к старым
+            List<BonusRequest> filteredBonusRequests = bonusRequests.stream()
                     .filter(br -> br.getStatus() == requestStatus)
                     .sorted((br1, br2) -> {
                         if (br1.getRequestDate() == null && br2.getRequestDate() == null) {
@@ -215,10 +215,12 @@ public class BonusService {
                     .collect(Collectors.toList());
 
             // Проходим по отсортированным бонусным запросам
-            for (BonusRequest bonusRequest : pendingBonusRequests) {
+            for (BonusRequest bonusRequest : filteredBonusRequests) {
                 Map<String, Object> bonusRequestMap = new HashMap<>();
                 bonusRequestMap.put("bonusRequestId", bonusRequest.getId());
-                if(requestStatus == RequestStatus.REJECTED) {
+
+                // Добавляем сообщение об отказе, если статус - ОТКЛОНЕН
+                if (requestStatus == RequestStatus.REJECTED) {
                     bonusRequestMap.put("rejectionMessage", bonusRequest.getRejectionMessage());
                 }
 
@@ -226,13 +228,23 @@ public class BonusService {
                 bonusRequestMap.put("status", bonusRequest.getStatus().name());
                 bonusRequestMap.put("requestDate", bonusRequest.getRequestDate());
 
-                List<String> photoNames = new ArrayList<>();
-                // Получаем все фотографии покупки котла для этого бонусного запроса
-                for (FileData photo : bonusRequest.getFiles()) {
-                    photoNames.add("http://31.129.102.70:8080/user/fileSystem/" + photo.getName());
+                // Добавляем ссылки на фотографии
+                List<String> photoNames = bonusRequest.getFiles().stream()
+                        .map(photo -> "http://31.129.102.70:8080/user/fileSystem/" + photo.getName())
+                        .collect(Collectors.toList());
+                bonusRequestMap.put("photos", photoNames);
+
+                // Добавляем данные о barcode и barcodeType
+                Barcode barcode = bonusRequest.getBarcode();
+                if (barcode != null) {
+                    BarcodeType barcodeType = barcode.getBarcodeType();
+                    if (barcodeType != null) {
+                        bonusRequestMap.put("points", barcodeType.getPoints());
+                        bonusRequestMap.put("type", barcodeType.getType());
+                        bonusRequestMap.put("subtype", barcodeType.getSubtype());
+                    }
                 }
 
-                bonusRequestMap.put("photos", photoNames);
                 bonusRequestList.add(bonusRequestMap);
             }
 
@@ -240,11 +252,9 @@ public class BonusService {
             result.add(userMap);
         }
 
-
-
-        // Возвращаем результат в виде JSON
         return ResponseEntity.ok(result);
     }
+
 
     public List<Map<String, Object>> getUserBonusRequests(String email) {
         // Находим пользователя по email
