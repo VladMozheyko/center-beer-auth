@@ -236,6 +236,7 @@ public class BonusService {
 
                 // Добавляем данные о barcode и barcodeType
                 Barcode barcode = bonusRequest.getBarcode();
+                bonusRequestMap.put("barcode", barcode.getCode());
                 if (barcode != null) {
                     BarcodeType barcodeType = barcode.getBarcodeType();
                     if (barcodeType != null) {
@@ -333,6 +334,7 @@ public class BonusService {
 
             // Добавляем данные о barcode и barcodeType
             Barcode barcode = bonusRequest.getBarcode();
+            bonusRequestMap.put("barcode", barcode.getCode());
             if (barcode != null) {
                 BarcodeType barcodeType = barcode.getBarcodeType();
                 if (barcodeType != null) {
