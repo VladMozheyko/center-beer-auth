@@ -319,13 +319,25 @@ public class BonusService {
             List<String> photoUrls = bonusRequest.getFiles().stream()
                     .map(photo -> "http://31.129.102.70:8080/user/fileSystem/" + photo.getName())
                     .collect(Collectors.toList());
-
             bonusRequestMap.put("photos", photoUrls);
+
+            // Добавляем данные о barcode и barcodeType
+            Barcode barcode = bonusRequest.getBarcode();
+            if (barcode != null) {
+                BarcodeType barcodeType = barcode.getBarcodeType();
+                if (barcodeType != null) {
+                    bonusRequestMap.put("points", barcodeType.getPoints());
+                    bonusRequestMap.put("type", barcodeType.getType());
+                    bonusRequestMap.put("subtype", barcodeType.getSubtype());
+                }
+            }
+
             bonusRequestList.add(bonusRequestMap);
         }
 
         return bonusRequestList;
     }
+
 
     public ResponseEntity<List<Map<String, Object>>> getDocumentVerifications(RequestStatus requestStatus) {
         // Получаем всех пользователей
