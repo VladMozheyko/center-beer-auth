@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "SPARE_PART")
@@ -81,4 +83,11 @@ public class SparePart {
     @ManyToOne
     @JoinColumn(name = "explosion_diagram_id")
     private ExplosionDiagram explosionDiagram;
+    @ManyToMany
+    @JoinTable(
+            name = "spare_part_boiler",
+            joinColumns = @JoinColumn(name = "spare_part_id"),
+            inverseJoinColumns = @JoinColumn(name = "boiler_id")
+    )
+    private List<Boiler> boilers = new ArrayList<>();
 }

@@ -31,6 +31,10 @@ public class Series {
     @JsonIgnore
     private Kind kind;
 
+    @OneToOne
+    @JoinColumn(name = "explosion_diagram_id", referencedColumnName = "id")
+    private ExplosionDiagram explosionDiagram;
+
     @ManyToMany(mappedBy = "seriesList")
     private List<ServiceCenter> serviceCenters = new ArrayList<>();
 

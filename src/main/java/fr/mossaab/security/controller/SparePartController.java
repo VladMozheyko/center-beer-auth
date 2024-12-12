@@ -3,6 +3,7 @@ package fr.mossaab.security.controller;
 import fr.mossaab.security.entities.ExplosionDiagram;
 import fr.mossaab.security.entities.FileData;
 import fr.mossaab.security.entities.SparePart;
+import fr.mossaab.security.repository.BoilerRepository;
 import fr.mossaab.security.repository.FileDataRepository;
 import fr.mossaab.security.repository.SparePartRepository;
 import fr.mossaab.security.service.StorageService;
@@ -16,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import fr.mossaab.security.entities.Boiler;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -32,6 +34,7 @@ public class SparePartController {
     private final SparePartRepository sparePartRepository;
     private final StorageService storageService;
     private final FileDataRepository fileDataRepository;
+    private final BoilerRepository boilerRepository;
 
     @Operation(summary = "Получить все запчасти с идентификаторами связных сущностей")
     @GetMapping("get-all")
@@ -82,6 +85,13 @@ public class SparePartController {
             sparePart.setFileData(null);
         }
 
+        if (!sparePart.getBoilers().isEmpty()) {
+            for (Boiler boiler : sparePart.getBoilers()) {
+                boiler.getSpareParts().remove(sparePart);
+            }
+            sparePart.getBoilers().clear();
+        }
+
         // Удаляем связь с сущностью `ExplosionDiagram`
         if (sparePart.getExplosionDiagram() != null) {
             sparePart.setExplosionDiagram(null);
@@ -109,6 +119,12 @@ public class SparePartController {
             sparePart.setAscPriceRub(dto.ascPriceRub);
             sparePart.setWholesalePriceRub(dto.wholesalePriceRub);
             sparePart.setRetailPriceRub(dto.retailPriceRub);
+
+            if (dto.boilerIds != null && !dto.boilerIds.isEmpty()) {
+                List<Boiler> boilers = boilerRepository.findAllById(dto.boilerIds);
+                sparePart.setBoilers(boilers);
+            }
+
             if (dto.explosionDiagramId != null) {
                 ExplosionDiagram explosionDiagram = new ExplosionDiagram();
                 explosionDiagram.setId(dto.explosionDiagramId);
@@ -173,7 +189,6 @@ public class SparePartController {
         public BigDecimal wholesalePriceRub;
         @Schema(example = "7965.54")
         public BigDecimal retailPriceRub;
-        public Long explosionDiagramId;
     }
 
     @Data
@@ -196,6 +211,8 @@ public class SparePartController {
         public BigDecimal retailPriceRub;
         @Schema(nullable = true)
         public Long explosionDiagramId;
+        @Schema(nullable = true)
+        private List<Long> boilerIds;
     }
 
     public static class SparePartDto {
@@ -218,7 +235,7 @@ public class SparePartController {
         public BigDecimal retailPriceRub;
         public Long fileDataId;
         public Long explosionDiagramId;
-
+        private List<Long> boilerIds;
         // Конструктор для создания DTO из сущности SparePart
         public SparePartDto(SparePart sparePart) {
             this.id = sparePart.getId();
@@ -232,6 +249,7 @@ public class SparePartController {
             this.retailPriceRub = sparePart.getRetailPriceRub();
             this.fileDataId = sparePart.getFileData() != null ? sparePart.getFileData().getId() : null;
             this.explosionDiagramId = sparePart.getExplosionDiagram() != null ? sparePart.getExplosionDiagram().getId() : null;
+            this.boilerIds = sparePart.getBoilers().stream().map(Boiler::getId).toList();
         }
     }
 }

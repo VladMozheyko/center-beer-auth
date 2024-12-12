@@ -3,9 +3,11 @@ package fr.mossaab.security.service;
 
 import fr.mossaab.security.entities.ExplosionDiagram;
 import fr.mossaab.security.entities.FileData;
+import fr.mossaab.security.entities.Series;
 import fr.mossaab.security.entities.SparePart;
 import fr.mossaab.security.repository.ExplosionDiagramRepository;
 import fr.mossaab.security.repository.FileDataRepository;
+import fr.mossaab.security.repository.SeriesRepository;
 import fr.mossaab.security.repository.SparePartRepository;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -29,7 +31,7 @@ public class ExplosionDiagramService {
     private final SparePartRepository sparePartRepository;
     private final FileDataRepository fileDataRepository;
     private final StorageService storageService;
-
+    private final SeriesRepository seriesRepository;
     public List<ExplosionDiagramDto> getAllExplosionDiagrams() {
         List<ExplosionDiagramDto> diagramDtos = new ArrayList<>();
         for (ExplosionDiagram diagram : explosionDiagramRepository.findAll()) {
@@ -46,6 +48,11 @@ public class ExplosionDiagramService {
         Optional<ExplosionDiagram> diagramOptional = explosionDiagramRepository.findById(id);
         if (diagramOptional.isPresent()) {
             ExplosionDiagram diagram = diagramOptional.get();
+            // Разрываем связь с Series
+            if (diagram.getSeries() != null) {
+                diagram.getSeries().setExplosionDiagram(null);
+                seriesRepository.save(diagram.getSeries());
+            }
 
             // Отвязываем запчасти
             for (SparePart sparePart : diagram.getSpareParts()) {
@@ -90,6 +97,14 @@ public class ExplosionDiagramService {
                 fileData.setId(diagramDto.getFileDataId());
                 diagram.setFileData(fileData);
             }
+            if (diagramDto.getSeriesId() != null) {
+                Optional<Series> optionalSeries = seriesRepository.findById(diagramDto.getSeriesId());
+                if (optionalSeries.isPresent()) {
+                    diagram.setSeries(optionalSeries.get());
+                    optionalSeries.get().setExplosionDiagram(diagram);
+                    seriesRepository.save(optionalSeries.get());
+                }
+            }
 
             ExplosionDiagram updatedDiagram = explosionDiagramRepository.save(diagram);
             return Optional.of(new ExplosionDiagramDto(updatedDiagram));
@@ -123,12 +138,13 @@ public class ExplosionDiagramService {
         private String name; // Новое поле
         private List<Long> sparePartIds;
         private Long fileDataId;
-
+        private Long seriesId;
         public ExplosionDiagramDto(ExplosionDiagram explosionDiagram) {
             this.id = explosionDiagram.getId();
             this.name = explosionDiagram.getName();
             this.sparePartIds = explosionDiagram.getSpareParts().stream().map(SparePart::getId).collect(Collectors.toList());
             this.fileDataId = explosionDiagram.getFileData() != null ? explosionDiagram.getFileData().getId() : null;
+            this.seriesId = explosionDiagram.getSeries()  != null ? explosionDiagram.getSeries().getId() : null;
         }
     }
 
@@ -141,5 +157,7 @@ public class ExplosionDiagramService {
         private List<Long> sparePartIds;
         @Schema(nullable = true)
         private Long fileDataId;
+        @Schema(nullable = true)
+        private Long seriesId; // Новое поле
     }
 }

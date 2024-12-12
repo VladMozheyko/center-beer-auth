@@ -2,9 +2,11 @@ package fr.mossaab.security.service;
 
 import fr.mossaab.security.entities.Boiler;
 import fr.mossaab.security.entities.Series;
+import fr.mossaab.security.entities.SparePart;
 import fr.mossaab.security.entities.Value;
 import fr.mossaab.security.repository.BoilerRepository;
 import fr.mossaab.security.repository.SeriesRepository;
+import fr.mossaab.security.repository.SparePartRepository;
 import fr.mossaab.security.repository.ValueRepository;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
@@ -25,7 +27,7 @@ public class BoilerService {
     private final BoilerRepository boilerRepository;
     private final SeriesRepository seriesRepository;
     private final ValueRepository valueRepository;
-
+    private final SparePartRepository sparePartRepository;
     public List<BoilerDTO> getAllBoilers() {
         List<Boiler> boilers = boilerRepository.findAll();
         List<BoilerDTO> boilerDTOs = new ArrayList<>();
@@ -55,7 +57,7 @@ public class BoilerService {
         return new ResponseEntity<>(new BoilerDTO(boiler), HttpStatus.CREATED);
     }
 
-    public ResponseEntity<BoilerDTO> updateBoiler(Long id, BoilerUpdateDTO boilerDTO, Long seriesId, List<Long> valueIds) {
+    public ResponseEntity<BoilerDTO> updateBoiler(Long id, BoilerUpdateDTO boilerDTO) {
         Optional<Boiler> boilerOptional = boilerRepository.findById(id);
         if (boilerOptional.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -66,14 +68,22 @@ public class BoilerService {
         if (boilerDTO.getNumber() != null) boiler.setNumber(boilerDTO.getNumber());
         if (boilerDTO.getBarcode() != null) boiler.setBarcode(boilerDTO.getBarcode());
 
-        if (seriesId != null) {
-            Optional<Series> seriesOptional = seriesRepository.findById(seriesId);
+        if (boilerDTO.seriesId != null) {
+            Optional<Series> seriesOptional = seriesRepository.findById(boilerDTO.seriesId);
             seriesOptional.ifPresent(boiler::setSeries);
         }
+        if (boilerDTO.sparePartIds != null) {
+            List<SparePart> spareParts = new ArrayList<>();
+            for (Long sparePartId : boilerDTO.sparePartIds) {
+                Optional<SparePart> sparePartOptional = sparePartRepository.findById(sparePartId);
+                sparePartOptional.ifPresent(spareParts::add);
+            }
+            boiler.setSpareParts(spareParts);
+        }
 
-        if (valueIds != null) {
+        if (boilerDTO.valueIds != null) {
             List<Value> values = new ArrayList<>();
-            for (Long valueId : valueIds) {
+            for (Long valueId : boilerDTO.valueIds) {
                 Optional<Value> valueOptional = valueRepository.findById(valueId);
                 valueOptional.ifPresent(values::add);
             }
@@ -103,7 +113,12 @@ public class BoilerService {
                 valueRepository.save(value);
             }
         }
-
+        if (!boiler.getSpareParts().isEmpty()) {
+            for (SparePart sparePart : boiler.getSpareParts()) {
+                sparePart.getBoilers().remove(boiler);
+                sparePartRepository.save(sparePart);
+            }
+        }
         boilerRepository.delete(boiler);
         return ResponseEntity.noContent().build();
     }
@@ -130,7 +145,8 @@ public class BoilerService {
         private Long seriesId;
         @Schema(nullable = true)
         private List<Long> valueIds;
-
+        @Schema(nullable = true)
+        private List<Long> sparePartIds;
         // Constructor to map Boiler entity to DTO
     }
 
@@ -144,6 +160,7 @@ public class BoilerService {
         private Long barcode;
         private Long seriesId;
         private List<Long> valueIds;
+        private List<Long> sparePartIds;
 
         // Constructor to map Boiler entity to DTO
         public BoilerDTO(Boiler boiler) {
@@ -154,6 +171,10 @@ public class BoilerService {
             this.valueIds = new ArrayList<>();
             for (Value value : boiler.getValues()) {
                 this.valueIds.add(value.getId());
+            }
+            this.sparePartIds = new ArrayList<>();
+            for (SparePart sparePart : boiler.getSpareParts()) {
+                this.sparePartIds.add(sparePart.getId());
             }
         }
     }

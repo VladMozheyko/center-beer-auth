@@ -39,6 +39,7 @@ public class SeriesController {
     private final ErrorRepository errorRepository;
     private final BoilerSeriesPassportRepository passportTitleRepository;
     private final StorageService storageService;
+    private final ExplosionDiagramRepository explosionDiagramRepository;
 
     // 1) Получение всех серий
     @Operation(summary = "Получить все серии")
@@ -168,6 +169,11 @@ public class SeriesController {
                     fileDataRepository.findById(fileDataId).ifPresent(series.getFiles()::add);
                 }
             }
+            if (seriesDto.getExplosionDiagramId() != null) {
+                ExplosionDiagram explosionDiagram = explosionDiagramRepository.findById(seriesDto.getExplosionDiagramId())
+                        .orElseThrow(() -> new EntityNotFoundException("Взрыв-схема не найдена."));
+                series.setExplosionDiagram(explosionDiagram);
+            }
 
             // Обновление Errors
             if (seriesDto.getErrorIds() != null) {
@@ -201,6 +207,12 @@ public class SeriesController {
         Series series = seriesRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Серия с ID " + id + " не найдена."));
 
+        if (series.getExplosionDiagram() != null) {
+            ExplosionDiagram explosionDiagram = series.getExplosionDiagram();
+            explosionDiagram.setSeries(null);
+            series.setExplosionDiagram(null);
+            explosionDiagramRepository.save(explosionDiagram);
+        }
         // Удаляем связи с сущностью `Characteristic`
         series.getCharacteristics().forEach(characteristic -> characteristic.getSeries().remove(series));
         series.getCharacteristics().clear();
@@ -233,7 +245,7 @@ public class SeriesController {
         dto.setSuffix(series.getSuffix());
         dto.setDescription(series.getDescription());
         dto.setKindId(series.getKind() != null ? series.getKind().getId() : null);
-
+        dto.setExplosionDiagramId(series.getExplosionDiagram() != null ? series.getExplosionDiagram().getId() : null);
         for (ServiceCenter sc : series.getServiceCenters()) {
             dto.getServiceCenterIds().add(sc.getId());
         }
@@ -291,6 +303,7 @@ public class SeriesController {
         @Schema(example = "Одноконтурные котлы, с закрытой камерой сгорания, с трёхходовым клапаном, модели (T10OK-T24OK)")
         private String description;
         private Long kindId;
+        private Long explosionDiagramId;
         private List<Long> serviceCenterIds = new ArrayList<>();
         private List<Long> characteristicIds = new ArrayList<>();
         private List<Long> advantageIds = new ArrayList<>();
@@ -315,6 +328,8 @@ public class SeriesController {
         private String description;
         @Schema(nullable = true)
         private Long kindId;
+        @Schema(nullable = true)
+        private Long explosionDiagramId;
         @Schema(nullable = true)
         private List<Long> serviceCenterIds = new ArrayList<>();
         @Schema(nullable = true)

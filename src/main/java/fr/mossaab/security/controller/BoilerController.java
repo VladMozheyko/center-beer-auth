@@ -56,10 +56,8 @@ public class BoilerController {
     @PutMapping("/update/{id}")
     public ResponseEntity<BoilerService.BoilerDTO> updateBoiler(
             @PathVariable Long id,
-            @RequestBody BoilerService.BoilerUpdateDTO boilerDTO,
-            @RequestParam(required = false) Long seriesId,
-            @RequestParam(required = false) List<Long> valueIds) {
-        return boilerService.updateBoiler(id, boilerDTO, seriesId, valueIds);
+            @RequestBody BoilerService.BoilerUpdateDTO boilerDTO) {
+        return boilerService.updateBoiler(id, boilerDTO);
     }
 
     @Operation(summary = "Удаление бойлера по идентификатору", description = "Удалить бойлер по идентификатору")

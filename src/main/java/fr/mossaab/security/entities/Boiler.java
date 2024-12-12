@@ -32,5 +32,12 @@ public class Boiler {
 
     @ManyToMany(mappedBy = "boilers")
     private List<Value> values =  new ArrayList<>();
+    @ManyToMany
+    @JoinTable(
+            name = "spare_part_boiler",
+            joinColumns = @JoinColumn(name = "boiler_id"),
+            inverseJoinColumns = @JoinColumn(name = "spare_part_id")
+    )
+    private List<SparePart> spareParts = new ArrayList<>();
 
 }

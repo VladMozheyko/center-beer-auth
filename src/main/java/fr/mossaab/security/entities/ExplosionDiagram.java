@@ -28,6 +28,9 @@ public class ExplosionDiagram {
     /**
      * Список запчастей, относящихся к данной взрывной схеме.
      */
+    @OneToOne(mappedBy = "explosionDiagram", cascade = CascadeType.ALL)
+    private Series series;
+
     @OneToMany(mappedBy = "explosionDiagram", cascade = CascadeType.ALL)
     private List<SparePart> spareParts;
 
