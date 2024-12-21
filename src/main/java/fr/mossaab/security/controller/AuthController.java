@@ -1,18 +1,13 @@
 package fr.mossaab.security.controller;
 
-import fr.mossaab.security.dto.request.AuthenticationRequest;
-import fr.mossaab.security.dto.request.RefreshTokenRequest;
-import fr.mossaab.security.dto.request.RegisterRequest;
-import fr.mossaab.security.dto.request.ResetPasswordRequest;
-import fr.mossaab.security.dto.response.AuthenticationResponse;
-import fr.mossaab.security.dto.response.RefreshTokenResponse;
 import fr.mossaab.security.service.AuthenticationService;
 import fr.mossaab.security.service.RefreshTokenService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -36,7 +31,7 @@ public class AuthController {
 
     @Operation(summary = "Регистрация пользователя", description = "Позволяет новому пользователю зарегистрироваться в системе.")
     @PostMapping(value = "/register", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<Object> register(@RequestPart RegisterRequest request, @RequestPart(required = false) MultipartFile image) throws IOException, ParseException {
+    public ResponseEntity<Object> register(@RequestPart AuthenticationService.RegisterRequest request, @RequestPart(required = false) MultipartFile image) throws IOException, ParseException {
         authenticationService.register(request, image);
         return ResponseEntity.ok().body("Код активации для активации аккаунта успешно отправлен на почтовый адрес");
     }
@@ -52,8 +47,8 @@ public class AuthController {
 
     @Operation(summary = "Вход пользователя", description = "Этот endpoint позволяет пользователю войти в систему.")
     @PostMapping("/login")
-    public ResponseEntity<Object> authenticate(@RequestBody AuthenticationRequest request) {
-        AuthenticationResponse authenticationResponse = authenticationService.authenticate(request);
+    public ResponseEntity<Object> authenticate(@RequestBody AuthenticationService.AuthenticationRequest request) {
+        AuthenticationService.AuthenticationResponse authenticationResponse = authenticationService.authenticate(request);
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, authenticationResponse.getJwtCookie())
                 .header(HttpHeaders.SET_COOKIE, authenticationResponse.getRefreshTokenCookie())
@@ -70,7 +65,7 @@ public class AuthController {
 
     @Operation(summary = "Обновление токена", description = "Этот endpoint позволяет обновить токен.")
     @PostMapping("/refresh-token")
-    public ResponseEntity<RefreshTokenResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
+    public ResponseEntity<AuthenticationService.RefreshTokenResponse> refreshToken(@RequestBody AuthenticationService.RefreshTokenRequest request) {
         return ResponseEntity.ok(refreshTokenService.generateNewToken(request));
     }
 
@@ -97,7 +92,7 @@ public class AuthController {
 
     @Operation(summary = "Смена пароля", description = "Этот endpoint позволяет сменить пароль пользователя с использованием кода активации.")
     @PostMapping("/reset-password")
-    public ResponseEntity<Object> resetPassword(@RequestBody ResetPasswordRequest request) {
+    public ResponseEntity<Object> resetPassword(@RequestBody AuthenticationService.ResetPasswordRequest request) {
         return authenticationService.resetPassword(request);
     }
 }

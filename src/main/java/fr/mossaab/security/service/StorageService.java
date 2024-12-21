@@ -1,6 +1,7 @@
 package fr.mossaab.security.service;
 
-import fr.mossaab.security.entities.*;
+import fr.mossaab.security.entities.FileData;
+import fr.mossaab.security.entities.User;
 import fr.mossaab.security.repository.FileDataRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,36 +31,6 @@ public class StorageService {
         // Устанавливаем связи в зависимости от типа объекта
         switch (relatedEntity.getClass().getSimpleName().toString()) {
 
-            case "ExplosionDiagram":
-                ExplosionDiagram explosionDiagram = (ExplosionDiagram) relatedEntity;
-                // Удаляем старый аватар, если он существует
-                if (explosionDiagram.getFileData() != null) {
-                    fileDataRepository.delete(explosionDiagram.getFileData());
-                }
-                builder.name(name + ".pdf");
-                builder.type("image/png");
-                builder.filePath("/var/www/vuary/explosion_diagram_files/" + name + ".pdf");
-                if (file != null && !file.isEmpty()) {
-                    file.transferTo(new File("/var/www/vuary/explosion_diagram_files/" + name + ".pdf"));
-                }
-                // Устанавливаем связь с пользователем
-                builder.explosionDiagram(explosionDiagram);
-                break;
-            case "Advantage":
-                Advantage advantage = (Advantage) relatedEntity;
-                // Удаляем старый аватар, если он существует
-                if (advantage.getFileData() != null) {
-                    fileDataRepository.delete(advantage.getFileData());
-                }
-                builder.name(name + ".png");
-                builder.type("image/png");
-                builder.filePath("/var/www/vuary/advantage_files/" + name + ".png");
-                if (file != null && !file.isEmpty()) {
-                    file.transferTo(new File("/var/www/vuary/advantage_files/" + name + ".png"));
-                }
-                // Устанавливаем связь с пользователем
-                builder.advantage(advantage);
-                break;
             case "User":
                 User user = (User) relatedEntity;
                 // Удаляем старый аватар, если он существует
@@ -75,77 +46,6 @@ public class StorageService {
                 // Устанавливаем связь с пользователем
                 builder.user(user);
                 break;
-
-            case "BonusRequest":
-                BonusRequest bonusRequest = (BonusRequest) relatedEntity;
-
-                builder.name(name + ".png");
-                builder.type("image/png");
-                builder.filePath("/var/www/vuary/bonus_request_files/" + name + ".png");
-                if (file != null && !file.isEmpty()) {
-                    file.transferTo(new File("/var/www/vuary/bonus_request_files/" + name + ".png"));
-                }
-                // Устанавливаем связь с бонусным запросом
-                builder.bonusRequest(bonusRequest);
-                break;
-            case "DocumentVerificationRequest":
-                DocumentVerificationRequest documentVerification = (DocumentVerificationRequest) relatedEntity;
-
-                builder.name(name + ".png");
-                builder.type("image/png");
-                builder.filePath("/var/www/vuary/document_verification_files/" + name + ".png");
-                if (file != null && !file.isEmpty()) {
-                    file.transferTo(new File("/var/www/vuary/document_verification_files/" + name + ".png"));
-                }
-                // Устанавливаем связь с бонусным запросом
-                builder.documentVerification(documentVerification);
-                break;
-            case "SparePart":
-                SparePart sparePart = (SparePart) relatedEntity;
-
-                builder.name(name + ".png");
-                builder.type("image/png");
-                builder.filePath("/var/www/vuary/spare_part_files/" + name + ".png");
-                if (file != null && !file.isEmpty()) {
-                    file.transferTo(new File("/var/www/vuary/spare_part_files/" + name + ".png"));
-                }
-                // Устанавливаем связь с бонусным запросом
-                builder.sparePart(sparePart);
-                break;
-            case "BoilerSeriesPassport":
-                builder.name(name + ".pdf");
-                builder.type("application/pdf");
-                builder.filePath("/var/www/vuary/boiler_series_passport_files/" + name + ".pdf");
-                if (file != null && !file.isEmpty()) {
-                    file.transferTo(new File("/var/www/vuary/boiler_series_passport_files/" + name + ".pdf"));
-                }
-                if (relatedEntity instanceof BoilerSeriesPassport) {
-                    BoilerSeriesPassport boilerSeriesPassport = (BoilerSeriesPassport) relatedEntity;
-                    builder.boilerSeriesPassport(boilerSeriesPassport);
-                }
-                break;  // Добавляем break для завершения этого case
-
-//            case "DocumentTitle":
-//                builder.name(name + ".pdf");
-//                builder.type("application/pdf");
-//                builder.filePath("/var/www/vuary/Processing_Policy_and_User_Agreement/" + name + ".pdf");
-//                if (file != null && !file.isEmpty()) {
-//                    file.transferTo(new File("/var/www/vuary/Processing_Policy_and_User_Agreement/" + name + ".pdf"));
-//                }
-//                DocumentTitle documentTitle = (DocumentTitle) relatedEntity;
-//                builder.documentTitle(documentTitle);
-//                break;  // Добавляем break для завершения этого case
-            case "Series":
-                Series series = (Series) relatedEntity;
-                builder.name(name + ".png");
-                builder.type("image/png");
-                builder.filePath("/var/www/vuary/series_files/" + name + ".png");
-                if (file != null && !file.isEmpty()) {
-                    file.transferTo(new File("/var/www/vuary/series_files/" + name + ".png"));
-                }
-                builder.series(series);
-                break;
-
             // Можно добавить дополнительные случаи для других типов объектов
             default:
                 throw new IllegalArgumentException("Unsupported related entity type: " + relatedEntity.getClass().getSimpleName());

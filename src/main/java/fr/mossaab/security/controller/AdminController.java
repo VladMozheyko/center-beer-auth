@@ -1,11 +1,10 @@
 package fr.mossaab.security.controller;
 
-import fr.mossaab.security.dto.response.GetAllUsersResponse;
 import fr.mossaab.security.service.AdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.util.List;
 
 @Tag(name = "Администратор", description = "Контроллер предоставляет базовые методы доступные пользователю с ролью администратор")
 @RestController
@@ -24,8 +24,8 @@ public class AdminController {
 
     @Operation(summary = "Получить всех пользователей", description = "Этот endpoint возвращает список всех пользователей с пагинацией.")
     @GetMapping("/allUsers")
-    public ResponseEntity<GetAllUsersResponse> getAllUsers(@RequestParam(defaultValue = "0") int page,
-                                                           @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<AdminService.GetAllUsersResponse> getAllUsers(@RequestParam(defaultValue = "0") int page,
+                                                                        @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(adminService.getAllUsers(page, size));
     }
 
@@ -33,5 +33,81 @@ public class AdminController {
     @GetMapping("/get-logs")
     public ResponseEntity<String> getLogs() throws IOException {
         return ResponseEntity.ok(adminService.getLogs());
+    }
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    private static class GetAllUsersResponse {
+
+        private String status;
+        private String notify;
+        private List<GetUsersDto> users;
+        private int offset;
+        private int pageNumber;
+        private long totalElements;
+        private int totalPages;
+        private int pageSize;
+        private boolean last;
+        private boolean first;
+
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public class GetUsersDto {
+
+        /**
+         * Имя пользователя.
+         */
+        private String firstname;
+
+        /**
+         * Электронная почта пользователя.
+         */
+        private String email;
+
+        /**
+         * Фамилия пользователя.
+         */
+        private String lastname;
+
+        /**
+         * Номер телефона пользователя.
+         */
+        private String phoneNumber;
+
+        /**
+         * Роль работника.
+         */
+        private String workerRole;
+
+        /**
+         * Дата рождения пользователя.
+         */
+        private String dateOfBirth;
+
+        /**
+         * Фотография пользователя.
+         */
+        private String photo;
+
+        /**
+         * Код активации.
+         */
+        private Boolean activationCode;
+
+        /**
+         * Роль пользователя.
+         */
+        private String role;
+
+        /**
+         * Уникальный идентификатор пользователя.
+         */
+        private String id;
+        private int balance;
     }
 }

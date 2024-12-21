@@ -4,8 +4,6 @@ import fr.mossaab.security.entities.RefreshToken;
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.enums.TokenType;
 import fr.mossaab.security.exception.TokenException;
-import fr.mossaab.security.dto.request.RefreshTokenRequest;
-import fr.mossaab.security.dto.response.RefreshTokenResponse;
 import fr.mossaab.security.repository.RefreshTokenRepository;
 import fr.mossaab.security.repository.UserRepository;
 
@@ -91,14 +89,14 @@ public class RefreshTokenService {
      * @param request Запрос на обновление токена
      * @return Ответ с новым JWT токеном и Refresh токеном
      */
-    public RefreshTokenResponse generateNewToken(RefreshTokenRequest request) {
+    public AuthenticationService.RefreshTokenResponse generateNewToken(AuthenticationService.RefreshTokenRequest request) {
         User user = refreshTokenRepository.findByToken(request.getRefreshToken())
                 .map(this::verifyExpiration)
                 .map(RefreshToken::getUser)
                 .orElseThrow(() -> new TokenException(request.getRefreshToken(),"Refresh token does not exist"));
 
         String token = jwtService.generateToken(user);
-        return RefreshTokenResponse.builder()
+        return AuthenticationService.RefreshTokenResponse.builder()
                 .accessToken(token)
                 .refreshToken(request.getRefreshToken())
                 .tokenType(TokenType.BEARER.name())

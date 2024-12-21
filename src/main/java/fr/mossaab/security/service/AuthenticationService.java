@@ -1,21 +1,17 @@
 package fr.mossaab.security.service;
 
 
-import fr.mossaab.security.dto.request.RefreshTokenRequest;
-import fr.mossaab.security.dto.request.ResetPasswordRequest;
-import fr.mossaab.security.dto.response.RefreshTokenResponse;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.mossaab.security.controller.AuthController;
 import fr.mossaab.security.entities.FileData;
 import fr.mossaab.security.enums.Role;
 import fr.mossaab.security.enums.TokenType;
-import fr.mossaab.security.enums.WorkerRole;
-import fr.mossaab.security.dto.request.AuthenticationRequest;
-import fr.mossaab.security.dto.request.RegisterRequest;
-import fr.mossaab.security.dto.response.AuthenticationResponse;
 import fr.mossaab.security.repository.FileDataRepository;
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.repository.UserRepository;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -33,10 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Реализация интерфейса AuthenticationService.
@@ -71,7 +64,6 @@ public class AuthenticationService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER)
                 .dateOfBirth(format.parse(request.getDateOfBirth()))
-                .workerRoles(WorkerRole.valueOf(request.getWorkerRole()))
                 .phoneNumber(request.getPhoneNumber())
                 .build();
         String activationCode = UUID.randomUUID().toString();
@@ -210,12 +202,6 @@ public class AuthenticationService {
                 .build();
     }
 
-    /**
-     * Активирует пользователя по активационному коду.
-     *
-     * @param code Активационный код пользователя.
-     * @return true, если пользователь успешно активирован, иначе false.
-     */
     public synchronized boolean activateUser(String code) {
         User userEntity = userRepository.findByActivationCode(code);
         if (userEntity == null) {
@@ -228,5 +214,181 @@ public class AuthenticationService {
         } else {
             throw new NullPointerException("Введенный код не совпадает с истинным");
         }
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RefreshTokenRequest {
+
+        /**
+         * Токен обновления.
+         */
+        private String refreshToken;
+
+    }
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ActivateResponse {
+        private String status;
+        private String notify;
+        private String answer;
+        private ErrorActivateDto errors;
+
+        // Геттеры и сеттеры
+    }
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ErrorActivateDto {
+        private String code;
+
+        // Геттеры и сеттеры
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AuthenticationResponse {
+
+        /**
+         * Уникальный идентификатор пользователя.
+         */
+        private Long id;
+
+        /**
+         * Электронная почта пользователя.
+         */
+        private String email;
+
+        /**
+         * Список ролей пользователя.
+         */
+        private List<String> roles;
+
+        /**
+         * Токен доступа.
+         */
+        @JsonProperty("access_token")
+        private String accessToken;
+
+        /**
+         * Токен обновления.
+         */
+        @JsonProperty("refresh_token")
+        private String refreshToken;
+
+        /**
+         * Тип токена.
+         */
+        @JsonProperty("token_type")
+        private String tokenType;
+
+        private String jwtCookie;
+        private String refreshTokenCookie;
+    }
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RegisterRequest {
+
+        /**
+         * Имя пользователя.
+         */
+        @Schema(description = "Имя пользователя", example = "Александр")
+        private String firstname;
+
+        /**
+         * Фамилия пользователя.
+         */
+        @Schema(description = "Фамилия пользователя", example = "Иванов")
+        private String lastname;
+
+        /**
+         * Электронная почта пользователя.
+         */
+        @Schema(description = "Почтовый адрес пользователя", example = "example@gmail.ru")
+        private String email;
+
+        /**
+         * Пароль пользователя.
+         */
+        @Schema(description = "Пароль пользователя", example = "Sasha123!")
+        private String password;
+
+
+
+        /**
+         * Дата рождения пользователя в формате строки.
+         */
+        @Schema(description = "Дата рождения", example = "2000-01-01")
+        private String dateOfBirth;
+
+        /**
+         * Номер телефона пользователя.
+         */
+        @Schema(description = "Номер телефона", example = "+78005553555")
+        private String phoneNumber;
+
+    }
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RefreshTokenResponse {
+
+        /**
+         * Токен доступа.
+         */
+        @JsonProperty("access_token")
+        private String accessToken;
+
+        /**
+         * Токен обновления.
+         */
+        @JsonProperty("refresh_token")
+        private String refreshToken;
+
+        /**
+         * Тип токена.
+         */
+        @JsonProperty("token_type")
+        private String tokenType;
+
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ResetPasswordRequest {
+        private String code;
+        private String newPassword;
+
+        // Геттеры и сеттеры
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AuthenticationRequest {
+
+        /**
+         * Электронная почта пользователя.
+         */
+        @Schema(example = "Vlad72229@yandex.ru")
+        private String email;
+
+        /**
+         * Пароль пользователя.
+         */
+        @Schema(example = "Vlad!123")
+        private String password;
     }
 }

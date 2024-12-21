@@ -50,44 +50,4 @@ public class FileData {
     @JsonBackReference
     private User user;
 
-    @ManyToOne(optional = true, fetch = FetchType.LAZY)
-    @JoinColumn(name = "bonus_request_id", nullable = true)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JsonBackReference
-    private BonusRequest bonusRequest;
-
-    @OneToOne
-    @JoinColumn(name = "passport_title_id", unique = true, nullable = true)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JsonBackReference
-    private BoilerSeriesPassport boilerSeriesPassport;
-
-    /**
-     * Родительская сущность Series, связанная с файлом.
-     */
-    @ManyToOne(optional = true, fetch = FetchType.LAZY)
-    @JoinColumn(name = "series_id", nullable = true)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JsonBackReference
-    private Series series;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "document_verification_id", nullable = true)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JsonBackReference
-    private DocumentVerificationRequest documentVerification;
-    /**
-     * Связь с запчастью (SparePart), к которой привязан файл.
-     */
-    @OneToOne(mappedBy = "fileData", optional = true)
-    @JsonBackReference
-    private SparePart sparePart;
-
-    @OneToOne(mappedBy = "fileData", optional = true)
-    @JsonBackReference
-    private Advantage advantage;
-
-    @OneToOne(mappedBy = "fileData", optional = true)
-    @JsonBackReference
-    private ExplosionDiagram explosionDiagram;
 }

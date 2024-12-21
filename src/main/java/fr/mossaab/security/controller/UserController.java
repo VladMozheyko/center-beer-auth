@@ -1,16 +1,13 @@
 package fr.mossaab.security.controller;
 
-import fr.mossaab.security.dto.request.EditProfileDto;
-import fr.mossaab.security.dto.response.*;
 import fr.mossaab.security.entities.*;
-import fr.mossaab.security.enums.RequestStatus;
 import fr.mossaab.security.repository.*;
 import fr.mossaab.security.service.MailSender;
 import fr.mossaab.security.service.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -104,7 +101,6 @@ public class UserController {
 
         // Заполняем данные пользователя
         userDTO.setRole(user.getRole().toString());
-        userDTO.setTypeOfWorker(user.getWorkerRoles().toString());
         userDTO.setFirstName(user.getFirstname());
         userDTO.setLastName(user.getLastname());
         userDTO.setPhoto(fileDataPath);
@@ -154,21 +150,16 @@ public class UserController {
         }
 
         // Проверяем статус верификации документов
-        boolean isVerified = user.getDocumentVerifications()
-                .stream()
-                .anyMatch(request -> request.getStatus() == RequestStatus.APPROVED);
 
         // Заполняем данные профиля
         answer.setPhone(user.getPhoneNumber());
         answer.setDateOfBirth(user.getDateOfBirth() != null ? user.getDateOfBirth().toString() : null);
-        answer.setTypeOfWorker(user.getWorkerRoles().toString());
         answer.setFirstName(user.getFirstname());
         answer.setLastName(user.getLastname());
         answer.setEmail(user.getEmail());
         answer.setPhoto(fileDataPath);
         answer.setUserId(user.getId());
         answer.setBalance(user.getBalance()); // Установка баланса пользователя
-        answer.setVerified(isVerified); // Установка статуса верификации
 
         response.setAnswer(answer);
 
@@ -263,5 +254,55 @@ public class UserController {
         userRepository.save(user);
 
         return ResponseEntity.ok("Изменения профиля успешно подтверждены.");
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class GetUserResponse {
+        private String status;
+        private Object answer;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UserDTO {
+        private String role;
+        private String typeOfWorker;
+        private String firstName;
+        private String lastName;
+        private String photo;
+    }
+    @Getter
+    @Setter
+    public static class ResponseGetProfile {
+        private String status;
+        private String notify;
+        private AnswerGetProfile answer;
+    }
+    @Data
+    public static class AnswerGetProfile {
+        private String phone;
+        private String dateOfBirth;
+        private String typeOfWorker;
+        private String firstName;
+        private String lastName;
+        private String email;
+        private String photo;
+        private Long userId;
+        private int balance; // Баланс пользователя
+        private boolean isVerified; // Статус верификации документов
+    }
+    @Data
+    public class EditProfileDto {
+        private MultipartFile image;
+        private String firstName;
+        private String lastName;
+        private String phoneNumber;
+        private String email;
+        private String dateOfBirth;
     }
 }

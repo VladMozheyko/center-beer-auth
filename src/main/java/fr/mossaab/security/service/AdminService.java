@@ -1,12 +1,12 @@
 package fr.mossaab.security.service;
 
-import fr.mossaab.security.dto.response.GetAllUsersResponse;
-import fr.mossaab.security.dto.response.GetUsersDto;
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.enums.Role;
-import fr.mossaab.security.enums.WorkerRole;
 import fr.mossaab.security.repository.UserRepository;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -30,14 +30,12 @@ public class AdminService {
         List<GetUsersDto> userDtos = new ArrayList<>();
 
         for (User user : users) {
-            WorkerRole workerRole = user.getWorkerRoles();
             Role role = user.getRole();
-            GetUsersDto userDto = new GetUsersDto(
+            AdminService.GetUsersDto userDto = new AdminService.GetUsersDto(
                     user.getFirstname() != null ? user.getFirstname() : null,
                     user.getEmail() != null ? user.getEmail() : null,
                     user.getLastname() != null ? user.getLastname() : null,
                     user.getPhoneNumber() != null ? user.getPhoneNumber() : null,
-                    workerRole != null ? workerRole.name() : null,
                     user.getDateOfBirth() != null ? user.getDateOfBirth().toString() : null,
                     "http://31.129.102.70:8080/user/fileSystem/" + (user.getFileData() != null && user.getFileData().getName() != null ? user.getFileData().getName() : null),
                     user.getActivationCode() == null,
@@ -65,5 +63,76 @@ public class AdminService {
         response.setFirst(page == 0);
 
         return response;
+    }
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class GetAllUsersResponse {
+
+        private String status;
+        private String notify;
+        private List<GetUsersDto> users;
+        private int offset;
+        private int pageNumber;
+        private long totalElements;
+        private int totalPages;
+        private int pageSize;
+        private boolean last;
+        private boolean first;
+
+    }
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    private static class GetUsersDto {
+
+        /**
+         * Имя пользователя.
+         */
+        private String firstname;
+
+        /**
+         * Электронная почта пользователя.
+         */
+        private String email;
+
+        /**
+         * Фамилия пользователя.
+         */
+        private String lastname;
+
+        /**
+         * Номер телефона пользователя.
+         */
+        private String phoneNumber;
+
+        /**
+         * Дата рождения пользователя.
+         */
+        private String dateOfBirth;
+
+        /**
+         * Фотография пользователя.
+         */
+        private String photo;
+
+        /**
+         * Код активации.
+         */
+        private Boolean activationCode;
+
+        /**
+         * Роль пользователя.
+         */
+        private String role;
+
+        /**
+         * Уникальный идентификатор пользователя.
+         */
+        private String id;
+        private int balance;
+
     }
 }
