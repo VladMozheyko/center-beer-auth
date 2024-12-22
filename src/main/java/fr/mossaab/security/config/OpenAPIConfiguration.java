@@ -83,7 +83,7 @@ public class OpenAPIConfiguration {
 
     @Bean
     public OpenApiCustomizer openApiCustomizer() {
-        return openApi -> openApi.addServersItem(new io.swagger.v3.oas.models.servers.Server().url("http://31.129.102.70:8080"));
+        return openApi -> openApi.addServersItem(new io.swagger.v3.oas.models.servers.Server().url("http://31.129.102.70:8081"));
     }
 
     /**
