@@ -2,7 +2,6 @@ package fr.mossaab.security.service;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.mossaab.security.controller.AuthController;
 import fr.mossaab.security.entities.FileData;
 import fr.mossaab.security.enums.Role;
 import fr.mossaab.security.enums.TokenType;
@@ -12,6 +11,8 @@ import fr.mossaab.security.repository.UserRepository;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -47,7 +48,7 @@ public class AuthenticationService {
     private final RefreshTokenService refreshTokenService;
     private final MailSender mailSender;
     private final StorageService storageService;
-
+    private static final Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
     /**
      * Регистрирует нового пользователя.
      *
@@ -58,13 +59,9 @@ public class AuthenticationService {
     public AuthenticationResponse register(RegisterRequest request, MultipartFile image) throws IOException, ParseException {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         var user = User.builder()
-                .firstname(request.getFirstname())
-                .lastname(request.getLastname())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER)
-                .dateOfBirth(format.parse(request.getDateOfBirth()))
-                .phoneNumber(request.getPhoneNumber())
                 .build();
         String activationCode = UUID.randomUUID().toString();
         user.setActivationCode(activationCode);
@@ -177,10 +174,12 @@ public class AuthenticationService {
      * @return Ответ с данными пользователя и токенами.
      */
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
+        logger.debug("Step 1");
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-
+        logger.debug("Step 2");
         var user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new IllegalArgumentException("Invalid email or password."));
+        logger.debug("User authenticated: {}, Role: {}", user.getEmail(), user.getRole().name());
         var roles = user.getRole().getAuthorities()
                 .stream()
                 .map(SimpleGrantedAuthority::getAuthority)

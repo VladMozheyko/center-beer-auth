@@ -5,7 +5,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -13,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Tag(name = "Администратор", description = "Контроллер предоставляет базовые методы доступные пользователю с ролью администратор")
 @RestController
@@ -21,8 +27,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdminController {
     private final AdminService adminService;
+    private static final Logger logger = LoggerFactory.getLogger(AdminController .class);
 
+    //@PreAuthorize("hasAuthority('READ_PRIVILEGE')")
     @Operation(summary = "Получить всех пользователей", description = "Этот endpoint возвращает список всех пользователей с пагинацией.")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/allUsers")
     public ResponseEntity<AdminService.GetAllUsersResponse> getAllUsers(@RequestParam(defaultValue = "0") int page,
                                                                         @RequestParam(defaultValue = "10") int size) {
@@ -30,29 +39,11 @@ public class AdminController {
     }
 
     @Operation(summary = "Получение логов сервер", description = "Этот endpoint возвращает логи с сервера.")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/get-logs")
     public ResponseEntity<String> getLogs() throws IOException {
         return ResponseEntity.ok(adminService.getLogs());
     }
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    private static class GetAllUsersResponse {
-
-        private String status;
-        private String notify;
-        private List<GetUsersDto> users;
-        private int offset;
-        private int pageNumber;
-        private long totalElements;
-        private int totalPages;
-        private int pageSize;
-        private boolean last;
-        private boolean first;
-
-    }
-
     @Getter
     @Setter
     @NoArgsConstructor

@@ -26,7 +26,7 @@ import org.springframework.context.annotation.Configuration;
                         name = "Alexandr",
                         email = "kichmarev@list.ru"
                 ),
-                title = "Kotitonttu API",
+                title = "GoMind API",
                 description = """
                         <strong>API для отопительных систем.</strong>
                         
@@ -38,7 +38,7 @@ import org.springframework.context.annotation.Configuration;
                         
                         <strong>Шаги для скачивания OpenAPI спецификации:</strong>
                         1. Перейдите к файлу спецификации OpenAPI:
-                            http://31.129.102.70:8080/v3/api-docs
+                            http://31.129.102.70:8081/v3/api-docs
                         2. Загрузка спецификации:
                             Откроется JSON-файл с описанием всех ваших API.
                         3. Чтобы его скачать, щелкните правой кнопкой мыши на странице и выберите "Сохранить как...", затем сохраните файл как .json.

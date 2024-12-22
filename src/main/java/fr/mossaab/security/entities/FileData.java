@@ -50,4 +50,6 @@ public class FileData {
     @JsonBackReference
     private User user;
 
+    @OneToOne(mappedBy = "fileData", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Advertisement advertisement;
 }

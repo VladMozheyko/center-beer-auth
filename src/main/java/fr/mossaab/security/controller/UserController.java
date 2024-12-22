@@ -30,7 +30,7 @@ public class UserController {
     private final UserRepository userRepository;
     private final MailSender mailSender;
 
-    @Operation(summary = "Загрузка PDF-файла из файловой системы", description = "Этот эндпоинт позволяет загрузить PDF-файл из файловой системы.")
+    @Operation(summary = "Загрузка PDF-файла из файловой системы", description = "Этот endpoint позволяет загрузить PDF-файл из файловой системы.")
     @GetMapping("/fileSystemPdf/{fileName}")
     public ResponseEntity<?> downloadPdfFromFileSystem(@PathVariable String fileName) throws IOException {
         byte[] pdfData = storageService.downloadImageFromFileSystem(fileName);
@@ -39,7 +39,7 @@ public class UserController {
                 .body(pdfData);
     }
 
-    @Operation(summary = "Загрузка изображения из файловой системы", description = "Этот эндпоинт позволяет загрузить изображение из файловой системы.")
+    @Operation(summary = "Загрузка изображения из файловой системы", description = "Этот endpoint позволяет загрузить изображение из файловой системы.")
     @GetMapping("/fileSystem/{fileName}")
     public ResponseEntity<?> downloadImageFromFileSystem(@PathVariable String fileName) throws IOException {
         byte[] imageData = storageService.downloadImageFromFileSystem(fileName);
@@ -47,7 +47,7 @@ public class UserController {
                 .contentType(MediaType.valueOf("image/png"))
                 .body(imageData);
     }
-    @Operation(summary = "Загрузка PDF-файла по идентификатору", description = "Этот эндпоинт позволяет загрузить PDF-файл по идентификатору.")
+    @Operation(summary = "Загрузка PDF-файла по идентификатору", description = "Этот endpoint позволяет загрузить PDF-файл по идентификатору.")
     @GetMapping("/fileSystemPdfById/{fileDataId}")
     public ResponseEntity<?> downloadPdfById(@PathVariable Long fileDataId) throws IOException {
         FileData fileData = fileDataRepository.findById(fileDataId)
@@ -59,7 +59,7 @@ public class UserController {
                 .contentType(MediaType.valueOf("application/pdf"))
                 .body(pdfData);
     }
-    @Operation(summary = "Загрузка изображения по идентификатору", description = "Этот эндпоинт позволяет загрузить изображение по идентификатору.")
+    @Operation(summary = "Загрузка изображения по идентификатору", description = "Этот endpoint позволяет загрузить изображение по идентификатору.")
     @GetMapping("/fileSystemImageById/{fileDataId}")
     public ResponseEntity<?> downloadImageById(@PathVariable Long fileDataId) throws IOException {
         FileData fileData = fileDataRepository.findById(fileDataId)
@@ -71,7 +71,7 @@ public class UserController {
                 .contentType(MediaType.valueOf("image/png"))
                 .body(imageData);
     }
-    @Operation(summary = "Получить данные пользователя", description = "Этот эндпоинт возвращает данные пользователя на основе предоставленного куки.")
+    @Operation(summary = "Получить данные пользователя", description = "Этот endpoint возвращает данные пользователя на основе предоставленного куки.")
     @GetMapping("/user")
     public ResponseEntity<GetUserResponse> getUser(@CookieValue("refresh-jwt-cookie") String cookie) {
         GetUserResponse response = new GetUserResponse();
@@ -101,8 +101,6 @@ public class UserController {
 
         // Заполняем данные пользователя
         userDTO.setRole(user.getRole().toString());
-        userDTO.setFirstName(user.getFirstname());
-        userDTO.setLastName(user.getLastname());
         userDTO.setPhoto(fileDataPath);
 
         response.setStatus("success");
@@ -152,14 +150,9 @@ public class UserController {
         // Проверяем статус верификации документов
 
         // Заполняем данные профиля
-        answer.setPhone(user.getPhoneNumber());
-        answer.setDateOfBirth(user.getDateOfBirth() != null ? user.getDateOfBirth().toString() : null);
-        answer.setFirstName(user.getFirstname());
-        answer.setLastName(user.getLastname());
         answer.setEmail(user.getEmail());
         answer.setPhoto(fileDataPath);
         answer.setUserId(user.getId());
-        answer.setBalance(user.getBalance()); // Установка баланса пользователя
 
         response.setAnswer(answer);
 
@@ -210,7 +203,7 @@ public class UserController {
         String message = String.format(
                 "Здравствуйте, %s! \n" +
                         "Для подтверждения изменений профиля перейдите по этой ссылке: http://31.129.102.70:8080/user/confirm-changes/%s",
-                user.getFirstname(),
+                user.getNickname(),
                 user.getActivationCode()
         );
 
@@ -228,22 +221,9 @@ public class UserController {
         }
 
         Map<String, String> changes = user.getProposedChanges().getChanges();
-        if (changes.containsKey("firstName")) {
-            user.setFirstname(changes.get("firstName"));
-        }
-        if (changes.containsKey("lastName")) {
-            user.setLastname(changes.get("lastName"));
-        }
-        if (changes.containsKey("phoneNumber")) {
-            user.setPhoneNumber(changes.get("phoneNumber"));
-        }
         if (changes.containsKey("email")) {
             user.setEmail(changes.get("email"));
         }
-        if (changes.containsKey("dateOfBirth")) {
-            user.setDateOfBirth(Date.valueOf(changes.get("dateOfBirth")));
-        }
-
         FileData proposedPhoto = user.getProposedChanges().getProposedPhoto();
         if (proposedPhoto != null) {
             user.setFileData(proposedPhoto);

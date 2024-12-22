@@ -1,5 +1,6 @@
 package fr.mossaab.security.service;
 
+import fr.mossaab.security.controller.AdminController;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -7,6 +8,8 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,7 +27,7 @@ import java.util.function.Function;
  */
 @Service
 public class JwtService {
-
+    private static final Logger logger = LoggerFactory.getLogger(JwtService.class);
     @Value("${application.security.jwt.secret-key}")
     private String secretKey;
 
@@ -155,6 +158,13 @@ public class JwtService {
             UserDetails userDetails,
             long expiration
     ) {
+        String role = userDetails.getAuthorities().stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Role not found"))
+                .getAuthority();
+        extraClaims.put("role", role);
+
+        logger.debug("Building token with claims: {}", extraClaims);
         return Jwts
                 .builder()
                 .setClaims(extraClaims)
@@ -191,7 +201,10 @@ public class JwtService {
                 .parseClaimsJws(token)
                 .getBody();
     }
-
+    public String extractRole(String token) {
+        logger.debug("Extracted role: {}");
+        return extractClaim(token, claims -> claims.get("role", String.class));
+    }
     /**
      * Получает ключ для подписи JWT токена на основе секретного ключа.
      *

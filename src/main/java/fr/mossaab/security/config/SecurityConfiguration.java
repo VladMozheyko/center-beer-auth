@@ -30,13 +30,11 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @EnableMethodSecurity
 public class SecurityConfiguration {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter; // Фильтр аутентификации по JWT
-    private final AuthenticationProvider authenticationProvider; // Провайдер аутентификации
-    private final Http401UnauthorizedEntryPoint unauthorizedEntryPoint; // Обработчик неаутентифицированных запросов
-    private final CustomAccessDeniedHandler accessDeniedHandler; // Обработчик запрета доступа
-
     private static final Long MAX_AGE = 3600L; // Максимальное время жизни CORS-заголовков
     private static final int CORS_FILTER_ORDER = -102; // Порядок CORS-фильтра
+    private final JwtAuthenticationFilter jwtAuthenticationFilter; // Фильтр аутентификации по JWT
+    private final AuthenticationProvider authenticationProvider; // Провайдер аутентификации
+    private final CustomAccessDeniedHandler accessDeniedHandler; // Обработчик запрета доступа
 
     /**
      * Конфигурация цепочки фильтров безопасности.
@@ -55,8 +53,7 @@ public class SecurityConfiguration {
                         .accessDeniedHandler(accessDeniedHandler)) // Настройка обработчика ошибок
                 .authorizeHttpRequests(request ->
                         request
-                                .requestMatchers("/passport/**",
-                                        "/heatingSystem/**",
+                                .requestMatchers(
                                         "/authentication/**",
                                         "/user/**",
                                         "/admin/**",
@@ -70,26 +67,10 @@ public class SecurityConfiguration {
                                         "/swagger-ui/**",
                                         "/webjars/**",
                                         "/swagger-ui.html",
-                                        "/types/**",
-                                        "/kinds/**",
-                                        "/documents/**",
-                                        "/service-centers/**",
-                                        "/bonus-program/**",
-                                        "/series/**",
-                                        "/unit/**",
-                                        "/characteristic/**",
-                                        "/attribute/**",
-                                        "/error/**",
-                                        "/type/**",
-                                        "/kind/**",
-                                        "/value/**",
-                                        "/boiler/**",
-                                        "/advantage/**",
-                                        "/spare-part/**",
-                                        "/boiler-series-passport/**",
-                                        "/explosion-diagram/**",
-                                        "/messages/**"
-                                ).permitAll() // Разрешение доступа к определенным ресурсам без аутентификации
+                                        "/messages/**",
+                                        "/quiz/**"
+                                )
+                                .permitAll() // Разрешение доступа к определенным ресурсам без аутентификации
                                 .requestMatchers(HttpMethod.POST, "/api/v1/resource").hasRole("ADMIN") // Разрешение доступа с ролью ADMIN
                                 .anyRequest().authenticated()) // Аутентификация для остальных запросов
                 .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS)) // Установка политики управления сеансами

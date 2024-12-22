@@ -32,16 +32,11 @@ public class AdminService {
         for (User user : users) {
             Role role = user.getRole();
             AdminService.GetUsersDto userDto = new AdminService.GetUsersDto(
-                    user.getFirstname() != null ? user.getFirstname() : null,
                     user.getEmail() != null ? user.getEmail() : null,
-                    user.getLastname() != null ? user.getLastname() : null,
-                    user.getPhoneNumber() != null ? user.getPhoneNumber() : null,
-                    user.getDateOfBirth() != null ? user.getDateOfBirth().toString() : null,
-                    "http://31.129.102.70:8080/user/fileSystem/" + (user.getFileData() != null && user.getFileData().getName() != null ? user.getFileData().getName() : null),
+                    "http://31.129.102.70:8081/user/fileSystem/" + (user.getFileData() != null && user.getFileData().getName() != null ? user.getFileData().getName() : null),
                     user.getActivationCode() == null,
                     role != null ? role.name() : null,
-                    user.getId() != null ? user.getId().toString() : null,
-                    user.getBalance()
+                    user.getId() != null ? user.getId().toString() : null
             );
             userDtos.add(userDto);
         }
@@ -88,30 +83,11 @@ public class AdminService {
     @AllArgsConstructor
     private static class GetUsersDto {
 
-        /**
-         * Имя пользователя.
-         */
-        private String firstname;
 
         /**
          * Электронная почта пользователя.
          */
         private String email;
-
-        /**
-         * Фамилия пользователя.
-         */
-        private String lastname;
-
-        /**
-         * Номер телефона пользователя.
-         */
-        private String phoneNumber;
-
-        /**
-         * Дата рождения пользователя.
-         */
-        private String dateOfBirth;
 
         /**
          * Фотография пользователя.
@@ -132,7 +108,6 @@ public class AdminService {
          * Уникальный идентификатор пользователя.
          */
         private String id;
-        private int balance;
 
     }
 }

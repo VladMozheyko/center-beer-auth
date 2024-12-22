@@ -26,28 +26,25 @@ public class User implements UserDetails {
     @GeneratedValue
     private Long id;
 
-    private String firstname;
+    @Column(nullable = false, unique = true)
+    private String nickname;
 
-    private String lastname;
-
+    @Column(nullable = false, unique = true)
     private String email;
 
     private String password;
 
     private String activationCode;
 
-    private String phoneNumber;
+    @Column(nullable = false, columnDefinition = "bigint default 0")
+    private Integer pears = 0; // Количество груш пользователя (может быть null)
 
     @Column(nullable = false, columnDefinition = "bigint default 0")
-    private int balance = 0;
+    private Integer points = 0; // Баллы пользователя (может быть null)
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.MERGE, orphanRemoval = true)
     @JsonManagedReference
     private FileData fileData;
-
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
-    @Temporal(TemporalType.DATE)
-    private Date dateOfBirth;
 
     @Enumerated(EnumType.STRING)
     private Role role;

@@ -15,22 +15,10 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.time.Instant;
 
-/**
- * Компонент для обработки случаев отказа в доступе (403 Forbidden).
- * Логирует ошибку и возвращает клиенту информацию об ошибке в формате JSON.
- */
 @Component
 @Slf4j
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
-    /**
-     * Обрабатывает отказ в доступе.
-     *
-     * @param request HTTP запрос.
-     * @param response HTTP ответ.
-     * @param accessDeniedException Исключение, указывающее на отказ в доступе.
-     * @throws IOException Если возникает ошибка ввода-вывода.
-     */
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException {
         // Логируем ошибку отказа в доступе с сообщением исключения.

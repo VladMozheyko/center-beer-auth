@@ -32,11 +32,6 @@ public class MailConfig {
     @Value("${mail.debug}")
     private String debug; // Флаг отладки для почтовых сообщений
 
-    /**
-     * Создает и настраивает JavaMailSender для отправки почты.
-     *
-     * @return JavaMailSender для отправки почты
-     */
     @Bean
     public JavaMailSender getMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();

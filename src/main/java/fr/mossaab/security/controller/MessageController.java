@@ -40,9 +40,9 @@ public class MessageController {
             @RequestParam String messageContent) {
 
         User sender = userRepository.findById(senderId)
-                .orElseThrow(() -> new RuntimeException("Sender not found"));
+                .orElseThrow(() -> new RuntimeException("Отправитель не найден."));
         User receiver = userRepository.findById(receiverId)
-                .orElseThrow(() -> new RuntimeException("Receiver not found"));
+                .orElseThrow(() -> new RuntimeException("Получатель не найден."));
 
         // Сохраняем сообщение
         Message message = new Message();
@@ -59,7 +59,7 @@ public class MessageController {
         // Отправка сообщения через Pusher
         pusher.trigger("my-channel-" + receiverId, "my-event", Collections.singletonMap("message", messageContent));
 
-        return "Message sent from " + sender.getFirstname() + " to " + receiver.getFirstname();
+        return "Message sent from " + sender.getEmail() + " to " + receiver.getEmail();
     }
 
 
@@ -67,7 +67,7 @@ public class MessageController {
     @GetMapping("/dialogues/{userId}")
     public List<DialogueDTO> getUserDialogues(@PathVariable Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 
         // Получаем все сообщения, где пользователь отправитель или получатель
         List<Message> messages = messageRepository.findBySenderIdOrReceiverIdOrderByCreatedAt(userId, userId);
@@ -90,7 +90,7 @@ public class MessageController {
                                     msg.getSender().getId().equals(userId) ? "outgoing" : "incoming"))
                             .collect(Collectors.toList());
                     return new DialogueDTO(
-                            new UserDTO(interlocutor.getFirstname(), interlocutor.getLastname(), interlocutor.getEmail()),
+                            new UserDTO(interlocutor.getEmail(), interlocutor.getEmail(), interlocutor.getEmail()),
                             messageDTOs
                     );
                 })
