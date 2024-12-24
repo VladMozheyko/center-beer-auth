@@ -46,12 +46,14 @@ public class AuthenticationService {
     private final StorageService storageService;
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
 
-    public AuthenticationResponse register(RegisterRequest request) throws IOException {
+    public AuthenticationResponse register(RegisterRequest request)  {
         //public AuthenticationResponse register(RegisterRequest request, MultipartFile image) throws IOException {
         var user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER)
+                .pears(0)
+                .points(0)
                 .nickname(request.getNickname())
                 .build();
         String activationCode = UUID.randomUUID().toString();
