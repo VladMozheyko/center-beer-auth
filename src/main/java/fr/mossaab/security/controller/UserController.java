@@ -7,16 +7,17 @@ import fr.mossaab.security.service.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.sql.Date;
-import java.util.*;
+import java.time.LocalDateTime;
 
 @Tag(name = "Пользователь", description = "Контроллер предоставляет базовые методы доступные пользователю с ролью user")
 @RestController
@@ -25,13 +26,11 @@ import java.util.*;
 @RequiredArgsConstructor
 public class UserController {
     private final FileDataRepository fileDataRepository;
-    private final RefreshTokenRepository refreshTokenRepository;
     private final StorageService storageService;
     private final UserRepository userRepository;
-    private final MailSender mailSender;
 
     @Operation(summary = "Загрузка PDF-файла из файловой системы", description = "Этот endpoint позволяет загрузить PDF-файл из файловой системы.")
-    @GetMapping("/fileSystemPdf/{fileName}")
+    @GetMapping("/file-system-pdf/{fileName}")
     public ResponseEntity<?> downloadPdfFromFileSystem(@PathVariable String fileName) throws IOException {
         byte[] pdfData = storageService.downloadImageFromFileSystem(fileName);
         return ResponseEntity.status(HttpStatus.OK)
@@ -48,7 +47,7 @@ public class UserController {
                 .body(imageData);
     }
     @Operation(summary = "Загрузка PDF-файла по идентификатору", description = "Этот endpoint позволяет загрузить PDF-файл по идентификатору.")
-    @GetMapping("/fileSystemPdfById/{fileDataId}")
+    @GetMapping("/file-system-pdf-by-id/{fileDataId}")
     public ResponseEntity<?> downloadPdfById(@PathVariable Long fileDataId) throws IOException {
         FileData fileData = fileDataRepository.findById(fileDataId)
                 .orElseThrow(() -> new RuntimeException("Файл с указанным идентификатором не найден"));
@@ -60,7 +59,7 @@ public class UserController {
                 .body(pdfData);
     }
     @Operation(summary = "Загрузка изображения по идентификатору", description = "Этот endpoint позволяет загрузить изображение по идентификатору.")
-    @GetMapping("/fileSystemImageById/{fileDataId}")
+    @GetMapping("/file-system-image-by-id/{fileDataId}")
     public ResponseEntity<?> downloadImageById(@PathVariable Long fileDataId) throws IOException {
         FileData fileData = fileDataRepository.findById(fileDataId)
                 .orElseThrow(() -> new RuntimeException("Файл с указанным идентификатором не найден"));
@@ -71,170 +70,48 @@ public class UserController {
                 .contentType(MediaType.valueOf("image/png"))
                 .body(imageData);
     }
-    @Operation(summary = "Получить данные пользователя", description = "Этот endpoint возвращает данные пользователя на основе предоставленного куки.")
-    @GetMapping("/user")
-    public ResponseEntity<GetUserResponse> getUser(@CookieValue("refresh-jwt-cookie") String cookie) {
-        GetUserResponse response = new GetUserResponse();
-        UserDTO userDTO = new UserDTO();
-
-        // Поиск refresh-токена и связанного пользователя
-        User user = refreshTokenRepository.findByToken(cookie)
-                .map(RefreshToken::getUser)
-                .orElse(null);
-
-        if (user == null) {
-            response.setStatus("error");
-            response.setAnswer("User not found");
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-        }
-
-        // Ищем фото пользователя, если оно существует
-        String fileDataPath = null;
-        List<FileData> allFileData = fileDataRepository.findAll();
-
-        for (FileData fileData : allFileData) {
-            if (fileData != null && fileData.getUser() != null && fileData.getUser().getId() == user.getId()) {
-                fileDataPath = fileData.getName();
-                break;
-            }
-        }
-
-        // Заполняем данные пользователя
-        userDTO.setRole(user.getRole().toString());
-        userDTO.setPhoto(fileDataPath);
-
-        response.setStatus("success");
-        response.setAnswer(userDTO);
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
 
     @Operation(summary = "Получить профиль", description = "Этот эндпоинт возвращает профиль пользователя на основе предоставленного куки.")
     @GetMapping("/profile")
-    public ResponseEntity<Object> getProfile(@CookieValue("refresh-jwt-cookie") String cookie) {
-        ResponseGetProfile response = new ResponseGetProfile();
-        AnswerGetProfile answer = new AnswerGetProfile();
-        response.setStatus("success");
-        response.setNotify("Профиль получен");
+    public ResponseEntity<ApiResponse<UserProfileResponse>> getProfile(HttpServletRequest request) {
+        // Получаем email пользователя из контекста безопасности
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        // Ищем ID пользователя по куки
-        Long userId = refreshTokenRepository.findByToken(cookie)
-                .map(RefreshToken::getUser)
-                .map(User::getId)
-                .orElse(null);
+        // Ищем пользователя в базе данных
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 
-        if (userId == null) {
-            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
-        }
+        // Создаем ответ с профилем пользователя
+        UserProfileResponse profileResponse = UserProfileResponse.builder()
+                .nickname(user.getNickname())
+                .email(user.getEmail())
+                .pears(user.getPears())
+                .build();
 
-        // Ищем фото пользователя, если оно существует
-        String fileDataPath = null;
-        List<FileData> allFileData = fileDataRepository.findAll();
+        // Создаем API-ответ с метаинформацией
+        ApiResponse<UserProfileResponse> apiResponse = ApiResponse.<UserProfileResponse>builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.OK.value())
+                .message("Профиль успешно получен")
+                .path(request.getRequestURI())
+                .method(request.getMethod())
+                .user(user.getEmail())
+                .data(profileResponse)
+                .build();
 
-        for (FileData fileData : allFileData) {
-            if (fileData != null && fileData.getUser() != null && fileData.getUser().getId().equals(userId)) {
-                fileDataPath = fileData.getName();
-                break;
-            }
-        }
+        return ResponseEntity.ok(apiResponse);
+    }
 
-        // Получаем пользователя
-        User user = refreshTokenRepository.findByToken(cookie)
-                .map(RefreshToken::getUser)
-                .orElse(null);
-
-        if (user == null) {
-            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
-        }
-
-        // Проверяем статус верификации документов
-
-        // Заполняем данные профиля
-        answer.setEmail(user.getEmail());
-        answer.setPhoto(fileDataPath);
-        answer.setUserId(user.getId());
-
-        response.setAnswer(answer);
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
+    // DTO для ответа с профилем пользователя
+    @Data
+    @Builder
+    public static class UserProfileResponse {
+        private String nickname;
+        private String email;
+        private Integer pears;
     }
 
 
-
-    @Operation(summary = "Отправка запроса на подтверждение изменения профиля через почту")
-    @PostMapping(value = "/edit-profile", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<Object> editProfile(@RequestPart EditProfileDto request, @RequestPart(required = false) MultipartFile image, @CookieValue("refresh-jwt-cookie") String cookie) throws IOException {
-        User user = refreshTokenRepository.findByToken(cookie).orElse(null).getUser();
-
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-        }
-
-        Map<String, String> changes = user.getProposedChanges().getChanges();
-        if (request.getFirstName() != null && !request.getFirstName().isEmpty()) {
-            changes.put("firstName", request.getFirstName());
-        }
-        if (request.getLastName() != null && !request.getLastName().isEmpty()) {
-            changes.put("lastName", request.getLastName());
-        }
-        if (request.getPhoneNumber() != null && !request.getPhoneNumber().isEmpty()) {
-            changes.put("phoneNumber", request.getPhoneNumber());
-        }
-        if (request.getEmail() != null && !request.getEmail().isEmpty()) {
-            changes.put("email", request.getEmail());
-        }
-        if (request.getDateOfBirth() != null && !request.getDateOfBirth().isEmpty()) {
-            changes.put("dateOfBirth", request.getDateOfBirth());
-        }
-
-        if (image != null && !image.isEmpty()) {
-            FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image, user);
-            fileDataRepository.save(uploadImage);
-            user.getProposedChanges().setProposedPhoto(uploadImage);
-        }
-
-        userRepository.save(user);
-
-        // Отправка кода подтверждения на почту пользователя
-        String activationCode = UUID.randomUUID().toString();
-        user.setActivationCode(activationCode);
-        userRepository.save(user);
-
-        String message = String.format(
-                "Здравствуйте, %s! \n" +
-                        "Для подтверждения изменений профиля перейдите по этой ссылке: http://31.129.102.70:8080/user/confirm-changes/%s",
-                user.getNickname(),
-                user.getActivationCode()
-        );
-
-        mailSender.send(user.getEmail(), "Подтверждение изменений профиля", message);
-
-        return ResponseEntity.ok("Изменения предложены, подтвердите изменения через код, отправленный на вашу почту.");
-    }
-    @Operation(summary = "Подтверждение изменений профиля")
-    @PostMapping("/confirm-changes/{code}")
-    public ResponseEntity<Object> confirmChanges(@PathVariable String code) {
-        User user = userRepository.findByActivationCode(code);
-
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Invalid code");
-        }
-
-        Map<String, String> changes = user.getProposedChanges().getChanges();
-        if (changes.containsKey("email")) {
-            user.setEmail(changes.get("email"));
-        }
-        FileData proposedPhoto = user.getProposedChanges().getProposedPhoto();
-        if (proposedPhoto != null) {
-            user.setFileData(proposedPhoto);
-        }
-
-        user.setProposedChanges(new ProposedChanges());
-        user.setActivationCode(null);
-        userRepository.save(user);
-
-        return ResponseEntity.ok("Изменения профиля успешно подтверждены.");
-    }
 
     @Getter
     @Setter

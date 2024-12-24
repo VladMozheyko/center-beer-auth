@@ -32,8 +32,9 @@ public class AuthController {
 
     @Operation(summary = "Регистрация пользователя", description = "Позволяет новому пользователю зарегистрироваться в системе.")
     @PostMapping(value = "/register", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<Object> register(@RequestPart AuthenticationService.RegisterRequest request, @RequestPart(required = false) MultipartFile image) throws IOException, ParseException {
-        authenticationService.register(request, image);
+    public ResponseEntity<Object> register(@RequestPart AuthenticationService.RegisterRequest request) throws IOException, ParseException {
+        authenticationService.register(request);
+        //authenticationService.register(request, image);
         return ResponseEntity.ok().body("Код активации для активации аккаунта успешно отправлен на почтовый адрес");
     }
 
@@ -48,7 +49,6 @@ public class AuthController {
 
     @Operation(summary = "Вход пользователя", description = "Этот endpoint позволяет пользователю войти в систему.")
     @PostMapping("/login")
-    @PreAuthorize("hasRole('ROLE_ANONYMOUS')")
     public ResponseEntity<Object> authenticate(@RequestBody AuthenticationService.AuthenticationRequest request) {
         AuthenticationService.AuthenticationResponse authenticationResponse = authenticationService.authenticate(request);
         return ResponseEntity.ok()

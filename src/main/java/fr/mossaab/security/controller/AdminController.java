@@ -27,12 +27,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AdminController {
     private final AdminService adminService;
-    private static final Logger logger = LoggerFactory.getLogger(AdminController .class);
+    //private static final Logger logger = LoggerFactory.getLogger(AdminController .class);
 
-    //@PreAuthorize("hasAuthority('READ_PRIVILEGE')")
     @Operation(summary = "Получить всех пользователей", description = "Этот endpoint возвращает список всех пользователей с пагинацией.")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @GetMapping("/allUsers")
+    @GetMapping("/all-users")
     public ResponseEntity<AdminService.GetAllUsersResponse> getAllUsers(@RequestParam(defaultValue = "0") int page,
                                                                         @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(adminService.getAllUsers(page, size));
@@ -51,19 +50,10 @@ public class AdminController {
     public class GetUsersDto {
 
         /**
-         * Имя пользователя.
-         */
-        private String firstname;
-
-        /**
          * Электронная почта пользователя.
          */
         private String email;
 
-        /**
-         * Фамилия пользователя.
-         */
-        private String lastname;
 
         /**
          * Номер телефона пользователя.

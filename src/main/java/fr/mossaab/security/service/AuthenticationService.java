@@ -29,13 +29,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
-/**
- * Реализация интерфейса AuthenticationService.
- * Обеспечивает аутентификацию пользователей и их регистрацию.
- */
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -49,31 +45,26 @@ public class AuthenticationService {
     private final MailSender mailSender;
     private final StorageService storageService;
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
-    /**
-     * Регистрирует нового пользователя.
-     *
-     * @param request Запрос на регистрацию.
-     * @return Ответ с данными пользователя и токенами.
-     * @throws ParseException В случае ошибки парсинга даты.
-     */
-    public AuthenticationResponse register(RegisterRequest request, MultipartFile image) throws IOException, ParseException {
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+
+    public AuthenticationResponse register(RegisterRequest request) throws IOException {
+        //public AuthenticationResponse register(RegisterRequest request, MultipartFile image) throws IOException {
         var user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER)
+                .nickname(request.getNickname())
                 .build();
         String activationCode = UUID.randomUUID().toString();
         user.setActivationCode(activationCode);
         if (!StringUtils.isEmpty(user.getEmail())) {
             String message = String.format(
                     "Здравствуйте, %s! \n" +
-                            "Добро пожаловать в Kotitonttu. Ваша ссылка для активации: http://31.129.102.70:8080/authentication/activate/%s",
+                            "Добро пожаловать в GоMind. Ваша ссылка для активации: http://31.129.102.70:8081/authentication/activate/%s",
                     user.getUsername(),
                     user.getActivationCode()
             );
 
-            mailSender.send(user.getEmail(), "Ссылка активации Kotitonttu", message);
+            mailSender.send(user.getEmail(), "Ссылка активации GоMind", message);
         }
         user = userRepository.save(user);
         var jwt = jwtService.generateToken(user);
@@ -83,8 +74,8 @@ public class AuthenticationService {
                 .stream()
                 .map(SimpleGrantedAuthority::getAuthority)
                 .toList();
-        FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image,user);
-        fileDataRepository.save(uploadImage);
+//        FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image,user);
+//        fileDataRepository.save(uploadImage);
         return AuthenticationResponse.builder()
                 .accessToken(jwt)
                 .email(user.getEmail())
@@ -108,12 +99,12 @@ public class AuthenticationService {
 
         String message = String.format(
                 "Здравствуйте, %s! \n" +
-                        "Ваша ссылка для смены пароля: http://31.129.102.70:8080/authentication/activate/%s",
+                        "Ваша ссылка для смены пароля: http://31.129.102.70:8081/authentication/activate/%s",
                 user.getUsername(),
                 user.getActivationCode()
         );
 
-        mailSender.send(user.getEmail(), "Код смены пароля в Kotitonttu", message);
+        mailSender.send(user.getEmail(), "Код смены пароля в GоMind", message);
     }
     public ResponseEntity<Void> refreshTokenUsingCookie(HttpServletRequest request) {
         String refreshToken = refreshTokenService.getRefreshTokenFromCookies(request);
@@ -157,12 +148,12 @@ public class AuthenticationService {
         if (!StringUtils.isEmpty(user.getEmail())) {
             String message = String.format(
                     "Здравствуйте, %s! \n" +
-                            "Добро пожаловать в Kotitonttu. Ваш ссылка активации: http://31.129.102.70:8080/authentication/activate/%s",
+                            "Добро пожаловать в GоMind. Ваш ссылка активации: http://31.129.102.70:8081/authentication/activate/%s",
                     user.getUsername(),
                     user.getActivationCode()
             );
 
-            mailSender.send(user.getEmail(), "Ссылка активации Kotitonttu", message);
+            mailSender.send(user.getEmail(), "Ссылка активации GоMind", message);
         }
         userRepository.save(user);
     }
@@ -297,16 +288,10 @@ public class AuthenticationService {
     public static class RegisterRequest {
 
         /**
-         * Имя пользователя.
-         */
-        @Schema(description = "Имя пользователя", example = "Александр")
-        private String firstname;
-
-        /**
          * Фамилия пользователя.
          */
-        @Schema(description = "Фамилия пользователя", example = "Иванов")
-        private String lastname;
+        @Schema(description = "Никнейм пользователя", example = "АмурскийТигр1995")
+        private String nickname;
 
         /**
          * Электронная почта пользователя.
@@ -319,20 +304,6 @@ public class AuthenticationService {
          */
         @Schema(description = "Пароль пользователя", example = "Sasha123!")
         private String password;
-
-
-
-        /**
-         * Дата рождения пользователя в формате строки.
-         */
-        @Schema(description = "Дата рождения", example = "2000-01-01")
-        private String dateOfBirth;
-
-        /**
-         * Номер телефона пользователя.
-         */
-        @Schema(description = "Номер телефона", example = "+78005553555")
-        private String phoneNumber;
 
     }
     @Data
