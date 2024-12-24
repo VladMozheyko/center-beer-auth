@@ -1,4 +1,4 @@
-# Kotitonttu: серверная часть приложения для отопительных систем
+# Gomind: серверная часть приложения для отопительных систем
 
 ## Реализация JWT с Spring Boot 3 и Spring Security 6
 
@@ -109,10 +109,10 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
   *
     ```
     -- Удаляем схему (базу данных) если она существует
-    DROP DATABASE IF EXISTS vuary;
+    DROP DATABASE IF EXISTS gomind;
 
     -- Создаем новую пустую схему (базу данных) с тем же именем
-    CREATE DATABASE vuary;
+    CREATE DATABASE gomind;
     ```
 # Локальное тестирование посредством Postman 
 ## Этот endpoint позволяет пользователю зарегистрироваться (не забыть почистить cookies) и изменить путь сохранения с глобального на локальный в классе StorageService.
