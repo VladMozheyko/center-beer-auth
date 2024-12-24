@@ -39,7 +39,7 @@ public class UserController {
     }
 
     @Operation(summary = "Загрузка изображения из файловой системы", description = "Этот endpoint позволяет загрузить изображение из файловой системы.")
-    @GetMapping("/fileSystem/{fileName}")
+    @GetMapping("/file-system/{fileName}")
     public ResponseEntity<?> downloadImageFromFileSystem(@PathVariable String fileName) throws IOException {
         byte[] imageData = storageService.downloadImageFromFileSystem(fileName);
         return ResponseEntity.status(HttpStatus.OK)

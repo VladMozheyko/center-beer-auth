@@ -31,7 +31,7 @@ public class AuthController {
     private final RefreshTokenService refreshTokenService;
 
     @Operation(summary = "Регистрация пользователя", description = "Позволяет новому пользователю зарегистрироваться в системе.")
-    @PostMapping(value = "/register", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PostMapping(value = "/register")
     public ResponseEntity<Object> register(@RequestPart AuthenticationService.RegisterRequest request) throws IOException, ParseException {
         authenticationService.register(request);
         //authenticationService.register(request, image);
