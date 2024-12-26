@@ -40,4 +40,11 @@ public class Advertisement {
 
     @Column(nullable = false, columnDefinition = "bigint default 0")
     private Integer cost;
+
+    /**
+     * Пользователь, создавший эту рекламу.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 }

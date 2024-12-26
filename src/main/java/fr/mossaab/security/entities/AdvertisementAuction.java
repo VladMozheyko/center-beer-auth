@@ -25,14 +25,4 @@ public class AdvertisementAuction {
      */
     @Column(nullable = false)
     private Integer currentBid;
-
-    /**
-     * Пользователь, сделавший максимальную ставку.
-     */
-
-    /**
-     * Статус аукциона.
-     */
-    @Column(nullable = false)
-    private String status; // Например, "ACTIVE", "COMPLETED"
 }

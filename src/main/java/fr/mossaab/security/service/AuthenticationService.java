@@ -10,6 +10,8 @@ import fr.mossaab.security.entities.User;
 import fr.mossaab.security.repository.UserRepository;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +27,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
 
@@ -47,6 +47,16 @@ public class AuthenticationService {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
 
     public AuthenticationResponse register(RegisterRequest request)  {
+        // Проверка существования пользователя с таким же email и activationCode == null
+        var existingUserByEmail = userRepository.findByEmail(request.getEmail());
+        if (existingUserByEmail.isPresent() && existingUserByEmail.get().getActivationCode() == null) {
+            throw new IllegalArgumentException("Пользователь с таким email уже существует и активирован.");
+        }
+        var existingUserByNickname = userRepository.findByNickname(request.getNickname());
+        if (existingUserByNickname.isPresent() && existingUserByNickname.get().getActivationCode() == null) {
+            throw new IllegalArgumentException("Пользователь с таким никнеймом уже существует и активирован.");
+        }
+
         //public AuthenticationResponse register(RegisterRequest request, MultipartFile image) throws IOException {
         var user = User.builder()
                 .email(request.getEmail())
@@ -298,12 +308,18 @@ public class AuthenticationService {
         /**
          * Электронная почта пользователя.
          */
+
         @Schema(description = "Почтовый адрес пользователя", example = "example@gmail.ru")
         private String email;
 
         /**
          * Пароль пользователя.
          */
+        @NotBlank(message = "Пароль не должен быть пустой.")
+        @Pattern(
+                regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&#])[A-Za-z\\d@$!%*?&#]{7,50}$",
+                message = "Пароль должен быть длиной от 8 до 50 символов, содержать хотя бы одну заглавную букву, одну строчную букву, одну цифру и один специальный символ."
+        )
         @Schema(description = "Пароль пользователя", example = "Sasha123!")
         private String password;
 

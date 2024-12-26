@@ -2,6 +2,8 @@ package fr.mossaab.security.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 @Entity
@@ -26,7 +28,7 @@ public class Quiz {
      * Длительность викторины в минутах.
      */
     @Column(nullable = false)
-    private Integer duration;
+    private Integer duration = 60;
 
     /**
      * Текущий статус викторины.
@@ -34,13 +36,16 @@ public class Quiz {
     @Column(nullable = false)
     private String status; // Например, "ACTIVE", "COMPLETED", "PENDING"
 
-    /**
-     * Пользователь-победитель викторины.
-     */
-
-    /**
-     * Общий пул баллов.
-     */
     @Column(nullable = false)
     private Integer totalPoints = 0;
+
+    @Transient
+    public Integer getRemainingTime() {
+        if (status.equals("COMPLETED")) {
+            return 0; // Если викторина завершена, оставшееся время равно 0
+        }
+        LocalDateTime endTime = startTime.plusMinutes(duration);
+        long minutesLeft = Duration.between(LocalDateTime.now(), endTime).toMinutes();
+        return minutesLeft > 0 ? (int) minutesLeft : 0;
+    }
 }

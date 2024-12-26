@@ -3,6 +3,9 @@ package fr.mossaab.security.entities;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import fr.mossaab.security.enums.Role;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.GrantedAuthority;
@@ -26,9 +29,16 @@ public class User implements UserDetails {
     @GeneratedValue
     private Long id;
 
+    @NotBlank(message = "Никнейм не может быть пустым.")
+    @Size(min = 3, max = 50, message = "Никнейм должен содержать от 3 до 50 символов.")
     @Column(nullable = false, unique = true)
     private String nickname;
 
+    @NotBlank(message = "Электронная почта не может быть пустой.")
+    @Pattern(
+            regexp = "^[\\w-\\.]+@[\\w-]+\\.[a-z]{2,4}$",
+            message = "Неверный формат электронной почты. Пример: «example@domain.com»."
+    )
     @Column(nullable = false, unique = true)
     private String email;
 
@@ -51,6 +61,10 @@ public class User implements UserDetails {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<RefreshToken> refreshTokens;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Advertisement> advertisements;
+
     @Embedded
     private ProposedChanges proposedChanges;
 

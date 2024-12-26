@@ -34,7 +34,6 @@ public class AuthController {
     @PostMapping(value = "/register")
     public ResponseEntity<Object> register(@RequestBody AuthenticationService.RegisterRequest request) throws IOException{
         authenticationService.register(request);
-        //authenticationService.register(request, image);
         return ResponseEntity.ok().body("Код активации для активации аккаунта успешно отправлен на почтовый адрес");
     }
 
