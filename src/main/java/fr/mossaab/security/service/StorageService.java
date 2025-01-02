@@ -1,5 +1,6 @@
 package fr.mossaab.security.service;
 
+import fr.mossaab.security.entities.Advertisement;
 import fr.mossaab.security.entities.FileData;
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.repository.FileDataRepository;
@@ -45,6 +46,18 @@ public class StorageService {
                 }
                 // Устанавливаем связь с пользователем
                 builder.user(user);
+                break;
+
+            case "Advertisement":
+                Advertisement advertisement = (Advertisement) relatedEntity;
+                // Удаляем старый аватар, если он существует
+                builder.name(name + ".png");
+                builder.type("image/png");
+                builder.filePath("C:/Users/Admin/Desktop/advertisement_files/" + name + ".png");
+                if (file != null && !file.isEmpty()) {
+                    file.transferTo(new File("C:/Users/Admin/Desktop/advertisement_files/" + name + ".png"));
+                }
+                builder.advertisement(advertisement);
                 break;
             // Можно добавить дополнительные случаи для других типов объектов
             default:

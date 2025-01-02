@@ -1,33 +1,27 @@
 package fr.mossaab.security.controller;
 
+import com.opencsv.CSVReader;
 import fr.mossaab.security.entities.*;
-import fr.mossaab.security.repository.FileDataRepository;
-import fr.mossaab.security.repository.QuestionRepository;
-import fr.mossaab.security.repository.QuizRepository;
-import fr.mossaab.security.repository.UserRepository;
+import fr.mossaab.security.repository.*;
+import fr.mossaab.security.service.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.AllArgsConstructor;
+import lombok.*;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.text.ParseException;
-import java.time.LocalDateTime;
-import java.util.*;
-
-import com.opencsv.CSVReader;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -38,12 +32,116 @@ import java.util.concurrent.TimeUnit;
 @AllArgsConstructor
 public class QuizController {
 
+    //private final AdvertisementRepository advertisementRepository;
+    private static final String EXCEL_URL = "https://docs.google.com/spreadsheets/d/1RU9Nl4ogjWftcVX76wlWgm0gCmFs9Z5xyUSCU3Uz6cc/export?format=csv";
     private final QuestionRepository questionRepository;
     private final UserRepository userRepository;
     private final QuizRepository quizRepository;
     private final FileDataRepository fileDataRepository;
-    //private final AdvertisementRepository advertisementRepository;
-    private static final String EXCEL_URL = "https://docs.google.com/spreadsheets/d/1RU9Nl4ogjWftcVX76wlWgm0gCmFs9Z5xyUSCU3Uz6cc/export?format=csv";
+    private final AdvertisementRepository advertisementRepository;
+    private final StorageService storageService;
+    @Operation(summary = "Получение идентификатора fileData рекламы с наибольшей стоимостью")
+    @GetMapping("/advertisement-max-cost-file")
+    public ResponseEntity<Long> getFileDataIdOfMaxCostAdvertisement() {
+        // Находим рекламу с наибольшей стоимостью
+        Optional<Advertisement> maxCostAdvertisement = advertisementRepository.findAll().stream()
+                .filter(ad -> ad.getFileData() != null) // Убедимся, что у рекламы есть связанный FileData
+                .max(Comparator.comparingInt(Advertisement::getCost)); // Сравниваем по стоимости
+
+        // Если реклама с максимальной стоимостью не найдена
+        if (maxCostAdvertisement.isEmpty()) {
+            throw new RuntimeException("Не найдено реклам, связанных с файлами.");
+        }
+
+        // Получаем связанный fileData и его идентификатор
+        FileData fileData = maxCostAdvertisement.get().getFileData();
+
+        return ResponseEntity.ok(fileData.getId());
+    }
+
+
+    @Operation(summary = "Создание рекламы")
+    @PostMapping("/add-advertisements")
+    public ResponseEntity createAdvertisement(
+            @RequestParam String title,
+            @RequestParam String description,
+            @RequestParam(required = false) MultipartFile file, // Необязательный файл для рекламы
+            @RequestParam Integer cost) throws IOException {
+        // Получаем текущего пользователя
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        System.out.println("Найденная почта пользователя: " + userEmail); // Вывод в консоль
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+
+        // Проверяем, достаточно ли груш у пользователя
+        if (user.getPears() < cost) {
+            throw new RuntimeException("Недостаточно груш для создания рекламы. Требуется: " + cost + ", доступно: " + user.getPears());
+        }
+
+        // Вычитаем количество груш
+        user.setPears(user.getPears() - cost);
+        userRepository.save(user);
+
+        // Создаём объект Advertisement
+        Advertisement advertisement = Advertisement.builder()
+                .title(title)
+                .description(description)
+                .createdAt(LocalDateTime.now())
+                .cost(cost)
+                .user(user)
+                .build();
+
+        // Если передан файл, обрабатываем его и связываем с рекламой
+        if (file != null && !file.isEmpty()) {
+            FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(file, advertisement);
+            fileDataRepository.save(uploadImage);
+            advertisement.setFileData(uploadImage);
+        }
+        // Сохраняем рекламу
+        advertisement = advertisementRepository.save(advertisement);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body("Реклама успешно опубликована и добавлена в список.");
+    }
+
+
+    @Operation(summary = "Получение рекламы по убыванию стоимости")
+    @GetMapping("/advertisements-by-cost")
+    public ResponseEntity<List<AdvertisementResponse>> getAdvertisementsByCost() {
+        // Получаем все рекламные объявления
+        List<Advertisement> advertisements = advertisementRepository.findAll();
+
+        // Сортируем объявления по убыванию стоимости (cost)
+        advertisements.sort((a1, a2) -> Integer.compare(a2.getCost(), a1.getCost()));
+
+        // Формируем список ответов
+        List<AdvertisementResponse> response = new ArrayList<>();
+        int position = 1;
+        for (Advertisement ad : advertisements) {
+            AdvertisementResponse adResponse = AdvertisementResponse.builder()
+                    .position(position)
+                    .cost(ad.getCost())
+                    .nickname(ad.getUser().getNickname())
+                    .build();
+            response.add(adResponse);
+            position++;
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    // DTO для ответа
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class AdvertisementResponse {
+        private int position; // Позиция в списке
+        private int cost; // Стоимость
+        private String nickname; // Никнейм пользователя
+    }
+
     @Operation(summary = "Обновление вопросов в соответствие google table")
     @PostMapping("/update-from-csv")
     public String updateQuestionsFromCSV() {
@@ -93,131 +191,61 @@ public class QuizController {
             }
         }
     }
+
     @Operation(summary = "Вывод всех вопросов")
     @GetMapping("/get-all-questions")
-    public ResponseEntity<ApiResponse<List<Question>>> getAllQuestions(HttpServletRequest request) {
-        long startTime = System.nanoTime(); // Засекаем время начала обработки
-        List<String> errors = new ArrayList<>();
-        List<Question> questions = null;
-
-        try {
-            questions = questionRepository.findAll();
-        } catch (Exception ex) {
-            errors.add("Ошибка при получении вопросов: " + ex.getMessage());
-        }
-
-        String user = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        // Формируем ответ
-        ApiResponse<List<Question>> response = ApiResponse.<List<Question>>builder()
-                .timestamp(LocalDateTime.now())
-                .status(errors.isEmpty() ? HttpStatus.OK.value() : HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .message(errors.isEmpty() ? "Вопросы, варианты ответов и ответ, успешно получены" : "Ошибки при получении данных")
-                .path(request.getRequestURI())
-                .method(request.getMethod())
-                .processingTime(calculateProcessingTime(startTime))
-                .user(user)
-                .data(questions)
-                .count(questions == null ? 0 : questions.size())
-                .errors(errors.isEmpty() ? null : errors) // Добавляем список ошибок, если они есть
-                .build();
-
-        return ResponseEntity.status(errors.isEmpty() ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    public ResponseEntity<List<Question>> getAllQuestions(HttpServletRequest request) {
+        return ResponseEntity.ok(questionRepository.findAll());
     }
+
     @Operation(summary = "Получение случайного вопроса")
     @GetMapping("/random-questions")
-    public ResponseEntity<ApiResponse<Question>> getRandomQuestion(HttpServletRequest request) {
-        long startTime = System.nanoTime(); // Засекаем время начала обработки
-        List<String> errors = new ArrayList<>();
+    public ResponseEntity<Question> getRandomQuestion(HttpServletRequest request) {
         Question randomQuestion = null;
-
-        try {
-            // Получаем все вопросы
-            List<Question> questions = questionRepository.findAll();
-            if (!questions.isEmpty()) {
-                // Выбираем случайный вопрос
-                Random random = new Random();
-                randomQuestion = questions.get(random.nextInt(questions.size()));
-            } else {
-                errors.add("Вопросы отсутствуют в базе данных");
-            }
-        } catch (Exception ex) {
-            errors.add("Ошибка при получении случайного вопроса: " + ex.getMessage());
+        List<Question> questions = questionRepository.findAll();
+        if (!questions.isEmpty()) {
+            // Выбираем случайный вопрос
+            Random random = new Random();
+            randomQuestion = questions.get(random.nextInt(questions.size()));
         }
-
-        String user = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        // Формируем ответ
-        ApiResponse<Question> response = ApiResponse.<Question>builder()
-                .timestamp(LocalDateTime.now())
-                .status(errors.isEmpty() ? HttpStatus.OK.value() : HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .message(errors.isEmpty() ? "Случайный вопрос успешно получен" : "Ошибки при получении данных")
-                .path(request.getRequestURI())
-                .method(request.getMethod())
-                .processingTime(calculateProcessingTime(startTime))
-                .user(user)
-                .data(randomQuestion)
-                .count(randomQuestion == null ? 0 : 1)
-                .errors(errors.isEmpty() ? null : errors)
-                .build();
-
-        return ResponseEntity.status(errors.isEmpty() ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        return ResponseEntity.ok(randomQuestion);
     }
+
     @Operation(summary = "Ответить на вопрос")
     @PostMapping("/submit-answer")
-    public ResponseEntity<ApiResponse<Integer>> submitAnswer(
+    public ResponseEntity<Integer> submitAnswer(
             @RequestParam Long questionId,
-            @RequestParam String userAnswer,
-            HttpServletRequest request) {
-        long startTime = System.nanoTime(); // Засекаем время начала обработки
-        List<String> errors = new ArrayList<>();
+            @RequestParam String userAnswer) {
         Integer updatedPoints = null;
 
-        try {
-            // Получаем текущего пользователя
-            String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        // Получаем текущего пользователя
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
 
-            // Получаем пользователя из базы данных
-            User user = userRepository.findByEmail(userEmail)
-                    .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+        // Получаем пользователя из базы данных
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 
-            // Ищем вопрос по ID
-            Question question = questionRepository.findById(questionId)
-                    .orElseThrow(() -> new RuntimeException("Вопрос не найден"));
+        // Ищем вопрос по ID
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new RuntimeException("Вопрос не найден"));
 
-            // Проверяем правильность ответа
-            if (question.getCorrectAnswer().equalsIgnoreCase(userAnswer.trim())) {
-                // Увеличиваем очки пользователя
-                user.setPoints(user.getPoints() + 10); // Например, 10 очков за правильный ответ
-                userRepository.save(user);
-                updatedPoints = user.getPoints();
-            } else {
-                errors.add("Ответ неверный");
+        // Проверяем правильность ответа
+        if (question.getCorrectAnswer().equalsIgnoreCase(userAnswer.trim())) {
+            // Увеличиваем очки пользователя
+            user.setPoints(user.getPoints() + 10); // Например, 10 очков за правильный ответ
+        } else {
+            // Вычитаем 10 очков за неправильный ответ, если очки больше 10
+            if (user.getPoints() >= 10) {
+                user.setPoints(user.getPoints() - 10);
             }
-        } catch (Exception ex) {
-            errors.add("Ошибка при обработке ответа: " + ex.getMessage());
+            // Если очков меньше 10, ничего не делаем
         }
 
-        // Формируем ответ
-        ApiResponse<Integer> response = ApiResponse.<Integer>builder()
-                .timestamp(LocalDateTime.now())
-                .status(errors.isEmpty() ? HttpStatus.OK.value() : HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .message(errors.isEmpty() ? "Ответ обработан успешно" : "Ошибки при обработке ответа")
-                .path(request.getRequestURI())
-                .method(request.getMethod())
-                .processingTime(calculateProcessingTime(startTime))
-                .user(SecurityContextHolder.getContext().getAuthentication().getName())
-                .data(updatedPoints)
-                .errors(errors.isEmpty() ? null : errors)
-                .build();
+        // Сохраняем обновлённые данные пользователя
+        userRepository.save(user);
+        updatedPoints = user.getPoints();
 
-        return ResponseEntity.status(errors.isEmpty() ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-    }
-
-    private String calculateProcessingTime(long startTime) {
-        long endTime = System.nanoTime();
-        long durationInMs = (endTime - startTime) / 1_000_000;
-        return durationInMs + " ms";
+        return ResponseEntity.ok(updatedPoints);
     }
 
 
@@ -244,34 +272,19 @@ public class QuizController {
      */
     @Operation(summary = "Получение текущих очков пользователя")
     @GetMapping("/current-user/points")
-    public ResponseEntity<ApiResponse<Integer>> getCurrentUserPoints(HttpServletRequest request) {
-        List<String> errors = new ArrayList<>();
-        Integer points = null;
+    public ResponseEntity<Integer> getCurrentUserPoints() {
+        Integer points;
+        // Получаем текущего пользователя
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 
-        try {
-            // Получаем текущего пользователя
-            String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-            User user = userRepository.findByEmail(userEmail)
-                    .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+        // Получаем количество очков
+        points = user.getPoints();
 
-            // Получаем количество очков
-            points = user.getPoints();
-        } catch (Exception ex) {
-            errors.add("Ошибка при получении очков: " + ex.getMessage());
-        }
-
-        ApiResponse<Integer> response = ApiResponse.<Integer>builder()
-                .timestamp(LocalDateTime.now())
-                .status(errors.isEmpty() ? HttpStatus.OK.value() : HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .message(errors.isEmpty() ? "Очки успешно получены" : "Ошибка при получении очков")
-                .path(request.getRequestURI())
-                .method(request.getMethod())
-                .data(points)
-                .errors(errors.isEmpty() ? null : errors)
-                .build();
-
-        return ResponseEntity.status(errors.isEmpty() ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        return ResponseEntity.ok(points);
     }
+
     /**
      * Завершает викторину, начисляет очки и определяет победителя.
      */
@@ -306,105 +319,41 @@ public class QuizController {
             user.setPoints(0);
         }
         userRepository.saveAll(users);
-
+        advertisementRepository.deleteAll();
         quizRepository.save(quiz);
     }
 
     @Operation(summary = "Получение оставшегося времени текущей викторины")
     @GetMapping("/remaining-time")
-    public ResponseEntity<ApiResponse<String>> getRemainingTime() {
-        List<String> errors = new ArrayList<>();
-        String remainingTime = null;
+    public ResponseEntity<String> getRemainingTime() {
+        String remainingTime;
+        List<Quiz> quizzes = quizRepository.findAll();
 
-        try {
-            // Получаем все викторины из репозитория
-            List<Quiz> quizzes = quizRepository.findAll();
-
-            // Ищем последнюю активную викторину
-            Quiz activeQuiz = null;
-            for (Quiz quiz : quizzes) {
-                if ("ACTIVE".equalsIgnoreCase(quiz.getStatus())) {
-                    if (activeQuiz == null || quiz.getStartTime().isAfter(activeQuiz.getStartTime())) {
-                        activeQuiz = quiz;
-                    }
+        Quiz activeQuiz = null;
+        for (Quiz quiz : quizzes) {
+            if ("ACTIVE".equalsIgnoreCase(quiz.getStatus())) {
+                if (activeQuiz == null || quiz.getStartTime().isAfter(activeQuiz.getStartTime())) {
+                    activeQuiz = quiz;
                 }
             }
-
-            if (activeQuiz == null) {
-                throw new RuntimeException("Нет активной викторины");
-            }
-
-            LocalDateTime endTime = activeQuiz.getStartTime().plusMinutes(activeQuiz.getDuration());
-            LocalDateTime now = LocalDateTime.now();
-
-            // Рассчитываем оставшееся время
-            if (now.isAfter(endTime)) {
-                remainingTime = "Викторина завершена.";
-            } else {
-                long minutes = java.time.Duration.between(now, endTime).toMinutes();
-                remainingTime = minutes + " минут";
-            }
-        } catch (Exception ex) {
-            errors.add("Ошибка при расчете оставшегося времени: " + ex.getMessage());
         }
 
-        ApiResponse<String> response = ApiResponse.<String>builder()
-                .timestamp(LocalDateTime.now())
-                .status(errors.isEmpty() ? HttpStatus.OK.value() : HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .message(errors.isEmpty() ? "Оставшееся время успешно получено" : "Ошибка при расчете времени")
-                .data(remainingTime)
-                .errors(errors.isEmpty() ? null : errors)
-                .build();
+        if (activeQuiz == null) {
+            throw new RuntimeException("Нет активной викторины");
+        }
 
-        return ResponseEntity.status(errors.isEmpty() ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        LocalDateTime endTime = activeQuiz.getStartTime().plusMinutes(activeQuiz.getDuration());
+        LocalDateTime now = LocalDateTime.now();
+
+        // Рассчитываем оставшееся время
+        if (now.isAfter(endTime)) {
+            remainingTime = "Викторина завершена.";
+        } else {
+            long minutes = java.time.Duration.between(now, endTime).toMinutes();
+            remainingTime = minutes + " минут";
+        }
+
+        return ResponseEntity.ok(remainingTime);
     }
-
-//    @Operation(summary = "Добавление рекламы", description = "Позволяет пользователю добавить рекламу.")
-//    @PostMapping(value = "/add-advertisement", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-//    public ResponseEntity<String> addAdvertisement(
-//            @RequestParam String title,
-//            @RequestParam String description,
-//            @RequestParam MultipartFile image) throws IOException {
-//        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-//        User user = userRepository.findByEmail(userEmail)
-//                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
-//
-//        // Сохранение изображения
-//        FileData fileData = FileData.builder()
-//                .name(image.getOriginalFilename())
-//                .type(image.getContentType())
-//                .filePath("/uploads/" + image.getOriginalFilename())
-//                .user(user)
-//                .build();
-//        fileDataRepository.save(fileData);
-//
-//        // Сохранение рекламы
-//        Advertisement advertisement = Advertisement.builder()
-//                .title(title)
-//                .description(description)
-//                .fileData(fileData)
-//                .user(user)
-//                .createdAt(LocalDateTime.now())
-//                .cost(0) // Изначальная стоимость
-//                .build();
-//        advertisementRepository.save(advertisement);
-//
-//        return ResponseEntity.ok("Реклама успешно добавлена");
-//    }
-
-//    @Operation(summary = "Получение рекламы победителя", description = "Возвращает рекламу пользователя, победившего в викторине.")
-//    @GetMapping("/winner-advertisement")
-//    public ResponseEntity<Advertisement> getWinnerAdvertisement() {
-//        // Ищем последнего победителя викторины
-//        List<User> users = userRepository.findAll();
-//        User winner = users.stream().max(Comparator.comparingInt(User::getPoints))
-//                .orElseThrow(() -> new RuntimeException("Победитель не найден"));
-//
-//        // Получаем рекламу победителя
-//        Advertisement advertisement = advertisementRepository.findTopByUserOrderByCreatedAtDesc(winner)
-//                .orElseThrow(() -> new RuntimeException("У победителя нет рекламы"));
-//
-//        return ResponseEntity.ok(advertisement);
-//    }
 
 }
