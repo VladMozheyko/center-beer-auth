@@ -349,11 +349,16 @@ public class QuizController {
         if (now.isAfter(endTime)) {
             remainingTime = "Викторина завершена.";
         } else {
-            long minutes = java.time.Duration.between(now, endTime).toMinutes();
-            remainingTime = minutes + " минут";
+            long totalSeconds = java.time.Duration.between(now, endTime).getSeconds();
+            long minutes = totalSeconds / 60;
+            long seconds = totalSeconds % 60;
+
+            // Форматируем время в MM:SS
+            remainingTime = String.format("%02d:%02d", minutes, seconds);
         }
 
         return ResponseEntity.ok(remainingTime);
     }
+
 
 }
