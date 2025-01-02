@@ -53,9 +53,9 @@ public class StorageService {
                 // Удаляем старый аватар, если он существует
                 builder.name(name + ".png");
                 builder.type("image/png");
-                builder.filePath("C:/Users/Admin/Desktop/advertisement_files/" + name + ".png");
+                builder.filePath("/var/www/gomind/advertisement_files/" + name + ".png");
                 if (file != null && !file.isEmpty()) {
-                    file.transferTo(new File("C:/Users/Admin/Desktop/advertisement_files/" + name + ".png"));
+                    file.transferTo(new File("/var/www/gomind/advertisement_files/" + name + ".png"));
                 }
                 builder.advertisement(advertisement);
                 break;
