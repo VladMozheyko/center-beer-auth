@@ -141,7 +141,7 @@ public class QuizController {
     }
 
 
-    @Operation(summary = "Получение рекламы по убыванию стоимости")
+    @Operation(summary = "Получение рекламы по убыванию стоимости с выводом идентификатора fileData")
     @GetMapping("/advertisements-by-cost")
     public ResponseEntity<List<AdvertisementResponse>> getAdvertisementsByCost() {
         // Получаем все рекламные объявления
@@ -158,6 +158,7 @@ public class QuizController {
                     .position(position)
                     .cost(ad.getCost())
                     .nickname(ad.getUser().getNickname())
+                    .fileDataId(ad.getFileData() != null ? ad.getFileData().getId() : null) // Добавляем идентификатор fileData
                     .build();
             response.add(adResponse);
             position++;
@@ -165,6 +166,7 @@ public class QuizController {
 
         return ResponseEntity.ok(response);
     }
+
 
     // DTO для ответа
     @Getter
@@ -176,7 +178,9 @@ public class QuizController {
         private int position; // Позиция в списке
         private int cost; // Стоимость
         private String nickname; // Никнейм пользователя
+        private Long fileDataId; // Идентификатор fileData
     }
+
 
     @Operation(summary = "Обновление вопросов в соответствие google table")
     @PostMapping("/update-from-csv")
@@ -272,7 +276,7 @@ public class QuizController {
         } else {
             // Вычитаем 10 очков за неправильный ответ, если очки больше 10
             if (user.getPoints() >= 10) {
-                user.setPoints(user.getPoints() - 10);
+                user.setPoints(user.getPoints() - 5);
             }
             // Если очков меньше 10, ничего не делаем
         }
