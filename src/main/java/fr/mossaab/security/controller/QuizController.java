@@ -40,6 +40,42 @@ public class QuizController {
     private final FileDataRepository fileDataRepository;
     private final AdvertisementRepository advertisementRepository;
     private final StorageService storageService;
+    @Operation(summary = "Список пользователей с ненулевыми очками в порядке убывания")
+    @GetMapping("/users-with-points")
+    public ResponseEntity<List<UserPointsResponse>> getUsersWithPoints() {
+        // Получаем всех пользователей с ненулевыми очками
+        List<User> usersWithPoints = userRepository.findAll().stream()
+                .filter(user -> user.getPoints() > 0) // Фильтруем пользователей с ненулевыми очками
+                .sorted((u1, u2) -> Integer.compare(u2.getPoints(), u1.getPoints())) // Сортируем по убыванию очков
+                .toList();
+
+        // Формируем список ответов с позициями
+        List<UserPointsResponse> response = new ArrayList<>();
+        int position = 1;
+        for (User user : usersWithPoints) {
+            response.add(UserPointsResponse.builder()
+                    .position(position)
+                    .nickname(user.getNickname())
+                    .points(user.getPoints())
+                    .build());
+            position++;
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    // DTO для ответа
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class UserPointsResponse {
+        private int position; // Позиция в списке
+        private String nickname; // Никнейм пользователя
+        private int points; // Очки пользователя
+    }
+
     @Operation(summary = "Получение идентификатора fileData рекламы с наибольшей стоимостью")
     @GetMapping("/advertisement-max-cost-file")
     public ResponseEntity<Long> getFileDataIdOfMaxCostAdvertisement() {
