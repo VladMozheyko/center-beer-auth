@@ -65,14 +65,14 @@ JSON Web Tokens (JWT) с Spring Boot 3 и Spring Security 6.
      ```
   5. Перезапускаем сервер:
      ```bash
-     cd kotitonttu
+     cd go-mind
      sh shutdown.sh
      tail -f log.txt
      ctrl + c
      cd ~
-     rm -r kotitonttu
-     git clone https://github.com/aalleexxaannddrr-prog/kotitonttu.git
-     cd kotitonttu
+     rm -r go-mind
+     git clone https://github.com/aalleexxaannddrr-prog/go-mind.git
+     cd go-mind
      mvn wrapper:wrapper
      ./mvnw spring-boot:run
      ctrl + c
