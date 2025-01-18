@@ -2,6 +2,7 @@ package fr.mossaab.security.controller;
 
 import fr.mossaab.security.service.AuthenticationService;
 import fr.mossaab.security.service.RefreshTokenService;
+import fr.mossaab.security.service.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
@@ -28,7 +29,17 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthenticationService authenticationService;
+    private final StorageService storageService;
     private final RefreshTokenService refreshTokenService;
+
+    @Operation(summary = "Загрузка PDF-файла из файловой системы", description = "Этот endpoint позволяет загрузить PDF-файл из файловой системы.")
+    @GetMapping("/file-system-pdf/{fileName}")
+    public ResponseEntity<?> downloadPdfFromFileSystem(@PathVariable String fileName) throws IOException {
+        byte[] pdfData = storageService.downloadImageFromFileSystem(fileName);
+        return ResponseEntity.status(HttpStatus.OK)
+                .contentType(MediaType.valueOf("application/pdf"))
+                .body(pdfData);
+    }
 
     @Operation(summary = "Регистрация пользователя", description = "Позволяет новому пользователю зарегистрироваться в системе.")
     @PostMapping(value = "/register")
