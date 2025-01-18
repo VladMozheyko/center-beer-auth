@@ -31,7 +31,7 @@ public class UserCreateService {
 
             User user = User.builder()
                     .nickname("Vlad72229@yandex.ru")
-                    .pears(999999)
+                    .pears(300)
                     .points(0)
                     .id(id) // Предполагается, что id уже задан
                     .email(email)
