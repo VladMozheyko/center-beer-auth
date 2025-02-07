@@ -1,16 +1,14 @@
 # Используем официальный образ с OpenJDK 17
-FROM openjdk:17-jdk-alpine
-
-# Устанавливаем рабочую директорию в контейнере
+FROM maven:3.8.7-eclipse-temurin-17 AS build
 WORKDIR /app
+COPY pom.xml .
+RUN mvn dependency:go-offline
+COPY src/ /app/src/
+RUN mvn clean package -DskipTests
 
-# Копируем проект в контейнер
-COPY . /app
-
-# Выполняем сборку проекта с помощью Maven (если у вас нет собранного .jar файла)
-RUN ./mvnw clean install
-
+# Финальный образ
+FROM eclipse-temurin:17-jre-jammy
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
-
-# Указываем команду для запуска вашего Spring Boot приложения
-CMD ["./mvnw", "spring-boot:run"]
+CMD ["java", "-jar", "app.jar"]

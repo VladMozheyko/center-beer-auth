@@ -1,0 +1,37 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: go_mind_backend
+    image: go-mind-backend
+    ports:
+      - "8080:8080"
+    volumes:
+      - /var/www:/app/uploads
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://go_mind_db:3306/go_mind?serverTimezone=Europe/Moscow
+      SPRING_DATASOURCE_USERNAME: go_mind_user
+      SPRING_DATASOURCE_PASSWORD: rootpassword
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: mysql:8.0
+    container_name: go_mind_db
+    restart: always
+    environment:
+      MYSQL_DATABASE: go_mind
+      MYSQL_USER: go_mind_user
+      MYSQL_PASSWORD: rootpassword
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./logs:/app/logs
+    command: --default-authentication-plugin=mysql_native_password
+
+volumes:
+  mysql_data:
