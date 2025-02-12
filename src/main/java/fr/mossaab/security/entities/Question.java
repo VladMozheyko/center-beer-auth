@@ -1,4 +1,5 @@
 package fr.mossaab.security.entities;
+import fr.mossaab.security.enums.QuestionCategory;
 import jakarta.persistence.*;
 import lombok.*;
 @Entity
@@ -18,9 +19,12 @@ public class Question {
     /**
      * Текст вопроса.
      */
-    @Column(nullable = false)
+    @Column(name = "text", length = 1000, nullable = false)
     private String text;
 
+    @Enumerated(EnumType.STRING) // Сохраняем название enum в БД в виде строки
+    @Column(name = "category", nullable = false)
+    private QuestionCategory category;
     /**
      * Вариант ответа A.
      */
