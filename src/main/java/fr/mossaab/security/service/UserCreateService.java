@@ -30,6 +30,8 @@ public class UserCreateService {
         try {
 
             User user = User.builder()
+                    .temporarySecondsBalance(0)
+                    .tempEmail(null)
                     .nickname("Vlad72229@yandex.ru")
                     .pears(300)
                     .points(0)
