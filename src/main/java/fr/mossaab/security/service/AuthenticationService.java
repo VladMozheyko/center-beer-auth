@@ -71,7 +71,7 @@ public class AuthenticationService {
         if (!StringUtils.isEmpty(user.getEmail())) {
             String message = String.format(
                     "Здравствуйте, %s! \n" +
-                            "Добро пожаловать в GоMind. Ваша ссылка для активации: http://31.129.102.70:8081/authentication/activate/%s",
+                            "Добро пожаловать в GоMind. Ваша ссылка для активации: http://158.160.138.117:8080/authentication/activate/%s",
                     user.getUsername(),
                     user.getActivationCode()
             );
@@ -111,7 +111,7 @@ public class AuthenticationService {
 
         String message = String.format(
                 "Здравствуйте, %s! \n" +
-                        "Ваша ссылка для смены пароля: http://31.129.102.70:8081/authentication/activate/%s",
+                        "Ваша ссылка для смены пароля: http://158.160.138.117:8080/authentication/activate/%s",
                 user.getUsername(),
                 user.getActivationCode()
         );
@@ -160,7 +160,7 @@ public class AuthenticationService {
         if (!StringUtils.isEmpty(user.getEmail())) {
             String message = String.format(
                     "Здравствуйте, %s! \n" +
-                            "Добро пожаловать в GоMind. Ваш ссылка активации: http://31.129.102.70:8081/authentication/activate/%s",
+                            "Добро пожаловать в GоMind. Ваш ссылка активации: http://158.160.138.117:8080/authentication/activate/%s",
                     user.getUsername(),
                     user.getActivationCode()
             );

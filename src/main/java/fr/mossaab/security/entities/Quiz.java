@@ -1,5 +1,6 @@
 package fr.mossaab.security.entities;
 
+import fr.mossaab.security.enums.QuestionType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -29,7 +30,6 @@ public class Quiz {
      */
     @Column(nullable = false)
     private Integer duration = 60;
-
     /**
      * Текущий статус викторины.
      */

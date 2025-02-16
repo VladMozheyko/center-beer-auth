@@ -29,6 +29,9 @@ public class User implements UserDetails {
     @GeneratedValue
     private Long id;
 
+    @Column(nullable = false, columnDefinition = "bigint default 0")
+    private Integer temporarySecondsBalance = 0;
+
     @NotBlank(message = "Никнейм не может быть пустым.")
     @Size(min = 3, max = 50, message = "Никнейм должен содержать от 3 до 50 символов.")
     @Column(nullable = false, unique = true)
@@ -41,7 +44,7 @@ public class User implements UserDetails {
     )
     @Column(nullable = false, unique = true)
     private String email;
-
+    private String tempEmail;
     private String password;
 
     private String activationCode;

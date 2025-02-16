@@ -4,6 +4,7 @@ import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
 import fr.mossaab.security.entities.*;
 import fr.mossaab.security.enums.QuestionCategory;
+import fr.mossaab.security.enums.QuestionType;
 import fr.mossaab.security.repository.*;
 import fr.mossaab.security.service.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,11 +34,15 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping("/quiz")
 @AllArgsConstructor
 public class QuizController {
-
-    //private final AdvertisementRepository advertisementRepository;
-    //private static final String EXCEL_URL = "https://docs.google.com/spreadsheets/d/1RU9Nl4ogjWftcVX76wlWgm0gCmFs9Z5xyUSCU3Uz6cc/export?format=csv";
-    private static final String SHORT_QUESTIONS_URL = "https://docs.google.com/spreadsheets/d/1MMVtuIGycNieRu1qvbsstNryl3InC_tseeNWDmyhjLk/export?format=csv";
-    private static final String LONG_QUESTIONS_URL = "https://docs.google.com/spreadsheets/d/1M2DU2WwyixNsS0pYZ8-2mULZ4oz_m4L3y6kebmvMexE/export?format=csv";
+    //    private static final String SHORT_QUESTIONS_URL = "https://docs.google.com/spreadsheets/d/1MMVtuIGycNieRu1qvbsstNryl3InC_tseeNWDmyhjLk/export?format=csv";
+//    private static final String LONG_QUESTIONS_URL = "https://docs.google.com/spreadsheets/d/1M2DU2WwyixNsS0pYZ8-2mULZ4oz_m4L3y6kebmvMexE/export?format=csv";
+//
+// Русские
+    private static final String SHORT_RUSSIAN_QUESTIONS_URL = "https://docs.google.com/spreadsheets/d/1MMVtuIGycNieRu1qvbsstNryl3InC_tseeNWDmyhjLk/export?format=csv";
+    private static final String LONG_RUSSIAN_QUESTIONS_URL = "https://docs.google.com/spreadsheets/d/1M2DU2WwyixNsS0pYZ8-2mULZ4oz_m4L3y6kebmvMexE/export?format=csv";
+    // Английские
+    private static final String SHORT_ENGLISH_QUESTIONS_URL = "https://docs.google.com/spreadsheets/d/1m5pBlwX__rKziOGPydrtpaRdF2VvHeQrx9rkMj_wyQM/export?format=csv";
+    private static final String LONG_ENGLISH_QUESTIONS_URL = "https://docs.google.com/spreadsheets/d/1mSfzFeaCPACMIqE3AXQdipaXu5Hvz79zEAHXjBZkrBM/export?format=csv";
     private final QuestionRepository questionRepository;
     private final UserRepository userRepository;
     private final QuizRepository quizRepository;
@@ -185,114 +190,107 @@ public class QuizController {
         private String nickname; // Никнейм пользователя
         private Long fileDataId; // Идентификатор fileData
     }
-
-
-    //    @Operation(summary = "Обновление вопросов в соответствие google table")
-//    @PostMapping("/update-from-csv")
-//    public String updateQuestionsFromCSV() {
-//        InputStream inputStream = null;
-//        try {
-//            // Очистить таблицу вопросов
-//            questionRepository.deleteAll();
-//
-//            // Загрузить CSV-файл
-//            URL url = new URL(EXCEL_URL);
-//            inputStream = url.openStream(); // Открываем поток
-//            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-//
-//            CSVReader csvReader = new CSVReader(reader);
-//            List<String[]> rows = csvReader.readAll();
-//
-//            List<Question> questions = new ArrayList<>();
-//
-//            // Прочитать строки CSV-файла
-//            for (int i = 1; i < rows.size(); i++) { // Пропускаем заголовок
-//                String[] row = rows.get(i);
-//                Question question = Question.builder()
-//                        .text(row[1]) // Вопрос
-//                        .optionA(row[2]) // Вариант A
-//                        .optionB(row[3]) // Вариант B
-//                        .optionC(row[4]) // Вариант C
-//                        .optionD(row[5]) // Вариант D
-//                        .correctAnswer(row[6]) // Правильный ответ
-//                        .build();
-//                questions.add(question);
-//            }
-//
-//            // Сохранить вопросы в базу данных
-//            questionRepository.saveAll(questions);
-//
-//            return "Вопросы успешно обновлены: " + questions.size() + " записей добавлено.";
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return "Ошибка при обновлении вопросов: " + e.getMessage();
-//        } finally {
-//            try {
-//                if (inputStream != null) {
-//                    inputStream.close();
-//                }
-//            } catch (Exception ex) {
-//                ex.printStackTrace();
-//            }
-//        }
-//    }
-    @Operation(summary = "Обновление вопросов (коротких и длинных) из Google Tables")
+    private String getCsvLinkByCategoryAndType(QuestionCategory category, QuestionType type) {
+        if (category == QuestionCategory.SHORT && type == QuestionType.RUSSIAN) {
+            return SHORT_RUSSIAN_QUESTIONS_URL;
+        } else if (category == QuestionCategory.LONG && type == QuestionType.RUSSIAN) {
+            return LONG_RUSSIAN_QUESTIONS_URL;
+        } else if (category == QuestionCategory.SHORT && type == QuestionType.ENGLISH) {
+            return SHORT_ENGLISH_QUESTIONS_URL;
+        } else if (category == QuestionCategory.LONG && type == QuestionType.ENGLISH) {
+            return LONG_ENGLISH_QUESTIONS_URL;
+        } else {
+            throw new RuntimeException("Неизвестная комбинация category=" + category + " и type=" + type);
+        }
+    }
+    @Operation(summary = "Обновление вопросов (короткий/длинный, русский/английский)")
     @PostMapping("/update-from-csv")
-    public String updateQuestionsFromCSV() {
+    public String updateQuestionsFromCSV(
+            @RequestParam(required = false) QuestionCategory category,
+            @RequestParam(required = false) QuestionType type
+    ) {
         try {
-            // Очистить таблицу вопросов
+            // Очистить таблицу вопросов (при необходимости)
             questionRepository.deleteAll();
 
-            // Парсим короткие вопросы
-            List<Question> shortQuestions = parseQuestionsFromUrl(SHORT_QUESTIONS_URL, QuestionCategory.SHORT);
-            // Парсим длинные вопросы
-            List<Question> longQuestions = parseQuestionsFromUrl(LONG_QUESTIONS_URL, QuestionCategory.LONG);
+            // 1) Если НЕ переданы ни category, ни type => загружаем все 4 варианта
+            if (category == null && type == null) {
+                List<Question> all = new ArrayList<>();
+                all.addAll(parseQuestionsFromUrl(SHORT_RUSSIAN_QUESTIONS_URL, QuestionCategory.SHORT, QuestionType.RUSSIAN));
+                all.addAll(parseQuestionsFromUrl(LONG_RUSSIAN_QUESTIONS_URL,  QuestionCategory.LONG,  QuestionType.RUSSIAN));
+                all.addAll(parseQuestionsFromUrl(SHORT_ENGLISH_QUESTIONS_URL, QuestionCategory.SHORT, QuestionType.ENGLISH));
+                all.addAll(parseQuestionsFromUrl(LONG_ENGLISH_QUESTIONS_URL,  QuestionCategory.LONG,  QuestionType.ENGLISH));
 
-            // Объединяем все вопросы
-            List<Question> allQuestions = new ArrayList<>();
-            allQuestions.addAll(shortQuestions);
-            allQuestions.addAll(longQuestions);
+                questionRepository.saveAll(all);
+                return "Обновлены ВСЕ вопросы (4 комбинации). Добавлено: " + all.size();
+            }
 
-            // Сохраняем в БД
-            questionRepository.saveAll(allQuestions);
+            // 2) Если category == null, но type != null => грузим 2 комбинации (SHORT+type, LONG+type)
+            if (category == null && type != null) {
+                List<Question> all = new ArrayList<>();
+                all.addAll(parseQuestionsFromUrl(getCsvLinkByCategoryAndType(QuestionCategory.SHORT, type),
+                        QuestionCategory.SHORT, type));
+                all.addAll(parseQuestionsFromUrl(getCsvLinkByCategoryAndType(QuestionCategory.LONG,  type),
+                        QuestionCategory.LONG,  type));
+                questionRepository.saveAll(all);
+                return "Обновлены вопросы для type=" + type + " (SHORT и LONG). Добавлено: " + all.size();
+            }
 
-            return "Вопросы успешно обновлены. Добавлено: " + allQuestions.size() + " вопросов.";
+            // 3) Если type == null, но category != null => грузим 2 комбинации (category+RUSSIAN, category+ENGLISH)
+            if (type == null && category != null) {
+                List<Question> all = new ArrayList<>();
+                all.addAll(parseQuestionsFromUrl(getCsvLinkByCategoryAndType(category, QuestionType.RUSSIAN),
+                        category, QuestionType.RUSSIAN));
+                all.addAll(parseQuestionsFromUrl(getCsvLinkByCategoryAndType(category, QuestionType.ENGLISH),
+                        category, QuestionType.ENGLISH));
+                questionRepository.saveAll(all);
+                return "Обновлены вопросы для category=" + category + " (RUSSIAN и ENGLISH). Добавлено: " + all.size();
+            }
+
+            // 4) Иначе, если указаны и category, и type => одна комбинация
+            List<Question> singleList = parseQuestionsFromUrl(
+                    getCsvLinkByCategoryAndType(category, type),
+                    category,
+                    type
+            );
+            questionRepository.saveAll(singleList);
+            return "Обновлены вопросы для category=" + category + " и type=" + type + ". Добавлено: " + singleList.size();
         } catch (Exception e) {
             e.printStackTrace();
             return "Ошибка при обновлении вопросов: " + e.getMessage();
         }
     }
 
+
     /**
      * Вспомогательный метод для парсинга вопросов из CSV по указанному URL и заданной категории.
      */
-    private List<Question> parseQuestionsFromUrl(String csvUrl, QuestionCategory category) throws IOException, CsvException {
-        List<Question> resultList = new ArrayList<>();
+    private List<Question> parseQuestionsFromUrl(String csvUrl,
+                                                 QuestionCategory category,
+                                                 QuestionType type)
+            throws IOException, CsvException {
 
+        List<Question> resultList = new ArrayList<>();
         try (InputStream inputStream = new URL(csvUrl).openStream();
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
              CSVReader csvReader = new CSVReader(reader)) {
 
             List<String[]> rows = csvReader.readAll();
-            // Предположим, что первая строка — заголовки, поэтому начинаем с i = 1
             for (int i = 1; i < rows.size(); i++) {
                 String[] row = rows.get(i);
-                // Будьте внимательны к индексам row[..],
-                // они должны совпадать со структурой вашей таблицы CSV.
-                System.out.println("Обработка строки №" + i + ": " + Arrays.toString(row));
-
                 if (row.length < 7) {
-                    System.out.println("Пропущена строка, так как в ней меньше 7 столбцов");
+                    System.out.println("Пропущена строка, т.к. меньше 7 столбцов: " + Arrays.toString(row));
                     continue;
                 }
                 Question question = Question.builder()
-                        .text(row[1])        // Текст вопроса
-                        .optionA(row[2])     // Вариант A
-                        .optionB(row[3])     // Вариант B
-                        .optionC(row[4])     // Вариант C
-                        .optionD(row[5])     // Вариант D
-                        .correctAnswer(row[6]) // Правильный ответ
-                        .category(category)    // Указываем категорию
+                        .text(row[1])
+                        .optionA(row[2])
+                        .optionB(row[3])
+                        .optionC(row[4])
+                        .optionD(row[5])
+                        .correctAnswer(row[6])
+                        .category(category)
+                        .type(type) // <-- Указываем тип
                         .build();
                 resultList.add(question);
             }
@@ -300,168 +298,77 @@ public class QuizController {
         return resultList;
     }
 
+
     @Operation(summary = "Вывод всех вопросов")
     @GetMapping("/get-all-questions")
     public ResponseEntity<List<Question>> getAllQuestions(HttpServletRequest request) {
         return ResponseEntity.ok(questionRepository.findAll());
     }
 
-    //    @Operation(summary = "Получение случайного вопроса")
-//    @GetMapping("/random-questions")
-//    public ResponseEntity<Question> getRandomQuestion(HttpServletRequest request) {
-//        Question randomQuestion = null;
-//        List<Question> questions = questionRepository.findAll();
-//        if (!questions.isEmpty()) {
-//            // Выбираем случайный вопрос
-//            Random random = new Random();
-//            randomQuestion = questions.get(random.nextInt(questions.size()));
-//        }
-//        return ResponseEntity.ok(randomQuestion);
-//    }
-    @Operation(summary = "Получение случайного короткого вопроса")
-    @GetMapping("/random-short-question")
-    public ResponseEntity<Question> getRandomShortQuestion() {
-        // Выбираем все вопросы категории SHORT
-        List<Question> shortQuestions = questionRepository.findAll().stream()
-                .filter(q -> QuestionCategory.SHORT.equals(q.getCategory()))
+    @Operation(summary = "Получение случайного вопроса (короткий/длинный, русский/английский)")
+    @GetMapping("/random-question")
+    public ResponseEntity<Question> getRandomQuestion(
+            @RequestParam QuestionCategory category,
+            @RequestParam QuestionType type
+    ) {
+        // Фильтруем сразу по двум параметрам
+        List<Question> questions = questionRepository.findAll().stream()
+                .filter(q -> q.getCategory().equals(category))
+                .filter(q -> q.getType().equals(type))
                 .toList();
 
-        // Если коротких вопросов нет, вернём 204 (No Content) или выбросим исключение
-        if (shortQuestions.isEmpty()) {
+        if (questions.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-
-        // Случайным образом выбираем один вопрос
         Random random = new Random();
-        Question randomShortQuestion = shortQuestions.get(random.nextInt(shortQuestions.size()));
-
-        return ResponseEntity.ok(randomShortQuestion);
-    }
-
-    @Operation(summary = "Получение случайного длинного вопроса")
-    @GetMapping("/random-long-question")
-    public ResponseEntity<Question> getRandomLongQuestion() {
-        // Выбираем все вопросы категории LONG
-        List<Question> longQuestions = questionRepository.findAll().stream()
-                .filter(q -> QuestionCategory.LONG.equals(q.getCategory()))
-                .toList();
-
-        if (longQuestions.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-
-        Random random = new Random();
-        Question randomLongQuestion = longQuestions.get(random.nextInt(longQuestions.size()));
-
-        return ResponseEntity.ok(randomLongQuestion);
+        Question randomQuestion = questions.get(random.nextInt(questions.size()));
+        return ResponseEntity.ok(randomQuestion);
     }
 
 
-//    @Operation(summary = "Ответить на вопрос")
-//    @PostMapping("/submit-answer")
-//    public ResponseEntity<Integer> submitAnswer(
-//            @RequestParam Long questionId,
-//            @RequestParam String userAnswer) {
-//        Integer updatedPoints = null;
-//
-//        // Получаем текущего пользователя
-//        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-//
-//        // Получаем пользователя из базы данных
-//        User user = userRepository.findByEmail(userEmail)
-//                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
-//
-//        // Ищем вопрос по ID
-//        Question question = questionRepository.findById(questionId)
-//                .orElseThrow(() -> new RuntimeException("Вопрос не найден"));
-//
-//        // Проверяем правильность ответа
-//        if (question.getCorrectAnswer().equalsIgnoreCase(userAnswer.trim())) {
-//            // Увеличиваем очки пользователя
-//            user.setPoints(user.getPoints() + 10); // Например, 10 очков за правильный ответ
-//        } else {
-//            // Вычитаем 10 очков за неправильный ответ, если очки больше 10
-//            if (user.getPoints() >= 10) {
-//                user.setPoints(user.getPoints() - 5);
-//            }
-//            // Если очков меньше 10, ничего не делаем
-//        }
-//
-//        // Сохраняем обновлённые данные пользователя
-//        userRepository.save(user);
-//        updatedPoints = user.getPoints();
-//
-//        return ResponseEntity.ok(updatedPoints);
-//    }
 
-    @Operation(summary = "Ответить на короткий вопрос")
-    @PostMapping("/submit-short-answer")
-    public ResponseEntity<Integer> submitShortAnswer(
+    @Operation(summary = "Ответить на вопрос (короткий или длинный)")
+    @PostMapping("/submit-answer")
+    public ResponseEntity<Integer> submitAnswer(
+            @RequestParam QuestionCategory category,
             @RequestParam Long questionId,
             @RequestParam String userAnswer) {
 
-        // Получаем текущего пользователя
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 
-        // Ищем вопрос по ID
+        // Ищем вопрос
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new RuntimeException("Вопрос не найден"));
 
-        // Проверяем, что это короткий вопрос
-        if (!QuestionCategory.SHORT.equals(question.getCategory())) {
-            throw new RuntimeException("Данный вопрос не относится к категории коротких.");
+        // Проверяем, что категория совпадает
+        if (!category.equals(question.getCategory())) {
+            throw new RuntimeException("Вопрос не относится к указанной категории: " + category);
         }
 
-        // Проверяем правильность ответа
-        if (question.getCorrectAnswer().equalsIgnoreCase(userAnswer.trim())) {
-            // Например, +5 очков за правильный ответ на короткий вопрос
-            user.setPoints(user.getPoints() + 5);
-        } else {
-            // Например, -2 очка за неправильный ответ (не уходим в минус сильнее, чем пользователь имеет)
-            if (user.getPoints() >= 2) {
-                user.setPoints(user.getPoints() - 2);
+        // Логика начисления очков - пример (можно заменить на свою)
+        // Для SHORT: +10 за правильный, -5 за неверный
+        // Для LONG: +20 за правильный, -10 за неверный
+        boolean isCorrect = question.getCorrectAnswer().equalsIgnoreCase(userAnswer.trim());
+        if (QuestionCategory.SHORT.equals(category)) {
+            if (isCorrect) {
+                user.setPoints(user.getPoints() + 10);
+            } else {
+                if (user.getPoints() >= 5) {
+                    user.setPoints(user.getPoints() - 5);
+                }
+            }
+        } else if (QuestionCategory.LONG.equals(category)) {
+            if (isCorrect) {
+                user.setPoints(user.getPoints() + 20);
+            } else {
+                if (user.getPoints() >= 10) {
+                    user.setPoints(user.getPoints() - 10);
+                }
             }
         }
 
-        // Сохраняем обновлённые данные пользователя
-        userRepository.save(user);
-        return ResponseEntity.ok(user.getPoints());
-    }
-
-    @Operation(summary = "Ответить на длинный вопрос")
-    @PostMapping("/submit-long-answer")
-    public ResponseEntity<Integer> submitLongAnswer(
-            @RequestParam Long questionId,
-            @RequestParam String userAnswer) {
-
-        // Получаем текущего пользователя
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
-
-        // Ищем вопрос по ID
-        Question question = questionRepository.findById(questionId)
-                .orElseThrow(() -> new RuntimeException("Вопрос не найден"));
-
-        // Проверяем, что это длинный вопрос
-        if (!QuestionCategory.LONG.equals(question.getCategory())) {
-            throw new RuntimeException("Данный вопрос не относится к категории длинных.");
-        }
-
-        // Проверяем правильность ответа
-        if (question.getCorrectAnswer().equalsIgnoreCase(userAnswer.trim())) {
-            // Например, +10 очков за правильный ответ на длинный вопрос
-            user.setPoints(user.getPoints() + 10);
-        } else {
-            // Например, -5 очков за неправильный ответ
-            if (user.getPoints() >= 5) {
-                user.setPoints(user.getPoints() - 5);
-            }
-        }
-
-        // Сохраняем обновлённые данные пользователя
         userRepository.save(user);
         return ResponseEntity.ok(user.getPoints());
     }

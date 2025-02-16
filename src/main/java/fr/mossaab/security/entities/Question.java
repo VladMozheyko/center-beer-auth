@@ -1,5 +1,6 @@
 package fr.mossaab.security.entities;
 import fr.mossaab.security.enums.QuestionCategory;
+import fr.mossaab.security.enums.QuestionType;
 import jakarta.persistence.*;
 import lombok.*;
 @Entity
@@ -30,7 +31,12 @@ public class Question {
      */
     @Column(name = "option_a", nullable = false)
     private String optionA;
-
+    /**
+     * Новый вид вопроса — русский или английский.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false)
+    private QuestionType type;
     /**
      * Вариант ответа B.
      */
