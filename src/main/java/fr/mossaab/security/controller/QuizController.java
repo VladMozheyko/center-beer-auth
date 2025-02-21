@@ -3,6 +3,7 @@ package fr.mossaab.security.controller;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
 import fr.mossaab.security.entities.*;
+import fr.mossaab.security.enums.AdvertisementStatus;
 import fr.mossaab.security.enums.QuestionCategory;
 import fr.mossaab.security.enums.QuestionType;
 import fr.mossaab.security.repository.*;
@@ -134,6 +135,7 @@ public class QuizController {
                 .description(description)
                 .createdAt(LocalDateTime.now())
                 .cost(cost)
+                .status(AdvertisementStatus.PENDING)
                 .user(user)
                 .build();
 
