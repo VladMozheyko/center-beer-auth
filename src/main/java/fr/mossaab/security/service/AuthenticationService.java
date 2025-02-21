@@ -64,6 +64,8 @@ public class AuthenticationService {
                 .role(Role.USER)
                 .pears(0)
                 .points(0)
+                .temporarySecondsBalance(0)
+                .tempEmail(null)
                 .nickname(request.getNickname())
                 .build();
         String activationCode = UUID.randomUUID().toString();
