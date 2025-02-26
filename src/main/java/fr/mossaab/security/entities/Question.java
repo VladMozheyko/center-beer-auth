@@ -29,7 +29,7 @@ public class Question {
     /**
      * Вариант ответа A.
      */
-    @Column(name = "option_a", nullable = false)
+    @Column(name = "option_a",length = 1000, nullable = false)
     private String optionA;
     /**
      * Новый вид вопроса — русский или английский.
@@ -40,19 +40,19 @@ public class Question {
     /**
      * Вариант ответа B.
      */
-    @Column(name = "option_b", nullable = false)
+    @Column(name = "option_b",length = 1000, nullable = false)
     private String optionB;
 
     /**
      * Вариант ответа C.
      */
-    @Column(name = "option_c", nullable = false)
+    @Column(name = "option_c",length = 1000, nullable = false)
     private String optionC;
 
     /**
      * Вариант ответа D.
      */
-    @Column(name = "option_d", nullable = false)
+    @Column(name = "option_d",length = 1000, nullable = false)
     private String optionD;
 
     /**
