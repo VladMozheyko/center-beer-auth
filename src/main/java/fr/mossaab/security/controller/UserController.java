@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.UUID;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,6 +34,12 @@ public class UserController {
     private final StorageService storageService;
     private final UserRepository userRepository;
     private final MailSender mailSender; // Добавили
+
+    @Operation(summary = "Возвращает 403 Forbidden", description = "Этот эндпоинт просто возвращает статус 403")
+    @GetMapping("/forbidden")
+    public ResponseEntity<Void> forbidden() {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
     //private final Drive driveService;
     @Operation(summary = "Загрузка PDF-файла из файловой системы", description = "Этот endpoint позволяет загрузить PDF-файл из файловой системы.")
     @GetMapping("/file-system-pdf/{fileName}")
