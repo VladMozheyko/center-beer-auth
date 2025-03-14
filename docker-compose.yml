@@ -13,6 +13,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://go_mind_db:3306/go_mind?serverTimezone=Europe/Moscow
       SPRING_DATASOURCE_USERNAME: go_mind_user
       SPRING_DATASOURCE_PASSWORD: rootpassword
+      JAVA_OPTS: "-Xms2048m -Xmx4096m -XX:MaxMetaspaceSize=512m -XX:+UseG1GC -server"
     depends_on:
       - db
     restart: unless-stopped
