@@ -2,21 +2,39 @@ package fr.mossaab.security.controller;
 
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
-import fr.mossaab.security.entities.*;
+import fr.mossaab.security.entities.Advertisement;
+import fr.mossaab.security.entities.FileData;
+import fr.mossaab.security.entities.Question;
+import fr.mossaab.security.entities.Quiz;
+import fr.mossaab.security.entities.User;
 import fr.mossaab.security.enums.AdvertisementStatus;
 import fr.mossaab.security.enums.QuestionCategory;
 import fr.mossaab.security.enums.QuestionType;
-import fr.mossaab.security.repository.*;
+import fr.mossaab.security.repository.AdvertisementRepository;
+import fr.mossaab.security.repository.FileDataRepository;
+import fr.mossaab.security.repository.QuestionRepository;
+import fr.mossaab.security.repository.QuizRepository;
+import fr.mossaab.security.repository.UserRepository;
 import fr.mossaab.security.service.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
@@ -25,25 +43,27 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Tag(name = "Викторина", description = "API для работы с викториной. Редактирование и удаление элементов осуществляется уже посредством google tables")
-
 @RestController
 @RequestMapping("/quiz")
 @AllArgsConstructor
 public class QuizController {
-    //    private static final String SHORT_QUESTIONS_URL = "https://docs.google.com/spreadsheets/d/1MMVtuIGycNieRu1qvbsstNryl3InC_tseeNWDmyhjLk/export?format=csv";
-//    private static final String LONG_QUESTIONS_URL = "https://docs.google.com/spreadsheets/d/1M2DU2WwyixNsS0pYZ8-2mULZ4oz_m4L3y6kebmvMexE/export?format=csv";
-//
-// Русские
     private static final String SHORT_RUSSIAN_QUESTIONS_URL = "https://docs.google.com/spreadsheets/d/1MMVtuIGycNieRu1qvbsstNryl3InC_tseeNWDmyhjLk/export?format=csv";
     private static final String LONG_RUSSIAN_QUESTIONS_URL = "https://docs.google.com/spreadsheets/d/1M2DU2WwyixNsS0pYZ8-2mULZ4oz_m4L3y6kebmvMexE/export?format=csv";
-    // Английские
     private static final String SHORT_ENGLISH_QUESTIONS_URL = "https://docs.google.com/spreadsheets/d/1m5pBlwX__rKziOGPydrtpaRdF2VvHeQrx9rkMj_wyQM/export?format=csv";
     private static final String LONG_ENGLISH_QUESTIONS_URL = "https://docs.google.com/spreadsheets/d/1mSfzFeaCPACMIqE3AXQdipaXu5Hvz79zEAHXjBZkrBM/export?format=csv";
+
     private final QuestionRepository questionRepository;
     private final UserRepository userRepository;
     private final QuizRepository quizRepository;
@@ -54,13 +74,11 @@ public class QuizController {
     @Operation(summary = "Список пользователей с ненулевыми очками в порядке убывания")
     @GetMapping("/users-with-points")
     public ResponseEntity<List<UserPointsResponse>> getUsersWithPoints() {
-        // Получаем всех пользователей с ненулевыми очками
         List<User> usersWithPoints = userRepository.findAll().stream()
-                .filter(user -> user.getPoints() > 0) // Фильтруем пользователей с ненулевыми очками
-                .sorted((u1, u2) -> Integer.compare(u2.getPoints(), u1.getPoints())) // Сортируем по убыванию очков
-                .toList();
+                .filter(user -> user.getPoints() > 0)
+                .sorted((u1, u2) -> Integer.compare(u2.getPoints(), u1.getPoints()))
+                .collect(Collectors.toList());
 
-        // Формируем список ответов с позициями
         List<UserPointsResponse> response = new ArrayList<>();
         int position = 1;
         for (User user : usersWithPoints) {
@@ -71,65 +89,52 @@ public class QuizController {
                     .build());
             position++;
         }
-
         return ResponseEntity.ok(response);
     }
 
-    // DTO для ответа
     @Getter
     @Setter
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
     public static class UserPointsResponse {
-        private int position; // Позиция в списке
-        private String nickname; // Никнейм пользователя
-        private int points; // Очки пользователя
+        private int position;
+        private String nickname;
+        private int points;
     }
 
     @Operation(summary = "Получение идентификатора fileData рекламы с наибольшей стоимостью")
     @GetMapping("/advertisement-max-cost-file")
     public ResponseEntity<Long> getFileDataIdOfMaxCostAdvertisement() {
-        // Находим рекламу с наибольшей стоимостью
         Optional<Advertisement> maxCostAdvertisement = advertisementRepository.findAll().stream()
-                .filter(ad -> ad.getFileData() != null) // Убедимся, что у рекламы есть связанный FileData
-                .max(Comparator.comparingInt(Advertisement::getCost)); // Сравниваем по стоимости
+                .filter(ad -> ad.getFileData() != null)
+                .max(Comparator.comparingInt(Advertisement::getCost));
 
-        // Если реклама с максимальной стоимостью не найдена
         if (maxCostAdvertisement.isEmpty()) {
             throw new RuntimeException("Не найдено реклам, связанных с файлами.");
         }
-
-        // Получаем связанный fileData и его идентификатор
         FileData fileData = maxCostAdvertisement.get().getFileData();
-
         return ResponseEntity.ok(fileData.getId());
     }
 
-
     @Operation(summary = "Создание рекламы")
     @PostMapping("/add-advertisements")
-    public ResponseEntity createAdvertisement(
+    public ResponseEntity<String> createAdvertisement(
             @RequestParam String title,
             @RequestParam String description,
-            @RequestParam(required = false) MultipartFile file, // Необязательный файл для рекламы
+            @RequestParam(required = false) MultipartFile file,
             @RequestParam Integer cost) throws IOException {
-        // Получаем текущего пользователя
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        System.out.println("Найденная почта пользователя: " + userEmail); // Вывод в консоль
+        System.out.println("Найденная почта пользователя: " + userEmail);
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 
-        // Проверяем, достаточно ли груш у пользователя
         if (user.getPears() < cost) {
             throw new RuntimeException("Недостаточно груш для создания рекламы. Требуется: " + cost + ", доступно: " + user.getPears());
         }
-
-        // Вычитаем количество груш
         user.setPears(user.getPears() - cost);
         userRepository.save(user);
 
-        // Создаём объект Advertisement
         Advertisement advertisement = Advertisement.builder()
                 .title(title)
                 .description(description)
@@ -139,30 +144,22 @@ public class QuizController {
                 .user(user)
                 .build();
 
-        // Если передан файл, обрабатываем его и связываем с рекламой
         if (file != null && !file.isEmpty()) {
             FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(file, advertisement);
             fileDataRepository.save(uploadImage);
             advertisement.setFileData(uploadImage);
         }
-        // Сохраняем рекламу
         advertisement = advertisementRepository.save(advertisement);
-
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body("Реклама успешно опубликована и добавлена в список.");
     }
 
-
     @Operation(summary = "Получение рекламы по убыванию стоимости с выводом идентификатора fileData")
     @GetMapping("/advertisements-by-cost")
     public ResponseEntity<List<AdvertisementResponse>> getAdvertisementsByCost() {
-        // Получаем все рекламные объявления
         List<Advertisement> advertisements = advertisementRepository.findAll();
-
-        // Сортируем объявления по убыванию стоимости (cost)
         advertisements.sort((a1, a2) -> Integer.compare(a2.getCost(), a1.getCost()));
 
-        // Формируем список ответов
         List<AdvertisementResponse> response = new ArrayList<>();
         int position = 1;
         for (Advertisement ad : advertisements) {
@@ -170,28 +167,26 @@ public class QuizController {
                     .position(position)
                     .cost(ad.getCost())
                     .nickname(ad.getUser().getNickname())
-                    .fileDataId(ad.getFileData() != null ? ad.getFileData().getId() : null) // Добавляем идентификатор fileData
+                    .fileDataId(ad.getFileData() != null ? ad.getFileData().getId() : null)
                     .build();
             response.add(adResponse);
             position++;
         }
-
         return ResponseEntity.ok(response);
     }
 
-
-    // DTO для ответа
     @Getter
     @Setter
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
     public static class AdvertisementResponse {
-        private int position; // Позиция в списке
-        private int cost; // Стоимость
-        private String nickname; // Никнейм пользователя
-        private Long fileDataId; // Идентификатор fileData
+        private int position;
+        private int cost;
+        private String nickname;
+        private Long fileDataId;
     }
+
     private String getCsvLinkByCategoryAndType(QuestionCategory category, QuestionType type) {
         if (category == QuestionCategory.SHORT && type == QuestionType.RUSSIAN) {
             return SHORT_RUSSIAN_QUESTIONS_URL;
@@ -205,73 +200,31 @@ public class QuizController {
             throw new RuntimeException("Неизвестная комбинация category=" + category + " и type=" + type);
         }
     }
-    @Operation(summary = "Обновление вопросов (короткий/длинный, русский/английский)")
+
+    @Operation(summary = "Обновление вопросов (подгружает все вопросы)")
     @PostMapping("/update-from-csv")
-    public String updateQuestionsFromCSV(
-            @RequestParam(required = false) QuestionCategory category,
-            @RequestParam(required = false) QuestionType type
-    ) {
+    @CacheEvict(value = "questionsCache", allEntries = true)
+    public String updateQuestionsFromCSV() {
         try {
-            // Очистить таблицу вопросов (при необходимости)
+            // Очистка таблицы вопросов
             questionRepository.deleteAll();
 
-            // 1) Если НЕ переданы ни category, ни type => загружаем все 4 варианта
-            if (category == null && type == null) {
-                List<Question> all = new ArrayList<>();
-                all.addAll(parseQuestionsFromUrl(SHORT_RUSSIAN_QUESTIONS_URL, QuestionCategory.SHORT, QuestionType.RUSSIAN));
-                all.addAll(parseQuestionsFromUrl(LONG_RUSSIAN_QUESTIONS_URL,  QuestionCategory.LONG,  QuestionType.RUSSIAN));
-                all.addAll(parseQuestionsFromUrl(SHORT_ENGLISH_QUESTIONS_URL, QuestionCategory.SHORT, QuestionType.ENGLISH));
-                all.addAll(parseQuestionsFromUrl(LONG_ENGLISH_QUESTIONS_URL,  QuestionCategory.LONG,  QuestionType.ENGLISH));
+            List<Question> all = new ArrayList<>();
+            all.addAll(parseQuestionsFromUrl(SHORT_RUSSIAN_QUESTIONS_URL, QuestionCategory.SHORT, QuestionType.RUSSIAN));
+            all.addAll(parseQuestionsFromUrl(LONG_RUSSIAN_QUESTIONS_URL, QuestionCategory.LONG, QuestionType.RUSSIAN));
+            all.addAll(parseQuestionsFromUrl(SHORT_ENGLISH_QUESTIONS_URL, QuestionCategory.SHORT, QuestionType.ENGLISH));
+            all.addAll(parseQuestionsFromUrl(LONG_ENGLISH_QUESTIONS_URL, QuestionCategory.LONG, QuestionType.ENGLISH));
 
-                questionRepository.saveAll(all);
-                return "Обновлены ВСЕ вопросы (4 комбинации). Добавлено: " + all.size();
-            }
-
-            // 2) Если category == null, но type != null => грузим 2 комбинации (SHORT+type, LONG+type)
-            if (category == null && type != null) {
-                List<Question> all = new ArrayList<>();
-                all.addAll(parseQuestionsFromUrl(getCsvLinkByCategoryAndType(QuestionCategory.SHORT, type),
-                        QuestionCategory.SHORT, type));
-                all.addAll(parseQuestionsFromUrl(getCsvLinkByCategoryAndType(QuestionCategory.LONG,  type),
-                        QuestionCategory.LONG,  type));
-                questionRepository.saveAll(all);
-                return "Обновлены вопросы для type=" + type + " (SHORT и LONG). Добавлено: " + all.size();
-            }
-
-            // 3) Если type == null, но category != null => грузим 2 комбинации (category+RUSSIAN, category+ENGLISH)
-            if (type == null && category != null) {
-                List<Question> all = new ArrayList<>();
-                all.addAll(parseQuestionsFromUrl(getCsvLinkByCategoryAndType(category, QuestionType.RUSSIAN),
-                        category, QuestionType.RUSSIAN));
-                all.addAll(parseQuestionsFromUrl(getCsvLinkByCategoryAndType(category, QuestionType.ENGLISH),
-                        category, QuestionType.ENGLISH));
-                questionRepository.saveAll(all);
-                return "Обновлены вопросы для category=" + category + " (RUSSIAN и ENGLISH). Добавлено: " + all.size();
-            }
-
-            // 4) Иначе, если указаны и category, и type => одна комбинация
-            List<Question> singleList = parseQuestionsFromUrl(
-                    getCsvLinkByCategoryAndType(category, type),
-                    category,
-                    type
-            );
-            questionRepository.saveAll(singleList);
-            return "Обновлены вопросы для category=" + category + " и type=" + type + ". Добавлено: " + singleList.size();
+            questionRepository.saveAll(all);
+            return "Обновлены ВСЕ вопросы (4 комбинации). Добавлено: " + all.size();
         } catch (Exception e) {
             e.printStackTrace();
             return "Ошибка при обновлении вопросов: " + e.getMessage();
         }
     }
 
-
-    /**
-     * Вспомогательный метод для парсинга вопросов из CSV по указанному URL и заданной категории.
-     */
-    private List<Question> parseQuestionsFromUrl(String csvUrl,
-                                                 QuestionCategory category,
-                                                 QuestionType type)
+    private List<Question> parseQuestionsFromUrl(String csvUrl, QuestionCategory category, QuestionType type)
             throws IOException, CsvException {
-
         List<Question> resultList = new ArrayList<>();
         try (InputStream inputStream = new URL(csvUrl).openStream();
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
@@ -292,7 +245,7 @@ public class QuizController {
                         .optionD(row[5])
                         .correctAnswer(row[6])
                         .category(category)
-                        .type(type) // <-- Указываем тип
+                        .type(type)
                         .build();
                 resultList.add(question);
             }
@@ -300,34 +253,33 @@ public class QuizController {
         return resultList;
     }
 
-
     @Operation(summary = "Вывод всех вопросов")
     @GetMapping("/get-all-questions")
     public ResponseEntity<List<Question>> getAllQuestions(HttpServletRequest request) {
         return ResponseEntity.ok(questionRepository.findAll());
     }
 
+    @Cacheable(value = "questionsCache", key = "#category.name() + '_' + #type.name()")
+    public List<Question> getCachedQuestions(QuestionCategory category, QuestionType type) {
+        return questionRepository.findAll().stream()
+                .filter(q -> q.getCategory().equals(category))
+                .filter(q -> q.getType().equals(type))
+                .collect(Collectors.toList());
+    }
     @Operation(summary = "Получение случайного вопроса (короткий/длинный, русский/английский)")
     @GetMapping("/random-question")
     public ResponseEntity<Question> getRandomQuestion(
             @RequestParam QuestionCategory category,
             @RequestParam QuestionType type
     ) {
-        // Фильтруем сразу по двум параметрам
-        List<Question> questions = questionRepository.findAll().stream()
-                .filter(q -> q.getCategory().equals(category))
-                .filter(q -> q.getType().equals(type))
-                .toList();
-
+        List<Question> questions = getCachedQuestions(category, type);
         if (questions.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        Random random = new Random();
-        Question randomQuestion = questions.get(random.nextInt(questions.size()));
+        int randomIndex = ThreadLocalRandom.current().nextInt(questions.size());
+        Question randomQuestion = questions.get(randomIndex);
         return ResponseEntity.ok(randomQuestion);
     }
-
-
 
     @Operation(summary = "Ответить на вопрос (короткий или длинный)")
     @PostMapping("/submit-answer")
@@ -340,18 +292,13 @@ public class QuizController {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 
-        // Ищем вопрос
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new RuntimeException("Вопрос не найден"));
 
-        // Проверяем, что категория совпадает
         if (!category.equals(question.getCategory())) {
             throw new RuntimeException("Вопрос не относится к указанной категории: " + category);
         }
 
-        // Логика начисления очков - пример (можно заменить на свою)
-        // Для SHORT: +10 за правильный, -5 за неверный
-        // Для LONG: +20 за правильный, -10 за неверный
         boolean isCorrect = question.getCorrectAnswer().equalsIgnoreCase(userAnswer.trim());
         if (QuestionCategory.SHORT.equals(category)) {
             if (isCorrect) {
@@ -370,15 +317,12 @@ public class QuizController {
                 }
             }
         }
-
         userRepository.save(user);
         return ResponseEntity.ok(user.getPoints());
     }
 
-
-    @Scheduled(fixedRate = 3600000) // Запуск каждые 60 минут (3600000 мс)
+    @Scheduled(fixedRate = 3600000)
     public void startQuizAutomatically() {
-        // Создаем новую викторину
         Quiz quiz = Quiz.builder()
                 .startTime(LocalDateTime.now())
                 .duration(60)
@@ -386,35 +330,20 @@ public class QuizController {
                 .totalPoints(0)
                 .build();
         quiz = quizRepository.save(quiz);
-
         System.out.println("Новая викторина запущена с ID: " + quiz.getId());
-
-        // Используем final переменную
         Quiz finalQuiz = quiz;
         Executors.newSingleThreadScheduledExecutor().schedule(() -> endQuiz(finalQuiz), finalQuiz.getDuration(), TimeUnit.MINUTES);
     }
 
-    /**
-     * Получение текущих очков пользователя.
-     */
     @Operation(summary = "Получение текущих очков пользователя")
     @GetMapping("/current-user/points")
     public ResponseEntity<Integer> getCurrentUserPoints() {
-        Integer points;
-        // Получаем текущего пользователя
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
-
-        // Получаем количество очков
-        points = user.getPoints();
-
-        return ResponseEntity.ok(points);
+        return ResponseEntity.ok(user.getPoints());
     }
 
-    /**
-     * Завершает викторину, начисляет очки и определяет победителя.
-     */
     public void endQuiz(Quiz quiz) {
         Optional<Quiz> optionalQuiz = quizRepository.findById(quiz.getId());
         if (optionalQuiz.isEmpty() || !"ACTIVE".equals(optionalQuiz.get().getStatus())) {
@@ -424,24 +353,20 @@ public class QuizController {
 
         quiz.setStatus("COMPLETED");
 
-        // Логика определения победителя
-        List<User> users = userRepository.findAll(); // Получаем всех пользователей
+        List<User> users = userRepository.findAll();
         User winner = null;
         int maxPoints = 0;
-
         for (User user : users) {
             if (user.getPoints() > maxPoints) {
                 maxPoints = user.getPoints();
                 winner = user;
             }
         }
-
         if (winner != null) {
             System.out.println("Победитель викторины: " + winner.getNickname() + " с " + maxPoints + " очками");
         } else {
             System.out.println("Победитель не определен");
         }
-
         for (User user : users) {
             user.setPoints(0);
         }
@@ -464,28 +389,19 @@ public class QuizController {
                 }
             }
         }
-
         if (activeQuiz == null) {
             throw new RuntimeException("Нет активной викторины");
         }
-
         LocalDateTime endTime = activeQuiz.getStartTime().plusMinutes(activeQuiz.getDuration());
         LocalDateTime now = LocalDateTime.now();
-
-        // Рассчитываем оставшееся время
         if (now.isAfter(endTime)) {
             remainingTime = "Викторина завершена.";
         } else {
             long totalSeconds = java.time.Duration.between(now, endTime).getSeconds();
             long minutes = totalSeconds / 60;
             long seconds = totalSeconds % 60;
-
-            // Форматируем время в MM:SS
             remainingTime = String.format("%02d:%02d", minutes, seconds);
         }
-
         return ResponseEntity.ok(remainingTime);
     }
-
-
 }
