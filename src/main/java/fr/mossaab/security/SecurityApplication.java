@@ -38,5 +38,7 @@ public class SecurityApplication {
         // Автоматическая подгрузка вопросов при запуске
         String result = quizController.updateQuestionsFromCSV();
         System.out.println("Автоматическое обновление вопросов: " + result);
+        // Прогрев кэша для всех комбинаций вопросов
+        quizController.warmUpCache();
     }
 }

@@ -18,6 +18,7 @@ import fr.mossaab.security.repository.UserRepository;
 import fr.mossaab.security.service.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -186,7 +187,15 @@ public class QuizController {
         private String nickname;
         private Long fileDataId;
     }
-
+    @PostConstruct
+    public void warmUpCache() {
+        // Прогреваем кэш для всех комбинаций вопросов
+        getCachedQuestions(QuestionCategory.SHORT, QuestionType.RUSSIAN);
+        getCachedQuestions(QuestionCategory.LONG, QuestionType.RUSSIAN);
+        getCachedQuestions(QuestionCategory.SHORT, QuestionType.ENGLISH);
+        getCachedQuestions(QuestionCategory.LONG, QuestionType.ENGLISH);
+        System.out.println("Кэш вопросов успешно прогрет");
+    }
     private String getCsvLinkByCategoryAndType(QuestionCategory category, QuestionType type) {
         if (category == QuestionCategory.SHORT && type == QuestionType.RUSSIAN) {
             return SHORT_RUSSIAN_QUESTIONS_URL;
