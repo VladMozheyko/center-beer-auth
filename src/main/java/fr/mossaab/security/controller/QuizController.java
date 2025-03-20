@@ -1,5 +1,19 @@
 package fr.mossaab.security.controller;
 
+import com.sun.management.OperatingSystemMXBean; // Для расширенных методов CPU/RAM
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import javax.sql.DataSource;
+
+import java.lang.management.ManagementFactory;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
 import fr.mossaab.security.entities.Advertisement;
@@ -64,7 +78,8 @@ public class QuizController {
     private static final String LONG_RUSSIAN_QUESTIONS_URL = "https://docs.google.com/spreadsheets/d/1M2DU2WwyixNsS0pYZ8-2mULZ4oz_m4L3y6kebmvMexE/export?format=csv";
     private static final String SHORT_ENGLISH_QUESTIONS_URL = "https://docs.google.com/spreadsheets/d/1m5pBlwX__rKziOGPydrtpaRdF2VvHeQrx9rkMj_wyQM/export?format=csv";
     private static final String LONG_ENGLISH_QUESTIONS_URL = "https://docs.google.com/spreadsheets/d/1mSfzFeaCPACMIqE3AXQdipaXu5Hvz79zEAHXjBZkrBM/export?format=csv";
-
+    @Autowired
+    private DataSource dataSource;
     private final QuestionRepository questionRepository;
     private final UserRepository userRepository;
     private final QuizRepository quizRepository;
@@ -409,5 +424,101 @@ public class QuizController {
             remainingTime = String.format("%02d:%02d", minutes, seconds);
         }
         return ResponseEntity.ok(remainingTime);
+    }
+
+    @GetMapping("/monitor/system-stats")
+    public Map<String, Object> getSystemStats() {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            // ------------------------------
+            // 1) Общая информация о JVM/ОС
+            // ------------------------------
+            result.put("os.name", System.getProperty("os.name"));
+            result.put("os.arch", System.getProperty("os.arch"));
+            result.put("os.version", System.getProperty("os.version"));
+
+            // JVM Memory
+            Runtime runtime = Runtime.getRuntime();
+            result.put("jvm.availableProcessors", runtime.availableProcessors());
+            result.put("jvm.totalMemory", runtime.totalMemory());
+            result.put("jvm.freeMemory", runtime.freeMemory());
+            result.put("jvm.maxMemory", runtime.maxMemory());
+
+            // ------------------------------
+            // 2) Использование CPU/Memory на уровне ОС
+            // ------------------------------
+            // OperatingSystemMXBean (com.sun.management.*) даёт расширенные методы
+            java.lang.management.OperatingSystemMXBean baseOsBean =
+                    ManagementFactory.getOperatingSystemMXBean();
+
+            if (baseOsBean instanceof OperatingSystemMXBean) {
+                OperatingSystemMXBean osBean = (OperatingSystemMXBean) baseOsBean;
+                // Загрузка CPU процессом (0.0 ... 1.0)
+                result.put("processCpuLoad", osBean.getProcessCpuLoad());
+                // Загрузка всей системы (0.0 ... 1.0)
+                result.put("systemCpuLoad", osBean.getSystemCpuLoad());
+
+                // Физическая память (байты)
+                long freePhysMem = osBean.getFreePhysicalMemorySize();
+                long totalPhysMem = osBean.getTotalPhysicalMemorySize();
+                result.put("os.freePhysicalMemorySize", freePhysMem);
+                result.put("os.totalPhysicalMemorySize", totalPhysMem);
+            }
+
+            // ------------------------------
+            // 3) Статистика Tomcat (через MBeans)
+            // ------------------------------
+            // Если используется встроенный Tomcat (Spring Boot), название ObjectName может отличаться
+            // Обычно что-то вроде "Tomcat:type=ThreadPool,name=\"http-nio-8080\""
+            try {
+                MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+                ObjectName threadPoolMBeanName = new ObjectName("Tomcat:type=ThreadPool,name=\"http-nio-8080\"");
+
+                Integer currentThreadsBusy = (Integer) mBeanServer.getAttribute(threadPoolMBeanName, "currentThreadsBusy");
+                Integer currentThreadCount = (Integer) mBeanServer.getAttribute(threadPoolMBeanName, "currentThreadCount");
+
+                result.put("tomcat.currentThreadsBusy", currentThreadsBusy);
+                result.put("tomcat.currentThreadCount", currentThreadCount);
+            } catch (Exception e) {
+                // Если не найдёт MBean (порт другой или не Tomcat)
+                result.put("tomcat.error", e.getMessage());
+            }
+
+            // ------------------------------
+            // 4) Статистика MySQL (SHOW GLOBAL STATUS / VARIABLES)
+            // ------------------------------
+            try (Connection conn = dataSource.getConnection();
+                 Statement stmt = conn.createStatement()) {
+
+                // 4a) SHOW GLOBAL STATUS
+                try (ResultSet rs = stmt.executeQuery("SHOW GLOBAL STATUS")) {
+                    Map<String, String> globalStatus = new HashMap<>();
+                    while (rs.next()) {
+                        String variableName = rs.getString(1);
+                        String value = rs.getString(2);
+                        globalStatus.put(variableName, value);
+                    }
+                    result.put("mysql.globalStatus", globalStatus);
+                }
+
+                // 4b) SHOW GLOBAL VARIABLES
+                try (ResultSet rs = stmt.executeQuery("SHOW GLOBAL VARIABLES")) {
+                    Map<String, String> globalVariables = new HashMap<>();
+                    while (rs.next()) {
+                        String variableName = rs.getString(1);
+                        String value = rs.getString(2);
+                        globalVariables.put(variableName, value);
+                    }
+                    result.put("mysql.globalVariables", globalVariables);
+                }
+            }
+
+        } catch (Exception ex) {
+            result.put("error", ex.getMessage());
+        }
+
+        // Результат будет автоматически возвращён в JSON (при наличии Jackson)
+        return result;
     }
 }
