@@ -270,10 +270,7 @@ public class QuizController {
 
     @Cacheable(value = "questionsCache", key = "#category.name() + '_' + #type.name()")
     public List<Question> getCachedQuestions(QuestionCategory category, QuestionType type) {
-        return questionRepository.findAll().stream()
-                .filter(q -> q.getCategory().equals(category))
-                .filter(q -> q.getType().equals(type))
-                .collect(Collectors.toList());
+        return questionRepository.findByCategoryAndType(category, type);
     }
     @Operation(summary = "Получение случайного вопроса (короткий/длинный, русский/английский)")
     @GetMapping("/random-question")
