@@ -2,6 +2,7 @@ package fr.mossaab.security.controller;
 
 import com.sun.management.OperatingSystemMXBean; // Для расширенных методов CPU/RAM
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import javax.management.MBeanServer;
@@ -12,8 +13,8 @@ import java.lang.management.ManagementFactory;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
 import fr.mossaab.security.entities.Advertisement;
@@ -58,12 +59,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -86,7 +82,54 @@ public class QuizController {
     private final FileDataRepository fileDataRepository;
     private final AdvertisementRepository advertisementRepository;
     private final StorageService storageService;
+    private final Map<String, List<Question>> cachedQuestionsMap = new HashMap<>();
 
+    @PostConstruct
+    public void warmUpQuestionsCache() {
+        // Загружаем все вопросы из БД
+        List<Question> allQuestions = questionRepository.findAll();
+
+        // Группируем по Category + Type
+        for (Question question : allQuestions) {
+            String key = generateKey(question.getCategory(), question.getType());
+            cachedQuestionsMap.computeIfAbsent(key, k -> new ArrayList<>()).add(question);
+        }
+
+        System.out.println("✅ Кэш вопросов загружен: " + allQuestions.size() + " вопросов.");
+    }
+
+    @Operation(summary = "Получить случайный вопрос из кэша (без БД)")
+    @GetMapping("/random-question-fast")
+    public ResponseEntity<Question> getRandomQuestionFast(
+            @RequestParam QuestionCategory category,
+            @RequestParam QuestionType type
+    ) {
+        String key = generateKey(category, type);
+
+        List<Question> questions = cachedQuestionsMap.getOrDefault(key, Collections.emptyList());
+        if (questions.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        int randomIndex = ThreadLocalRandom.current().nextInt(questions.size());
+        Question randomQuestion = questions.get(randomIndex);
+        return ResponseEntity.ok(randomQuestion);
+    }
+
+    private String generateKey(QuestionCategory category, QuestionType type) {
+        return category.name() + "_" + type.name();
+    }
+    public void reloadQuestionsCacheInternal() {
+        cachedQuestionsMap.clear();
+        warmUpQuestionsCache();
+    }
+    // ✅ Метод для обновления кэша вручную
+    @PostMapping("/reload-cache")
+    public ResponseEntity<String> reloadQuestionsCache() {
+        cachedQuestionsMap.clear();
+        warmUpQuestionsCache();
+        return ResponseEntity.ok("Кэш вопросов перезагружен");
+    }
     @Operation(summary = "Список пользователей с ненулевыми очками в порядке убывания")
     @GetMapping("/users-with-points")
     public ResponseEntity<List<UserPointsResponse>> getUsersWithPoints() {
@@ -287,20 +330,29 @@ public class QuizController {
     public List<Question> getCachedQuestions(QuestionCategory category, QuestionType type) {
         return questionRepository.findByCategoryAndType(category, type);
     }
-    @Operation(summary = "Получение случайного вопроса (короткий/длинный, русский/английский)")
-    @GetMapping("/random-question")
-    public ResponseEntity<Question> getRandomQuestion(
-            @RequestParam QuestionCategory category,
-            @RequestParam QuestionType type
-    ) {
+    @Async
+    public CompletableFuture<Question> getRandomQuestionAsync(QuestionCategory category, QuestionType type) {
         List<Question> questions = getCachedQuestions(category, type);
         if (questions.isEmpty()) {
-            return ResponseEntity.noContent().build();
+            return CompletableFuture.completedFuture(null);
         }
         int randomIndex = ThreadLocalRandom.current().nextInt(questions.size());
-        Question randomQuestion = questions.get(randomIndex);
-        return ResponseEntity.ok(randomQuestion);
+        return CompletableFuture.completedFuture(questions.get(randomIndex));
     }
+
+//    @GetMapping("/random-question")
+//    public CompletableFuture<ResponseEntity<Question>> getRandomQuestion(
+//            @RequestParam QuestionCategory category,
+//            @RequestParam QuestionType type
+//    ) {
+//        return getRandomQuestionAsync(category, type)
+//                .thenApply(question -> {
+//                    if (question == null) {
+//                        return ResponseEntity.noContent().build();
+//                    }
+//                    return ResponseEntity.ok(question);
+//                });
+//    }
 
     @Operation(summary = "Ответить на вопрос (короткий или длинный)")
     @PostMapping("/submit-answer")

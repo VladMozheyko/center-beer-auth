@@ -4,7 +4,12 @@ import fr.mossaab.security.enums.QuestionType;
 import jakarta.persistence.*;
 import lombok.*;
 @Entity
-@Table(name = "QUESTIONS")
+@Table(
+        name = "QUESTIONS",
+        indexes = {
+                @Index(name = "idx_category_type", columnList = "category, type")
+        }
+)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -17,48 +22,30 @@ public class Question {
     @GeneratedValue
     private Long id;
 
-    /**
-     * Текст вопроса.
-     */
     @Column(name = "text", columnDefinition = "TEXT", nullable = false)
     private String text;
 
-    @Enumerated(EnumType.STRING) // Сохраняем название enum в БД в виде строки
+    @Enumerated(EnumType.STRING)
     @Column(name = "category", nullable = false)
     private QuestionCategory category;
-    /**
-     * Вариант ответа A.
-     */
+
     @Column(name = "option_a", columnDefinition = "TEXT", nullable = false)
     private String optionA;
-    /**
-     * Новый вид вопроса — русский или английский.
-     */
+
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
     private QuestionType type;
-    /**
-     * Вариант ответа B.
-     */
+
     @Column(name = "option_b", columnDefinition = "TEXT", nullable = false)
     private String optionB;
 
-    /**
-     * Вариант ответа C.
-     */
     @Column(name = "option_c", columnDefinition = "TEXT", nullable = false)
     private String optionC;
 
-    /**
-     * Вариант ответа D.
-     */
     @Column(name = "option_d", columnDefinition = "TEXT", nullable = false)
     private String optionD;
 
-    /**
-     * Правильный ответ (например, "A", "B", "C", "D").
-     */
     @Column(name = "correct_answer", nullable = false)
     private String correctAnswer;
-
 }
+

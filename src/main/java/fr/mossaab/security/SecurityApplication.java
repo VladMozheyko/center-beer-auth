@@ -16,12 +16,12 @@ import java.io.IOException;
 @EnableScheduling
 @EnableCaching
 public class SecurityApplication {
+
     private boolean schemaIsEmpty = false;
 
     @Autowired
     private UserCreateService userCreationService;
 
-    // Внедрение QuizController для вызова метода обновления вопросов при запуске
     @Autowired
     private QuizController quizController;
 
@@ -35,10 +35,11 @@ public class SecurityApplication {
         userCreationService.createUsers();
         System.out.println("Пример презентации с файлами успешно создан.");
 
-        // Автоматическая подгрузка вопросов при запуске
         String result = quizController.updateQuestionsFromCSV();
         System.out.println("Автоматическое обновление вопросов: " + result);
-        // Прогрев кэша для всех комбинаций вопросов
-        quizController.warmUpCache();
+
+        // Перезагрузка кэша вопросов из памяти
+        quizController.reloadQuestionsCacheInternal();
+        System.out.println("Кэш вопросов успешно перезагружен.");
     }
 }
