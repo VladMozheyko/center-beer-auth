@@ -13,7 +13,11 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://go_mind_db:3306/go_mind?serverTimezone=Europe/Moscow
       SPRING_DATASOURCE_USERNAME: go_mind_user
       SPRING_DATASOURCE_PASSWORD: rootpassword
-      JAVA_OPTS: "-Xms4096m -Xmx4096m -XX:MaxMetaspaceSize=512m -Xss512k -XX:+UseG1GC -server"
+      JAVA_OPTS: "-Xms4096m -Xmx4096m -XX:MaxMetaspaceSize=512m -Xss512k -XX:+UseG1GC -server -XX:ActiveProcessorCount=8"
+    deploy:
+      resources:
+        limits:
+          cpus: '8.0'
     depends_on:
       - db
     restart: unless-stopped
@@ -32,5 +36,6 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     command: --default-authentication-plugin=mysql_native_password --max_allowed_packet=64M --max_connections=1000
+
 volumes:
   mysql_data:
