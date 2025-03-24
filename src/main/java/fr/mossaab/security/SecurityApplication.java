@@ -57,15 +57,15 @@ public class SecurityApplication {
         try (Connection connection = dataSource.getConnection();
              Statement stmt = connection.createStatement()) {
 
-            stmt.execute("SET GLOBAL max_connections = 5000");
-            stmt.execute("SET GLOBAL table_open_cache = 4000");
-            stmt.execute("SET GLOBAL tmp_table_size = 536870912"); // 512MB
-            stmt.execute("SET GLOBAL max_heap_table_size = 536870912"); // 512MB
-            stmt.execute("SET GLOBAL innodb_buffer_pool_size = 4294967296"); // 4GB
-            stmt.execute("SET GLOBAL innodb_log_buffer_size = 16777216"); // 16MB
-            stmt.execute("SET GLOBAL join_buffer_size = 262144"); // 256KB
-            stmt.execute("SET GLOBAL sort_buffer_size = 262144"); // 256KB
-            stmt.execute("SET GLOBAL max_allowed_packet = 67108864"); // 64MB
+//            stmt.execute("SET GLOBAL max_connections = 5000");
+//            stmt.execute("SET GLOBAL table_open_cache = 4000");
+//            stmt.execute("SET GLOBAL tmp_table_size = 536870912"); // 512MB
+//            stmt.execute("SET GLOBAL max_heap_table_size = 536870912"); // 512MB
+//            stmt.execute("SET GLOBAL innodb_buffer_pool_size = 4294967296"); // 4GB
+//            stmt.execute("SET GLOBAL innodb_log_buffer_size = 16777216"); // 16MB
+//            stmt.execute("SET GLOBAL join_buffer_size = 262144"); // 256KB
+//            stmt.execute("SET GLOBAL sort_buffer_size = 262144"); // 256KB
+//            stmt.execute("SET GLOBAL max_allowed_packet = 67108864"); // 64MB
 
             System.out.println("MySQL параметры изменены динамически.");
 
