@@ -68,7 +68,7 @@ public class OpenAPIConfiguration {
 
     @Bean
     public OpenApiCustomizer openApiCustomizer() {
-        return openApi -> openApi.addServersItem(new io.swagger.v3.oas.models.servers.Server().url("http://www.gwork.press:8443"));
+        return openApi -> openApi.addServersItem(new io.swagger.v3.oas.models.servers.Server().url("https://www.gwork.press:8443"));
     }
 
     /**
