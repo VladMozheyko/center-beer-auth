@@ -68,7 +68,8 @@ public class SecurityConfiguration {
                                         "/webjars/**",
                                         "/swagger-ui.html",
                                         "/messages/**",
-                                        "/quiz/**"
+                                        "/quiz/**",
+                                        "/payment/**"
                                 )
                                 .permitAll() // Разрешение доступа к определенным ресурсам без аутентификации
                                 .requestMatchers(HttpMethod.POST, "/api/v1/resource").hasRole("ADMIN") // Разрешение доступа с ролью ADMIN
