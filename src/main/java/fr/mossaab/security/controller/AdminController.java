@@ -53,25 +53,6 @@ public class AdminController {
         return ResponseEntity.ok(adminService.getAllUsers(page, size));
     }
 
-    @Operation(summary = "Начислить (или списать) пользователю груши по команде админа")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @PostMapping("/adjust-pears")
-    public ResponseEntity<String> adjustPears(
-            @RequestParam Long userId,
-            @RequestParam Integer amount // может быть положительным или отрицательным
-    ) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
-
-        // Можно добавить любую доп. логику проверки (например, лимиты)
-        int oldPears = user.getPears();
-        user.setPears(oldPears + amount);
-        userRepository.save(user);
-
-        return ResponseEntity.ok("Пользователю " + user.getNickname() +
-                " успешно добавлено " + amount + " груш. Итого: " + user.getPears());
-    }
-
     @Operation(summary = "Подтверждение рекламы (админ)")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("/approve-advertisement")

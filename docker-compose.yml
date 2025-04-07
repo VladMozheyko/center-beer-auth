@@ -37,5 +37,16 @@ services:
       - mysql_data:/var/lib/mysql
     command: --default-authentication-plugin=mysql_native_password --max_allowed_packet=64M --max_connections=1000
 
+  frontend:
+    build:
+      context: ../gomind-landing
+      dockerfile: Dockerfile
+    container_name: go_mind_frontend
+    image: go-mind-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
 volumes:
   mysql_data:

@@ -17,10 +17,6 @@ public class GetUsersDto {
      */
     private String email;
 
-    /**
-     * Фотография пользователя.
-     */
-    private String photo;
 
     /**
      * Код активации.

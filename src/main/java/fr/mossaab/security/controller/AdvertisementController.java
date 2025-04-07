@@ -44,6 +44,7 @@ public class AdvertisementController {
     private final StorageService storageService;
     private final UserRepository userRepository;
 
+
     @Operation(summary = "Получить рекламу по идентификатору", description = "Возвращает рекламное объявление по его ID.")
     @GetMapping("/get-by-id/{id}")
     public ResponseEntity<AdvertisementResponse> getAdvertisementById(@PathVariable("id") Long adId) {
@@ -55,6 +56,7 @@ public class AdvertisementController {
                 .cost(advertisement.getCost())
                 .nickname(advertisement.getUser().getNickname())
                 .fileDataId(advertisement.getFileData() != null ? advertisement.getFileData().getId() : null)
+                .link(advertisement.getLink())
                 .build();
 
         return ResponseEntity.ok(response);
@@ -94,6 +96,7 @@ public class AdvertisementController {
                     .cost(ad.getCost())
                     .nickname(ad.getUser().getNickname())
                     .fileDataId(ad.getFileData() != null ? ad.getFileData().getId() : null)
+                    .link(ad.getLink())
                     .build();
             response.add(adResponse);
             position++;
@@ -111,6 +114,8 @@ public class AdvertisementController {
     public ResponseEntity<String> createAdvertisement(
             @Parameter(description = "Название рекламы")
             @RequestParam(name = "title") String title,
+            @Parameter(description = "Ссылка на рекламируемый ресурс")
+            @RequestParam(name = "link", required = false) String link,
 
             @Parameter(description = "Описание рекламы")
             @RequestParam(name = "description") String description,
@@ -152,6 +157,7 @@ public class AdvertisementController {
                 .cost(cost)
                 .status(AdvertisementStatus.PENDING)
                 .user(user)
+                .link(link)
                 .build();
 
         if (file != null && !file.isEmpty()) {

@@ -12,4 +12,5 @@ public class AdvertisementResponse {
     private int cost;
     private String nickname;
     private Long fileDataId;
+    private String link;
 }

@@ -61,4 +61,7 @@ public class Advertisement {
     @Enumerated(EnumType.STRING)
     @Column(name = "queue_status", nullable = true)
     private AdQueueStatus queueStatus;
+
+    @Column(name = "link")
+    private String link;
 }

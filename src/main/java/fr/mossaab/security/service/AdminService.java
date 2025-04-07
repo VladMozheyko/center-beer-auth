@@ -18,9 +18,6 @@ import java.util.List;
 public class AdminService {
     private final UserRepository userRepository;
 
-    @Value("${app.server.base-url}")
-    private String baseUrl;
-
     public GetAllUsersResponse getAllUsers(int page, int size) {
         List<User> users = userRepository.findAll();
         List<GetUsersDto> userDtos = new ArrayList<>();
@@ -29,8 +26,7 @@ public class AdminService {
             Role role = user.getRole();
             GetUsersDto userDto = new GetUsersDto(
                     user.getEmail() != null ? user.getEmail() : null,
-                    baseUrl + "/user/fileSystem/" + (user.getFileData() != null && user.getFileData().getName() != null ? user.getFileData().getName() : null),
-                    user.getActivationCode() == null,
+                   user.getActivationCode() == null,
                     role != null ? role.name() : null,
                     user.getId() != null ? user.getId().toString() : null
             );
