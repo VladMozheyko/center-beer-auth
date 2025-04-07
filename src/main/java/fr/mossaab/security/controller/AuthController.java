@@ -1,5 +1,9 @@
 package fr.mossaab.security.controller;
 
+import fr.mossaab.security.dto.auth.AuthenticationRequest;
+import fr.mossaab.security.dto.auth.AuthenticationResponse;
+import fr.mossaab.security.dto.auth.RegisterRequest;
+import fr.mossaab.security.dto.auth.ResetPasswordRequest;
 import fr.mossaab.security.service.AuthenticationService;
 import fr.mossaab.security.service.RefreshTokenService;
 import fr.mossaab.security.service.StorageService;
@@ -43,7 +47,7 @@ public class AuthController {
 
     @Operation(summary = "Регистрация пользователя", description = "Позволяет новому пользователю зарегистрироваться в системе.")
     @PostMapping(value = "/register")
-    public ResponseEntity<Object> register(@RequestBody AuthenticationService.RegisterRequest request) throws IOException{
+    public ResponseEntity<Object> register(@RequestBody RegisterRequest request) throws IOException{
         authenticationService.register(request);
         return ResponseEntity.ok().body("Код активации для активации аккаунта успешно отправлен на почтовый адрес");
     }
@@ -59,8 +63,8 @@ public class AuthController {
 
     @Operation(summary = "Вход пользователя", description = "Этот endpoint позволяет пользователю войти в систему.")
     @PostMapping("/login")
-    public ResponseEntity<Object> authenticate(@RequestBody AuthenticationService.AuthenticationRequest request) {
-        AuthenticationService.AuthenticationResponse authenticationResponse = authenticationService.authenticate(request);
+    public ResponseEntity<Object> authenticate(@RequestBody AuthenticationRequest request) {
+        AuthenticationResponse authenticationResponse = authenticationService.authenticate(request);
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, authenticationResponse.getJwtCookie())
                 .header(HttpHeaders.SET_COOKIE, authenticationResponse.getRefreshTokenCookie())
@@ -104,7 +108,7 @@ public class AuthController {
 
     @Operation(summary = "Смена пароля", description = "Этот endpoint позволяет сменить пароль пользователя с использованием кода активации.")
     @PostMapping("/reset-password")
-    public ResponseEntity<Object> resetPassword(@RequestBody AuthenticationService.ResetPasswordRequest request) {
+    public ResponseEntity<Object> resetPassword(@RequestBody ResetPasswordRequest request) {
         return authenticationService.resetPassword(request);
     }
 }

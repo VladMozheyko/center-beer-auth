@@ -7,14 +7,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
 
 @SpringBootApplication
 @EnableScheduling
@@ -51,6 +58,7 @@ public class SecurityApplication {
         // Настройка параметров MySQL при запуске
         configureMySQLSettings();
         System.out.println("Параметры MySQL успешно настроены.");
+        printPhysicalResourcesFolder();
     }
 
     private void configureMySQLSettings() {
@@ -73,4 +81,17 @@ public class SecurityApplication {
             System.err.println("Ошибка при настройке MySQL параметров: " + e.getMessage());
         }
     }
+    private void printPhysicalResourcesFolder() {
+        String resourcePath = "src/main/resources";
+
+        try {
+            Files.walk(Paths.get(resourcePath))
+                    .filter(Files::isRegularFile)
+                    .forEach(path -> System.out.println("📄 " + path.toAbsolutePath()));
+        } catch (IOException e) {
+            System.err.println("Ошибка при чтении папки: " + e.getMessage());
+        }
+    }
+
+
 }

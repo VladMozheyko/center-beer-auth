@@ -4,7 +4,9 @@ import fr.mossaab.security.entities.Advertisement;
 import fr.mossaab.security.entities.FileData;
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.repository.FileDataRepository;
-import lombok.AllArgsConstructor;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,86 +20,74 @@ import java.util.UUID;
  * Сервис для работы с хранилищем файлов.
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class StorageService {
-    private FileDataRepository fileDataRepository;
 
-    // Универсальный метод для загрузки изображения с передачей объекта, с которым нужно связать файл
+    private final FileDataRepository fileDataRepository;
+
+    @Value("${app.upload-path}")
+    private String uploadBasePath;
+
+    private final String[] requiredFolders = {
+            "user_files",
+            "advertisement_files"
+    };
+
+    @PostConstruct
+    public void initDirectories() {
+        for (String folder : requiredFolders) {
+            File dir = new File(uploadBasePath + "/" + folder);
+            if (!dir.exists()) {
+                boolean created = dir.mkdirs();
+                if (created) {
+                    System.out.println("📂 Создана директория: " + dir.getAbsolutePath());
+                } else {
+                    System.err.println("⚠️ Не удалось создать директорию: " + dir.getAbsolutePath());
+                }
+            } else {
+                System.out.println("✅ Директория уже существует: " + dir.getAbsolutePath());
+            }
+        }
+    }
+
     public Object uploadImageToFileSystem(MultipartFile file, Object relatedEntity) throws IOException {
-        String name;
+        String name = UUID.randomUUID().toString();
         FileData.FileDataBuilder builder = FileData.builder();
-        name = UUID.randomUUID().toString();
-        System.out.println("Received related entity type: " + relatedEntity.getClass().getSimpleName());
-        System.out.println("Related entity: " + relatedEntity);
-        // Устанавливаем связи в зависимости от типа объекта
-        switch (relatedEntity.getClass().getSimpleName().toString()) {
 
-            case "User":
+        System.out.println("📥 Received related entity type: " + relatedEntity.getClass().getSimpleName());
+
+        switch (relatedEntity.getClass().getSimpleName()) {
+            case "User" -> {
                 User user = (User) relatedEntity;
-                // Удаляем старый аватар, если он существует
                 if (user.getFileData() != null) {
                     fileDataRepository.delete(user.getFileData());
                 }
-                builder.name(name + ".png");
-                builder.type("image/png");
-                builder.filePath("/var/www/vuary/user_files/" + name + ".png");
-                if (file != null && !file.isEmpty()) {
-                    file.transferTo(new File("/var/www/vuary/user_files/" + name + ".png"));
-                }
-                // Устанавливаем связь с пользователем
-                builder.user(user);
-                break;
-
-            case "Advertisement":
+                String path = uploadBasePath + "/user_files/" + name + ".png";
+                saveFile(file, path);
+                builder.name(name + ".png").type("image/png").filePath(path).user(user);
+            }
+            case "Advertisement" -> {
                 Advertisement advertisement = (Advertisement) relatedEntity;
-                // Удаляем старый аватар, если он существует
-                builder.name(name + ".png");
-                builder.type("image/png");
-                builder.filePath("/app/uploads/gomind/advertisement_files/" + name + ".png");
-                if (file != null && !file.isEmpty()) {
-                    file.transferTo(new File("/app/uploads/gomind/advertisement_files/" + name + ".png"));
-                }
-                builder.advertisement(advertisement);
-                break;
-            // Можно добавить дополнительные случаи для других типов объектов
-            default:
-                throw new IllegalArgumentException("Unsupported related entity type: " + relatedEntity.getClass().getSimpleName());
+                String path = uploadBasePath + "/advertisement_files/" + name + ".png";
+                saveFile(file, path);
+                builder.name(name + ".png").type("image/png").filePath(path).advertisement(advertisement);
+            }
+            default -> throw new IllegalArgumentException("Unsupported related entity type: " + relatedEntity.getClass().getSimpleName());
         }
 
-        // Строим объект после завершения конфигурации
-        FileData fileData = builder.build();
-
-        // Сохраняем объект в соответствующем репозитории
-        fileData = fileDataRepository.save(fileData);
-
-
-        return fileData;
-    }
-
-    public Object uploadImageToFileSystemWithName(MultipartFile file, String name) throws IOException {
-        FileData.FileDataBuilder builder = FileData.builder();
-        builder.name(name + ".png");
-        builder.type("image/png");
-        builder.filePath("/var/www/vuary/explosion_diagram_files/" + name + ".png");
-        if (file != null && !file.isEmpty()) {
-            file.transferTo(new File("/var/www/vuary/explosion_diagram_files/" + name + ".png"));
-        }
-
-
-        // Строим объект после завершения конфигурации
-        FileData fileData = builder.build();
-
-        // Сохраняем объект в соответствующем репозитории
-        fileData = fileDataRepository.save(fileData);
-
-
-        return fileData;
+        return fileDataRepository.save(builder.build());
     }
 
     public byte[] downloadImageFromFileSystem(String fileName) throws IOException {
         Optional<FileData> fileData = fileDataRepository.findByName(fileName);
-        String filePath = fileData.get().getFilePath();
+        String filePath = fileData.orElseThrow(() -> new RuntimeException("Файл не найден")).getFilePath();
         return Files.readAllBytes(new File(filePath).toPath());
     }
 
+    private void saveFile(MultipartFile file, String fullPath) throws IOException {
+        if (file != null && !file.isEmpty()) {
+            File targetFile = new File(fullPath);
+            file.transferTo(targetFile);
+        }
+    }
 }

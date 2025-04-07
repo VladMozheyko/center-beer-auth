@@ -1,5 +1,5 @@
 package fr.mossaab.security.service;
-import fr.mossaab.security.dto.PurchaseRequest;
+import fr.mossaab.security.dto.payment.PurchaseRequest;
 import fr.mossaab.security.entities.Payment;
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.repository.PaymentRepository;
@@ -7,7 +7,6 @@ import fr.mossaab.security.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.Map;
 @Service
 @RequiredArgsConstructor

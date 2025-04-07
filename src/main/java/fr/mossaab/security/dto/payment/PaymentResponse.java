@@ -1,4 +1,4 @@
-package fr.mossaab.security.dto;
+package fr.mossaab.security.dto.payment;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;

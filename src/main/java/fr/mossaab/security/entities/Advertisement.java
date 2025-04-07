@@ -1,5 +1,6 @@
 package fr.mossaab.security.entities;
 
+import fr.mossaab.security.enums.AdQueueStatus;
 import fr.mossaab.security.enums.AdvertisementStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -52,4 +53,12 @@ public class Advertisement {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private AdvertisementStatus status;
+
+
+    @Column(name = "start_time")
+    private LocalDateTime startTime;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "queue_status", nullable = true)
+    private AdQueueStatus queueStatus;
 }

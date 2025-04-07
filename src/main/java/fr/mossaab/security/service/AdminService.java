@@ -1,39 +1,35 @@
 package fr.mossaab.security.service;
 
+import fr.mossaab.security.dto.user.GetAllUsersResponse;
+import fr.mossaab.security.dto.user.GetUsersDto;
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.enums.Role;
 import fr.mossaab.security.repository.UserRepository;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AdminService {
-    private UserRepository userRepository;
-    private static final String LOG_FILE_PATH = "/root/kotitonttu/log.txt";
+    private final UserRepository userRepository;
 
-    public String getLogs() throws IOException {
-        Path logPath = Path.of(LOG_FILE_PATH);
-        return Files.readString(logPath);
-    }
+    @Value("${app.server.base-url}")
+    private String baseUrl;
+
     public GetAllUsersResponse getAllUsers(int page, int size) {
         List<User> users = userRepository.findAll();
         List<GetUsersDto> userDtos = new ArrayList<>();
 
         for (User user : users) {
             Role role = user.getRole();
-            AdminService.GetUsersDto userDto = new AdminService.GetUsersDto(
+            GetUsersDto userDto = new GetUsersDto(
                     user.getEmail() != null ? user.getEmail() : null,
-                    "http://31.129.102.70:8081/user/fileSystem/" + (user.getFileData() != null && user.getFileData().getName() != null ? user.getFileData().getName() : null),
+                    baseUrl + "/user/fileSystem/" + (user.getFileData() != null && user.getFileData().getName() != null ? user.getFileData().getName() : null),
                     user.getActivationCode() == null,
                     role != null ? role.name() : null,
                     user.getId() != null ? user.getId().toString() : null
@@ -59,55 +55,6 @@ public class AdminService {
 
         return response;
     }
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class GetAllUsersResponse {
-
-        private String status;
-        private String notify;
-        private List<GetUsersDto> users;
-        private int offset;
-        private int pageNumber;
-        private long totalElements;
-        private int totalPages;
-        private int pageSize;
-        private boolean last;
-        private boolean first;
-
-    }
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    private static class GetUsersDto {
 
 
-        /**
-         * Электронная почта пользователя.
-         */
-        private String email;
-
-        /**
-         * Фотография пользователя.
-         */
-        private String photo;
-
-        /**
-         * Код активации.
-         */
-        private Boolean activationCode;
-
-        /**
-         * Роль пользователя.
-         */
-        private String role;
-
-        /**
-         * Уникальный идентификатор пользователя.
-         */
-        private String id;
-
-    }
 }

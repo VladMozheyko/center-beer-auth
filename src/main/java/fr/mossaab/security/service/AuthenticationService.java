@@ -2,6 +2,10 @@ package fr.mossaab.security.service;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.mossaab.security.dto.auth.AuthenticationRequest;
+import fr.mossaab.security.dto.auth.AuthenticationResponse;
+import fr.mossaab.security.dto.auth.RegisterRequest;
+import fr.mossaab.security.dto.auth.ResetPasswordRequest;
 import fr.mossaab.security.entities.FileData;
 import fr.mossaab.security.enums.Role;
 import fr.mossaab.security.enums.TokenType;
@@ -15,6 +19,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -36,16 +41,15 @@ import java.util.*;
 @Transactional
 @RequiredArgsConstructor
 public class AuthenticationService {
-    private final FileDataRepository fileDataRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshTokenService;
     private final MailSender mailSender;
-    private final StorageService storageService;
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
-
+    @Value("${app.server.base-url}")
+    private String baseUrl;
     public AuthenticationResponse register(RegisterRequest request)  {
         // Проверка существования пользователя с таким же email и activationCode == null
         var existingUserByEmail = userRepository.findByEmail(request.getEmail());
@@ -57,7 +61,6 @@ public class AuthenticationService {
             throw new IllegalArgumentException("Пользователь с таким никнеймом уже существует и активирован.");
         }
 
-        //public AuthenticationResponse register(RegisterRequest request, MultipartFile image) throws IOException {
         var user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
@@ -73,12 +76,12 @@ public class AuthenticationService {
         if (!StringUtils.isEmpty(user.getEmail())) {
             String message = String.format(
                     "Здравствуйте, %s! \n" +
-                            "Добро пожаловать в GоMind. Ваша ссылка для активации: http://158.160.138.117:8080/authentication/activate/%s",
+                            "Добро пожаловать в Gо Mind. Ваша ссылка для активации: "+baseUrl+"/authentication/activate/%s",
                     user.getUsername(),
                     user.getActivationCode()
             );
 
-            mailSender.send(user.getEmail(), "Ссылка активации GоMind", message);
+            mailSender.send(user.getEmail(), "Ссылка активации Gо Mind", message);
         }
         user = userRepository.save(user);
         var jwt = jwtService.generateToken(user);
@@ -88,8 +91,7 @@ public class AuthenticationService {
                 .stream()
                 .map(SimpleGrantedAuthority::getAuthority)
                 .toList();
-//        FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(image,user);
-//        fileDataRepository.save(uploadImage);
+
         return AuthenticationResponse.builder()
                 .accessToken(jwt)
                 .email(user.getEmail())
@@ -113,12 +115,12 @@ public class AuthenticationService {
 
         String message = String.format(
                 "Здравствуйте, %s! \n" +
-                        "Ваша ссылка для смены пароля: http://158.160.138.117:8080/authentication/activate/%s",
+                        "Ваша ссылка для смены пароля: "+baseUrl+"/authentication/activate/%s",
                 user.getUsername(),
                 user.getActivationCode()
         );
 
-        mailSender.send(user.getEmail(), "Код смены пароля в GоMind", message);
+        mailSender.send(user.getEmail(), "Код смены пароля в Gо Mind", message);
     }
     public ResponseEntity<Void> refreshTokenUsingCookie(HttpServletRequest request) {
         String refreshToken = refreshTokenService.getRefreshTokenFromCookies(request);
@@ -162,12 +164,12 @@ public class AuthenticationService {
         if (!StringUtils.isEmpty(user.getEmail())) {
             String message = String.format(
                     "Здравствуйте, %s! \n" +
-                            "Добро пожаловать в GоMind. Ваш ссылка активации: http://158.160.138.117:8080/authentication/activate/%s",
+                            "Добро пожаловать в GоMind. Ваш ссылка активации: " + baseUrl +"/authentication/activate/%s",
                     user.getUsername(),
                     user.getActivationCode()
             );
 
-            mailSender.send(user.getEmail(), "Ссылка активации GоMind", message);
+            mailSender.send(user.getEmail(), "Ссылка активации Gо Mind", message);
         }
         userRepository.save(user);
     }
@@ -231,101 +233,8 @@ public class AuthenticationService {
         private String refreshToken;
 
     }
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class ActivateResponse {
-        private String status;
-        private String notify;
-        private String answer;
-        private ErrorActivateDto errors;
 
-        // Геттеры и сеттеры
-    }
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class ErrorActivateDto {
-        private String code;
 
-        // Геттеры и сеттеры
-    }
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class AuthenticationResponse {
-
-        /**
-         * Уникальный идентификатор пользователя.
-         */
-        private Long id;
-
-        /**
-         * Электронная почта пользователя.
-         */
-        private String email;
-
-        /**
-         * Список ролей пользователя.
-         */
-        private List<String> roles;
-
-        /**
-         * Токен доступа.
-         */
-        @JsonProperty("access_token")
-        private String accessToken;
-
-        /**
-         * Токен обновления.
-         */
-        @JsonProperty("refresh_token")
-        private String refreshToken;
-
-        /**
-         * Тип токена.
-         */
-        @JsonProperty("token_type")
-        private String tokenType;
-
-        private String jwtCookie;
-        private String refreshTokenCookie;
-    }
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class RegisterRequest {
-
-        /**
-         * Фамилия пользователя.
-         */
-        @Schema(description = "Никнейм пользователя", example = "АмурскийТигр1995")
-        private String nickname;
-
-        /**
-         * Электронная почта пользователя.
-         */
-
-        @Schema(description = "Почтовый адрес пользователя", example = "example@gmail.ru")
-        private String email;
-
-        /**
-         * Пароль пользователя.
-         */
-        @NotBlank(message = "Пароль не должен быть пустой.")
-        @Pattern(
-                regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&#])[A-Za-z\\d@$!%*?&#]{7,50}$",
-                message = "Пароль должен быть длиной от 8 до 50 символов, содержать хотя бы одну заглавную букву, одну строчную букву, одну цифру и один специальный символ."
-        )
-        @Schema(description = "Пароль пользователя", example = "Sasha123!")
-        private String password;
-
-    }
     @Data
     @Builder
     @NoArgsConstructor
@@ -352,33 +261,5 @@ public class AuthenticationService {
 
     }
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class ResetPasswordRequest {
-        private String code;
-        private String newPassword;
 
-        // Геттеры и сеттеры
-    }
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class AuthenticationRequest {
-
-        /**
-         * Электронная почта пользователя.
-         */
-        @Schema(example = "Vlad72229@yandex.ru")
-        private String email;
-
-        /**
-         * Пароль пользователя.
-         */
-        @Schema(example = "Vlad!123")
-        private String password;
-    }
 }

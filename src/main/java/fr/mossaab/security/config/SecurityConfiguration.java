@@ -34,7 +34,6 @@ public class SecurityConfiguration {
     private static final int CORS_FILTER_ORDER = -102; // Порядок CORS-фильтра
     private final JwtAuthenticationFilter jwtAuthenticationFilter; // Фильтр аутентификации по JWT
     private final AuthenticationProvider authenticationProvider; // Провайдер аутентификации
-    private final CustomAccessDeniedHandler accessDeniedHandler; // Обработчик запрета доступа
 
     /**
      * Конфигурация цепочки фильтров безопасности.
@@ -48,9 +47,6 @@ public class SecurityConfiguration {
         return http
                 .cors(AbstractHttpConfigurer::disable) // Отключение CORS
                 .csrf(AbstractHttpConfigurer::disable) // Отключение CSRF
-                .exceptionHandling(exception -> exception
-                        /*.authenticationEntryPoint(unauthorizedEntryPoint)*/
-                        .accessDeniedHandler(accessDeniedHandler)) // Настройка обработчика ошибок
                 .authorizeHttpRequests(request ->
                         request
                                 .requestMatchers(
@@ -69,7 +65,9 @@ public class SecurityConfiguration {
                                         "/swagger-ui.html",
                                         "/messages/**",
                                         "/quiz/**",
-                                        "/payment/**"
+                                        "/payment/**",
+                                        "/advertisements/**",
+                                        "/devops/**"
                                 )
                                 .permitAll() // Разрешение доступа к определенным ресурсам без аутентификации
                                 .requestMatchers(HttpMethod.POST, "/api/v1/resource").hasRole("ADMIN") // Разрешение доступа с ролью ADMIN

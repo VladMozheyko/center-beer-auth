@@ -1,8 +1,13 @@
 package fr.mossaab.security.controller;
 
 import com.sun.management.OperatingSystemMXBean; // Для расширенных методов CPU/RAM
+import fr.mossaab.security.dto.advertisement.AdTimeLeftResponse;
+import fr.mossaab.security.dto.advertisement.AdvertisementResponse;
+import fr.mossaab.security.dto.user.UserPointsResponse;
+import fr.mossaab.security.service.AdvertisementQueueService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import javax.management.MBeanServer;
@@ -74,15 +79,74 @@ public class QuizController {
     private static final String LONG_RUSSIAN_QUESTIONS_URL = "https://docs.google.com/spreadsheets/d/1M2DU2WwyixNsS0pYZ8-2mULZ4oz_m4L3y6kebmvMexE/export?format=csv";
     private static final String SHORT_ENGLISH_QUESTIONS_URL = "https://docs.google.com/spreadsheets/d/1m5pBlwX__rKziOGPydrtpaRdF2VvHeQrx9rkMj_wyQM/export?format=csv";
     private static final String LONG_ENGLISH_QUESTIONS_URL = "https://docs.google.com/spreadsheets/d/1mSfzFeaCPACMIqE3AXQdipaXu5Hvz79zEAHXjBZkrBM/export?format=csv";
-    @Autowired
-    private DataSource dataSource;
     private final QuestionRepository questionRepository;
     private final UserRepository userRepository;
     private final QuizRepository quizRepository;
-    private final FileDataRepository fileDataRepository;
-    private final AdvertisementRepository advertisementRepository;
-    private final StorageService storageService;
+    private final AdvertisementQueueService advertisementQueueService;
     private final Map<String, List<Question>> cachedQuestionsMap = new HashMap<>();
+
+    @PostConstruct
+    public void init() {
+        reloadQuestionsCacheInternal();
+    }
+    @Scheduled(cron = "0 0 * * * *")
+    public void runHourlyQuiz() {
+        Quiz quiz = Quiz.builder()
+                .startTime(LocalDateTime.now())
+                .duration(60)
+                .status("COMPLETED")
+                .totalPoints(0)
+                .build();
+
+        List<User> users = userRepository.findAll();
+        User winner = users.stream()
+                .filter(u -> u.getPoints() > 0)
+                .max(Comparator.comparingInt(User::getPoints))
+                .orElse(null);
+
+        int reward = advertisementQueueService.getCurrentLeader().isPresent()
+                ? advertisementQueueService.calculateAdRevenueForLastHour()
+                : 10;
+
+        if (winner != null) {
+            winner.setPears(winner.getPears() + reward);
+            userRepository.save(winner);
+            System.out.printf("🏆 Победитель: %s — %d очков, награда: %d%n", winner.getNickname(), winner.getPoints(), reward);
+        } else {
+            System.out.println("❗ Нет победителя в этом часу.");
+        }
+
+        // Сброс очков у всех
+        users.forEach(u -> u.setPoints(0));
+        userRepository.saveAll(users);
+
+        quizRepository.save(quiz);
+    }
+    @Operation(summary = "Оставшееся время текущей рекламы-лидера")
+    @GetMapping("/ad-leader-time-left")
+    public ResponseEntity<AdTimeLeftResponse> getRemainingAdLeaderTime() {
+        return ResponseEntity.ok(advertisementQueueService.getRemainingTimeForCurrentLeader());
+    }
+    @Operation(summary = "Принудительное обновление лидера рекламы",
+            description = "Обновляет лидера рекламы вручную через сервис очереди рекламы. Требуется роль администратора.")
+    @PostMapping("/force-next-leader")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<String> forceNextLeader() {
+        advertisementQueueService.updateLeadership();
+        return ResponseEntity.ok("Лидер обновлён вручную.");
+    }
+    @Operation(summary = "Получить текущего лидера рекламы")
+    @GetMapping("/current-leader")
+    public ResponseEntity<AdvertisementResponse> getCurrentLeader() {
+        return advertisementQueueService.getCurrentLeader()
+                .map(ad -> ResponseEntity.ok(AdvertisementResponse.builder()
+                        .position(1)
+                        .cost(ad.getCost())
+                        .nickname(ad.getUser().getNickname())
+                        .fileDataId(ad.getFileData() != null ? ad.getFileData().getId() : null)
+                        .build()))
+                .orElse(ResponseEntity.status(HttpStatus.NO_CONTENT).build());
+    }
 
     @PostConstruct
     public void warmUpQuestionsCache() {
@@ -98,8 +162,8 @@ public class QuizController {
         System.out.println("✅ Кэш вопросов загружен: " + allQuestions.size() + " вопросов.");
     }
 
-    @Operation(summary = "Получить случайный вопрос из кэша (без БД)")
-    @GetMapping("/random-question-fast")
+    @Operation(summary = "Получить случайный вопрос из кэша")
+    @GetMapping("/random-question")
     public ResponseEntity<Question> getRandomQuestionFast(
             @RequestParam QuestionCategory category,
             @RequestParam QuestionType type
@@ -124,6 +188,8 @@ public class QuizController {
         warmUpQuestionsCache();
     }
     // ✅ Метод для обновления кэша вручную
+    @Operation(summary = "Перезагрузка кэша вопросов",
+            description = "Очищает и обновляет кэш вопросов, возвращая сообщение об успешной операции.")
     @PostMapping("/reload-cache")
     public ResponseEntity<String> reloadQuestionsCache() {
         cachedQuestionsMap.clear();
@@ -151,100 +217,6 @@ public class QuizController {
         return ResponseEntity.ok(response);
     }
 
-    @Getter
-    @Setter
-    @Builder
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class UserPointsResponse {
-        private int position;
-        private String nickname;
-        private int points;
-    }
-
-    @Operation(summary = "Получение идентификатора fileData рекламы с наибольшей стоимостью")
-    @GetMapping("/advertisement-max-cost-file")
-    public ResponseEntity<Long> getFileDataIdOfMaxCostAdvertisement() {
-        Optional<Advertisement> maxCostAdvertisement = advertisementRepository.findAll().stream()
-                .filter(ad -> ad.getFileData() != null)
-                .max(Comparator.comparingInt(Advertisement::getCost));
-
-        if (maxCostAdvertisement.isEmpty()) {
-            throw new RuntimeException("Не найдено реклам, связанных с файлами.");
-        }
-        FileData fileData = maxCostAdvertisement.get().getFileData();
-        return ResponseEntity.ok(fileData.getId());
-    }
-
-    @Operation(summary = "Создание рекламы")
-    @PostMapping("/add-advertisements")
-    public ResponseEntity<String> createAdvertisement(
-            @RequestParam String title,
-            @RequestParam String description,
-            @RequestParam(required = false) MultipartFile file,
-            @RequestParam Integer cost) throws IOException {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        System.out.println("Найденная почта пользователя: " + userEmail);
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
-
-        if (user.getPears() < cost) {
-            throw new RuntimeException("Недостаточно груш для создания рекламы. Требуется: " + cost + ", доступно: " + user.getPears());
-        }
-        user.setPears(user.getPears() - cost);
-        userRepository.save(user);
-
-        Advertisement advertisement = Advertisement.builder()
-                .title(title)
-                .description(description)
-                .createdAt(LocalDateTime.now())
-                .cost(cost)
-                .status(AdvertisementStatus.PENDING)
-                .user(user)
-                .build();
-
-        if (file != null && !file.isEmpty()) {
-            FileData uploadImage = (FileData) storageService.uploadImageToFileSystem(file, advertisement);
-            fileDataRepository.save(uploadImage);
-            advertisement.setFileData(uploadImage);
-        }
-        advertisement = advertisementRepository.save(advertisement);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body("Реклама успешно опубликована и добавлена в список.");
-    }
-
-    @Operation(summary = "Получение рекламы по убыванию стоимости с выводом идентификатора fileData")
-    @GetMapping("/advertisements-by-cost")
-    public ResponseEntity<List<AdvertisementResponse>> getAdvertisementsByCost() {
-        List<Advertisement> advertisements = advertisementRepository.findAll();
-        advertisements.sort((a1, a2) -> Integer.compare(a2.getCost(), a1.getCost()));
-
-        List<AdvertisementResponse> response = new ArrayList<>();
-        int position = 1;
-        for (Advertisement ad : advertisements) {
-            AdvertisementResponse adResponse = AdvertisementResponse.builder()
-                    .position(position)
-                    .cost(ad.getCost())
-                    .nickname(ad.getUser().getNickname())
-                    .fileDataId(ad.getFileData() != null ? ad.getFileData().getId() : null)
-                    .build();
-            response.add(adResponse);
-            position++;
-        }
-        return ResponseEntity.ok(response);
-    }
-
-    @Getter
-    @Setter
-    @Builder
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class AdvertisementResponse {
-        private int position;
-        private int cost;
-        private String nickname;
-        private Long fileDataId;
-    }
     @PostConstruct
     public void warmUpCache() {
         // Прогреваем кэш для всех комбинаций вопросов
@@ -253,19 +225,6 @@ public class QuizController {
         getCachedQuestions(QuestionCategory.SHORT, QuestionType.ENGLISH);
         getCachedQuestions(QuestionCategory.LONG, QuestionType.ENGLISH);
         System.out.println("Кэш вопросов успешно прогрет");
-    }
-    private String getCsvLinkByCategoryAndType(QuestionCategory category, QuestionType type) {
-        if (category == QuestionCategory.SHORT && type == QuestionType.RUSSIAN) {
-            return SHORT_RUSSIAN_QUESTIONS_URL;
-        } else if (category == QuestionCategory.LONG && type == QuestionType.RUSSIAN) {
-            return LONG_RUSSIAN_QUESTIONS_URL;
-        } else if (category == QuestionCategory.SHORT && type == QuestionType.ENGLISH) {
-            return SHORT_ENGLISH_QUESTIONS_URL;
-        } else if (category == QuestionCategory.LONG && type == QuestionType.ENGLISH) {
-            return LONG_ENGLISH_QUESTIONS_URL;
-        } else {
-            throw new RuntimeException("Неизвестная комбинация category=" + category + " и type=" + type);
-        }
     }
 
     @Operation(summary = "Обновление вопросов (подгружает все вопросы)")
@@ -322,7 +281,7 @@ public class QuizController {
 
     @Operation(summary = "Вывод всех вопросов")
     @GetMapping("/get-all-questions")
-    public ResponseEntity<List<Question>> getAllQuestions(HttpServletRequest request) {
+    public ResponseEntity<List<Question>> getAllQuestions() {
         return ResponseEntity.ok(questionRepository.findAll());
     }
 
@@ -330,29 +289,6 @@ public class QuizController {
     public List<Question> getCachedQuestions(QuestionCategory category, QuestionType type) {
         return questionRepository.findByCategoryAndType(category, type);
     }
-    @Async
-    public CompletableFuture<Question> getRandomQuestionAsync(QuestionCategory category, QuestionType type) {
-        List<Question> questions = getCachedQuestions(category, type);
-        if (questions.isEmpty()) {
-            return CompletableFuture.completedFuture(null);
-        }
-        int randomIndex = ThreadLocalRandom.current().nextInt(questions.size());
-        return CompletableFuture.completedFuture(questions.get(randomIndex));
-    }
-
-//    @GetMapping("/random-question")
-//    public CompletableFuture<ResponseEntity<Question>> getRandomQuestion(
-//            @RequestParam QuestionCategory category,
-//            @RequestParam QuestionType type
-//    ) {
-//        return getRandomQuestionAsync(category, type)
-//                .thenApply(question -> {
-//                    if (question == null) {
-//                        return ResponseEntity.noContent().build();
-//                    }
-//                    return ResponseEntity.ok(question);
-//                });
-//    }
 
     @Operation(summary = "Ответить на вопрос (короткий или длинный)")
     @PostMapping("/submit-answer")
@@ -394,19 +330,19 @@ public class QuizController {
         return ResponseEntity.ok(user.getPoints());
     }
 
-    @Scheduled(fixedRate = 3600000)
-    public void startQuizAutomatically() {
-        Quiz quiz = Quiz.builder()
-                .startTime(LocalDateTime.now())
-                .duration(60)
-                .status("ACTIVE")
-                .totalPoints(0)
-                .build();
-        quiz = quizRepository.save(quiz);
-        System.out.println("Новая викторина запущена с ID: " + quiz.getId());
-        Quiz finalQuiz = quiz;
-        Executors.newSingleThreadScheduledExecutor().schedule(() -> endQuiz(finalQuiz), finalQuiz.getDuration(), TimeUnit.MINUTES);
-    }
+//    @Scheduled(fixedRate = 3600000)
+//    public void startQuizAutomatically() {
+//        Quiz quiz = Quiz.builder()
+//                .startTime(LocalDateTime.now())
+//                .duration(60)
+//                .status("ACTIVE")
+//                .totalPoints(0)
+//                .build();
+//        quiz = quizRepository.save(quiz);
+//        System.out.println("Новая викторина запущена с ID: " + quiz.getId());
+//        Quiz finalQuiz = quiz;
+//        Executors.newSingleThreadScheduledExecutor().schedule(() -> endQuiz(finalQuiz), finalQuiz.getDuration(), TimeUnit.MINUTES);
+//    }
 
     @Operation(summary = "Получение текущих очков пользователя")
     @GetMapping("/current-user/points")
@@ -429,148 +365,55 @@ public class QuizController {
         List<User> users = userRepository.findAll();
         User winner = null;
         int maxPoints = 0;
+
         for (User user : users) {
             if (user.getPoints() > maxPoints) {
                 maxPoints = user.getPoints();
                 winner = user;
             }
         }
+
         if (winner != null) {
             System.out.println("Победитель викторины: " + winner.getNickname() + " с " + maxPoints + " очками");
+
+            int adRevenue = advertisementQueueService.calculateAdRevenueForLastHour();
+
+            if (adRevenue > 0) {
+                winner.setPears(winner.getPears() + adRevenue);
+                System.out.println("Начислено " + adRevenue + " груш за рекламу.");
+            } else {
+                winner.setPears(winner.getPears() + 10); // фиксированная награда
+                System.out.println("Начислено 10 груш по умолчанию (не было активной рекламы).");
+            }
         } else {
             System.out.println("Победитель не определен");
         }
+
         for (User user : users) {
             user.setPoints(0);
         }
         userRepository.saveAll(users);
-        advertisementRepository.deleteAll();
+
+        // Сброс лидера и очереди рекламы
+        advertisementQueueService.resetAdQueue();
+
         quizRepository.save(quiz);
     }
 
-    @Operation(summary = "Получение оставшегося времени текущей викторины")
     @GetMapping("/remaining-time")
     public ResponseEntity<String> getRemainingTime() {
-        String remainingTime;
-        List<Quiz> quizzes = quizRepository.findAll();
+        Optional<Quiz> quiz = quizRepository.findAll().stream()
+                .filter(q -> "COMPLETED".equals(q.getStatus()))
+                .max(Comparator.comparing(Quiz::getStartTime));
 
-        Quiz activeQuiz = null;
-        for (Quiz quiz : quizzes) {
-            if ("ACTIVE".equalsIgnoreCase(quiz.getStatus())) {
-                if (activeQuiz == null || quiz.getStartTime().isAfter(activeQuiz.getStartTime())) {
-                    activeQuiz = quiz;
-                }
-            }
-        }
-        if (activeQuiz == null) {
-            throw new RuntimeException("Нет активной викторины");
-        }
-        LocalDateTime endTime = activeQuiz.getStartTime().plusMinutes(activeQuiz.getDuration());
+        if (quiz.isEmpty()) return ResponseEntity.ok("Нет активной викторины");
+
+        LocalDateTime endTime = quiz.get().getStartTime().plusMinutes(60);
         LocalDateTime now = LocalDateTime.now();
-        if (now.isAfter(endTime)) {
-            remainingTime = "Викторина завершена.";
-        } else {
-            long totalSeconds = java.time.Duration.between(now, endTime).getSeconds();
-            long minutes = totalSeconds / 60;
-            long seconds = totalSeconds % 60;
-            remainingTime = String.format("%02d:%02d", minutes, seconds);
-        }
-        return ResponseEntity.ok(remainingTime);
+
+        if (now.isAfter(endTime)) return ResponseEntity.ok("Викторина завершена");
+        long seconds = java.time.Duration.between(now, endTime).toSeconds();
+        return ResponseEntity.ok(String.format("%02d:%02d", seconds / 60, seconds % 60));
     }
 
-    @GetMapping("/monitor/system-stats")
-    public Map<String, Object> getSystemStats() {
-        Map<String, Object> result = new HashMap<>();
-
-        try {
-            // ------------------------------
-            // 1) Общая информация о JVM/ОС
-            // ------------------------------
-            result.put("os.name", System.getProperty("os.name"));
-            result.put("os.arch", System.getProperty("os.arch"));
-            result.put("os.version", System.getProperty("os.version"));
-
-            // JVM Memory
-            Runtime runtime = Runtime.getRuntime();
-            result.put("jvm.availableProcessors", runtime.availableProcessors());
-            result.put("jvm.totalMemory", runtime.totalMemory());
-            result.put("jvm.freeMemory", runtime.freeMemory());
-            result.put("jvm.maxMemory", runtime.maxMemory());
-
-            // ------------------------------
-            // 2) Использование CPU/Memory на уровне ОС
-            // ------------------------------
-            // OperatingSystemMXBean (com.sun.management.*) даёт расширенные методы
-            java.lang.management.OperatingSystemMXBean baseOsBean =
-                    ManagementFactory.getOperatingSystemMXBean();
-
-            if (baseOsBean instanceof OperatingSystemMXBean) {
-                OperatingSystemMXBean osBean = (OperatingSystemMXBean) baseOsBean;
-                // Загрузка CPU процессом (0.0 ... 1.0)
-                result.put("processCpuLoad", osBean.getProcessCpuLoad());
-                // Загрузка всей системы (0.0 ... 1.0)
-                result.put("systemCpuLoad", osBean.getSystemCpuLoad());
-
-                // Физическая память (байты)
-                long freePhysMem = osBean.getFreePhysicalMemorySize();
-                long totalPhysMem = osBean.getTotalPhysicalMemorySize();
-                result.put("os.freePhysicalMemorySize", freePhysMem);
-                result.put("os.totalPhysicalMemorySize", totalPhysMem);
-            }
-
-            // ------------------------------
-            // 3) Статистика Tomcat (через MBeans)
-            // ------------------------------
-            // Если используется встроенный Tomcat (Spring Boot), название ObjectName может отличаться
-            // Обычно что-то вроде "Tomcat:type=ThreadPool,name=\"http-nio-8080\""
-            try {
-                MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-                ObjectName threadPoolMBeanName = new ObjectName("Tomcat:type=ThreadPool,name=\"http-nio-8080\"");
-
-                Integer currentThreadsBusy = (Integer) mBeanServer.getAttribute(threadPoolMBeanName, "currentThreadsBusy");
-                Integer currentThreadCount = (Integer) mBeanServer.getAttribute(threadPoolMBeanName, "currentThreadCount");
-
-                result.put("tomcat.currentThreadsBusy", currentThreadsBusy);
-                result.put("tomcat.currentThreadCount", currentThreadCount);
-            } catch (Exception e) {
-                // Если не найдёт MBean (порт другой или не Tomcat)
-                result.put("tomcat.error", e.getMessage());
-            }
-
-            // ------------------------------
-            // 4) Статистика MySQL (SHOW GLOBAL STATUS / VARIABLES)
-            // ------------------------------
-            try (Connection conn = dataSource.getConnection();
-                 Statement stmt = conn.createStatement()) {
-
-                // 4a) SHOW GLOBAL STATUS
-                try (ResultSet rs = stmt.executeQuery("SHOW GLOBAL STATUS")) {
-                    Map<String, String> globalStatus = new HashMap<>();
-                    while (rs.next()) {
-                        String variableName = rs.getString(1);
-                        String value = rs.getString(2);
-                        globalStatus.put(variableName, value);
-                    }
-                    result.put("mysql.globalStatus", globalStatus);
-                }
-
-                // 4b) SHOW GLOBAL VARIABLES
-                try (ResultSet rs = stmt.executeQuery("SHOW GLOBAL VARIABLES")) {
-                    Map<String, String> globalVariables = new HashMap<>();
-                    while (rs.next()) {
-                        String variableName = rs.getString(1);
-                        String value = rs.getString(2);
-                        globalVariables.put(variableName, value);
-                    }
-                    result.put("mysql.globalVariables", globalVariables);
-                }
-            }
-
-        } catch (Exception ex) {
-            result.put("error", ex.getMessage());
-        }
-
-        // Результат будет автоматически возвращён в JSON (при наличии Jackson)
-        return result;
-    }
 }

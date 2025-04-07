@@ -1,6 +1,6 @@
 package fr.mossaab.security.controller;
-import fr.mossaab.security.dto.PurchaseRequest;
-import fr.mossaab.security.dto.PaymentResponse;
+import fr.mossaab.security.dto.payment.PurchaseRequest;
+import fr.mossaab.security.dto.payment.PaymentResponse;
 import fr.mossaab.security.service.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
