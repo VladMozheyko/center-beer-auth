@@ -24,11 +24,15 @@ public class PaymentService {
             throw new IllegalArgumentException("Transaction already processed");
         }
 
-        Integer pearsToAdd = PRODUCT_PEAR_MAP.get(request.getProductId());
-        if (pearsToAdd == null) {
-            throw new IllegalArgumentException("Unknown product: " + request.getProductId());
+        // Курс: 10₽ = 1 груша
+        int rublesPerPear = 100;
+        int pearsToAdd = request.getAmount().intValue() / rublesPerPear;
+
+        if (pearsToAdd <= 0) {
+            throw new IllegalArgumentException("Слишком маленькая сумма. Минимум: " + rublesPerPear + "₽");
         }
 
+        // Сохраняем транзакцию
         Payment payment = new Payment();
         payment.setUserId(request.getUserId());
         payment.setProductId(request.getProductId());
@@ -37,6 +41,7 @@ public class PaymentService {
         payment.setConfirmed(true);
         paymentRepository.save(payment);
 
+        // Обновляем баланс пользователя
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -45,4 +50,5 @@ public class PaymentService {
 
         return user.getPears();
     }
+
 }
