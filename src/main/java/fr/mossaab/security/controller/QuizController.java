@@ -5,6 +5,7 @@ import fr.mossaab.security.dto.advertisement.AdTimeLeftResponse;
 import fr.mossaab.security.dto.advertisement.AdvertisementResponse;
 import fr.mossaab.security.dto.user.UserPointsResponse;
 import fr.mossaab.security.service.AdvertisementQueueService;
+import lombok.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,11 +41,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
@@ -73,7 +69,7 @@ import java.util.stream.Collectors;
 @Tag(name = "Викторина", description = "API для работы с викториной. Редактирование и удаление элементов осуществляется уже посредством google tables")
 @RestController
 @RequestMapping("/quiz")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class QuizController {
     private static final String SHORT_RUSSIAN_QUESTIONS_URL = "https://docs.google.com/spreadsheets/d/1MMVtuIGycNieRu1qvbsstNryl3InC_tseeNWDmyhjLk/export?format=csv";
     private static final String LONG_RUSSIAN_QUESTIONS_URL = "https://docs.google.com/spreadsheets/d/1M2DU2WwyixNsS0pYZ8-2mULZ4oz_m4L3y6kebmvMexE/export?format=csv";
@@ -84,43 +80,71 @@ public class QuizController {
     private final QuizRepository quizRepository;
     private final AdvertisementQueueService advertisementQueueService;
     private final Map<String, List<Question>> cachedQuestionsMap = new HashMap<>();
+    private Quiz currentQuiz;
+
+    @PostConstruct
+    public void onStartup() {
+        reloadQuestionsCacheInternal(); // остальное по желанию
+        startNewQuiz(); // ✅ старт первой викторины
+    }
+    @Operation(summary = "Оставшееся время текущей викторины")
+    @GetMapping("/quiz-time-left")
+    public ResponseEntity<Map<String, Object>> getQuizTimeLeft() {
+        if (currentQuiz == null || !"ACTIVE".equals(currentQuiz.getStatus())) {
+            return ResponseEntity.ok(Map.of("message", "Нет активной викторины"));
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        long secondsElapsed = java.time.Duration.between(currentQuiz.getStartTime(), now).getSeconds();
+
+        if (secondsElapsed >= currentQuiz.getDuration() * 60) {
+            return ResponseEntity.ok(Map.of("minutesLeft", 0, "secondsLeft", 0, "message", "Викторина завершена"));
+        }
+
+        long remainingSeconds = currentQuiz.getDuration() * 60 - secondsElapsed;
+        int minutesLeft = (int) (remainingSeconds / 60);
+        int secondsLeft = (int) (remainingSeconds % 60);
+
+        return ResponseEntity.ok(Map.of(
+                "minutesLeft", minutesLeft,
+                "secondsLeft", secondsLeft,
+                "message", String.format("Осталось %02d:%02d до конца викторины", minutesLeft, secondsLeft)
+        ));
+    }
+
+    public void startNewQuiz() {
+        this.currentQuiz = Quiz.builder()
+                .startTime(LocalDateTime.now())
+                .duration(60)
+                .status("ACTIVE")
+                .totalPoints(0)
+                .build();
+
+        quizRepository.save(currentQuiz);
+        System.out.println("🚀 Новая викторина запущена: " + currentQuiz.getStartTime());
+    }
+
 
     @PostConstruct
     public void init() {
         reloadQuestionsCacheInternal();
     }
-    @Scheduled(cron = "0 0 * * * *")
-    public void runHourlyQuiz() {
-        Quiz quiz = Quiz.builder()
-                .startTime(LocalDateTime.now())
-                .duration(60)
-                .status("COMPLETED")
-                .totalPoints(0)
-                .build();
-
-        List<User> users = userRepository.findAll();
-        User winner = users.stream()
-                .filter(u -> u.getPoints() > 0)
-                .max(Comparator.comparingInt(User::getPoints))
-                .orElse(null);
-
-        int reward = advertisementQueueService.getCurrentLeader().isPresent()
-                ? advertisementQueueService.calculateAdRevenueForLastHour()
-                : 10;
-
-        if (winner != null) {
-            winner.setPears(winner.getPears() + reward);
-            userRepository.save(winner);
-            System.out.printf("🏆 Победитель: %s — %d очков, награда: %d%n", winner.getNickname(), winner.getPoints(), reward);
-        } else {
-            System.out.println("❗ Нет победителя в этом часу.");
+    @Scheduled(fixedRate = 60000) // проверяем каждую минуту
+    public void checkAndRotateQuiz() {
+        if (currentQuiz == null || !"ACTIVE".equals(currentQuiz.getStatus())) {
+            System.out.println("⛔ Нет активной викторины — запуск новой.");
+            startNewQuiz();
+            return;
         }
 
-        // Сброс очков у всех
-        users.forEach(u -> u.setPoints(0));
-        userRepository.saveAll(users);
-
-        quizRepository.save(quiz);
+        long minutesElapsed = java.time.Duration.between(currentQuiz.getStartTime(), LocalDateTime.now()).toMinutes();
+        if (minutesElapsed >= currentQuiz.getDuration()) {
+            System.out.println("⏰ Викторина завершена автоматически — запуск новой.");
+            endQuiz(currentQuiz);
+            startNewQuiz();
+        } else {
+            System.out.println("⏳ Викторина ещё идёт: прошло " + minutesElapsed + " мин.");
+        }
     }
     @Operation(summary = "Оставшееся время текущей рекламы-лидера")
     @GetMapping("/ad-leader-time-left")
@@ -330,20 +354,6 @@ public class QuizController {
         return ResponseEntity.ok(user.getPoints());
     }
 
-//    @Scheduled(fixedRate = 3600000)
-//    public void startQuizAutomatically() {
-//        Quiz quiz = Quiz.builder()
-//                .startTime(LocalDateTime.now())
-//                .duration(60)
-//                .status("ACTIVE")
-//                .totalPoints(0)
-//                .build();
-//        quiz = quizRepository.save(quiz);
-//        System.out.println("Новая викторина запущена с ID: " + quiz.getId());
-//        Quiz finalQuiz = quiz;
-//        Executors.newSingleThreadScheduledExecutor().schedule(() -> endQuiz(finalQuiz), finalQuiz.getDuration(), TimeUnit.MINUTES);
-//    }
-
     @Operation(summary = "Получение текущих очков пользователя")
     @GetMapping("/current-user/points")
     public ResponseEntity<Integer> getCurrentUserPoints() {
@@ -398,22 +408,6 @@ public class QuizController {
         advertisementQueueService.resetAdQueue();
 
         quizRepository.save(quiz);
-    }
-
-    @GetMapping("/remaining-time")
-    public ResponseEntity<String> getRemainingTime() {
-        Optional<Quiz> quiz = quizRepository.findAll().stream()
-                .filter(q -> "COMPLETED".equals(q.getStatus()))
-                .max(Comparator.comparing(Quiz::getStartTime));
-
-        if (quiz.isEmpty()) return ResponseEntity.ok("Нет активной викторины");
-
-        LocalDateTime endTime = quiz.get().getStartTime().plusMinutes(60);
-        LocalDateTime now = LocalDateTime.now();
-
-        if (now.isAfter(endTime)) return ResponseEntity.ok("Викторина завершена");
-        long seconds = java.time.Duration.between(now, endTime).toSeconds();
-        return ResponseEntity.ok(String.format("%02d:%02d", seconds / 60, seconds % 60));
     }
 
 }

@@ -1,13 +1,16 @@
 package fr.mossaab.security.controller;
 
 import com.sun.management.OperatingSystemMXBean;
+import fr.mossaab.security.dto.payment.WithdrawalStatus;
 import fr.mossaab.security.dto.user.GetAllUsersResponse;
 import fr.mossaab.security.entities.Advertisement;
 import fr.mossaab.security.entities.User;
+import fr.mossaab.security.entities.WithdrawalRequest;
 import fr.mossaab.security.enums.AdQueueStatus;
 import fr.mossaab.security.enums.AdvertisementStatus;
 import fr.mossaab.security.repository.AdvertisementRepository;
 import fr.mossaab.security.repository.UserRepository;
+import fr.mossaab.security.repository.WithdrawalRequestRepository;
 import fr.mossaab.security.service.AdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
@@ -45,6 +48,74 @@ public class AdminController {
     private final AdminService adminService;
     private final UserRepository userRepository;
     private final AdvertisementRepository advertisementRepository;
+
+    @Autowired
+    private WithdrawalRequestRepository withdrawalRequestRepository;
+
+    @Operation(summary = "Список заявок на вывод с фильтрацией по статусу")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/withdrawals")
+    public ResponseEntity<List<WithdrawalRequest>> getWithdrawalsByStatus(
+            @RequestParam(required = false) WithdrawalStatus status
+    ) {
+        List<WithdrawalRequest> all = withdrawalRequestRepository.findAll();
+
+        if (status != null) {
+            all = all.stream()
+                    .filter(request -> request.getStatus() == status)
+                    .collect(Collectors.toList());
+        }
+
+        return ResponseEntity.ok(all);
+    }
+
+
+    @Operation(summary = "Подтвердить заявку на вывод")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PostMapping("/withdrawals/approve")
+    public ResponseEntity<String> approveWithdrawal(@RequestParam Long requestId) {
+        WithdrawalRequest request = withdrawalRequestRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Заявка не найдена"));
+
+        if (request.getStatus() != WithdrawalStatus.PENDING) {
+            return ResponseEntity.badRequest().body("Заявка уже обработана");
+        }
+
+        User user = request.getUser();
+        if (user.getPears() < request.getAmount()) {
+            return ResponseEntity.badRequest().body("Недостаточно груш у пользователя");
+        }
+
+        user.setPears(user.getPears() - request.getAmount());
+        request.setStatus(WithdrawalStatus.APPROVED);
+
+        userRepository.save(user);
+        withdrawalRequestRepository.save(request);
+
+        return ResponseEntity.ok("Заявка одобрена. Отправьте средства вручную на: " + request.getPaymentDetails());
+    }
+
+    @Operation(summary = "Отклонить заявку на вывод с указанием причины")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PostMapping("/withdrawals/reject")
+    public ResponseEntity<String> rejectWithdrawal(
+            @RequestParam Long requestId,
+            @RequestParam String reason
+    ) {
+        WithdrawalRequest request = withdrawalRequestRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Заявка не найдена"));
+
+        if (request.getStatus() != WithdrawalStatus.PENDING) {
+            return ResponseEntity.badRequest().body("Заявка уже обработана");
+        }
+
+        request.setStatus(WithdrawalStatus.REJECTED);
+        request.setRejectionReason(reason); // ✅ сохраняем причину
+        withdrawalRequestRepository.save(request);
+
+        return ResponseEntity.ok("Заявка отклонена. Причина: " + reason);
+    }
+
     @Operation(summary = "Получить всех пользователей", description = "Этот endpoint возвращает список всех пользователей с пагинацией.")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/all-users")
