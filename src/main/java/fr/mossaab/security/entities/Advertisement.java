@@ -27,9 +27,7 @@ public class Advertisement {
     private String title;
 
 
-    /**
-     * Описание рекламы.
-     */
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     /**
