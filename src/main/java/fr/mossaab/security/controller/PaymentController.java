@@ -52,9 +52,20 @@ public class PaymentController {
 //        }
 //    }
     @PostMapping("/verify")
-    public ResponseEntity<String> debugVerify(@RequestBody(required = false) String rawBody) {
-        System.out.println("🛠 [DEBUG RAW BODY] → " + rawBody);
-        return ResponseEntity.ok("Получено");
+    public ResponseEntity<String> debugVerify(@RequestBody RustoreCallbackRequest callbackRequest) {
+        try {
+            System.out.println("📥 [Payload] Encrypted Base64: " + callbackRequest.getPayload());
+
+            String decryptedJson = aesDecryptService.decrypt(callbackRequest.getPayload());
+            System.out.println("🔓 [Decrypted JSON] → " + decryptedJson);
+
+            return ResponseEntity.ok(decryptedJson);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("❌ Ошибка расшифровки: " + e.getMessage());
+        }
     }
+
 
 }
