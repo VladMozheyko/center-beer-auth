@@ -19,14 +19,18 @@ public class PaymentService {
     private final UserRepository userRepository;
 
     public int verifyAndHandlePurchase(VerifiedPurchaseRequest request) {
+
+        // 🔐 0. Проверка, тестовое ли уведомление
+        if (request.getSignature() == null || request.getOrderId() == null) {
+            System.out.println("🧪 Получено тестовое уведомление от RuStore. Подпись отсутствует — пропускаем обработку.");
+            return 0;
+        }
+
         // 1. Проверка подписи
         boolean validSignature = SignatureUtil.verifySignature(request);
         if (!validSignature) {
-            if (!request.getSignature().contains("==")) { // грубая проверка на base64
-                System.out.println("⚠️ Тестовая подпись от RuStore пропущена.");
-            } else {
-                throw new SecurityException("Invalid signature from RuStore");
-            }
+            System.out.println("❌ Невалидная подпись RuStore");
+            throw new SecurityException("Invalid signature from RuStore");
         }
 
         // 2. Проверка на повтор
