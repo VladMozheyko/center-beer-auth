@@ -19,7 +19,12 @@ public class PaymentController {
     private final AesDecryptService aesDecryptService;
     private final ObjectMapper objectMapper;
 
-    @PostMapping(value = "/verify", consumes = "application/json")
+    @GetMapping("/ping")
+    public ResponseEntity<String> ping() {
+        return ResponseEntity.ok("Привет");
+    }
+
+    @PostMapping("/verify")
     public ResponseEntity<PaymentResponse> verifyAndProcessPayment(@RequestBody String rawBody) {
         try {
             System.out.println("📥 [RAW BODY] → " + rawBody);
