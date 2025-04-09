@@ -7,6 +7,7 @@ import fr.mossaab.security.dto.payment.VerifiedPurchaseRequest;
 import fr.mossaab.security.dto.payment.PaymentResponse;
 import fr.mossaab.security.service.PaymentService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
