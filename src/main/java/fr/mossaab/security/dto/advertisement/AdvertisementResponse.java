@@ -8,6 +8,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AdvertisementResponse {
+    private Long id;
     private int position;
     private int cost;
     private String nickname;

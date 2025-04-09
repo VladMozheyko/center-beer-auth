@@ -92,6 +92,7 @@ public class AdvertisementController {
         int position = 1;
         for (Advertisement ad : advertisements) {
             AdvertisementResponse adResponse = AdvertisementResponse.builder()
+                    .id(ad.getId()) // <-- добавлено
                     .position(position)
                     .cost(ad.getCost())
                     .nickname(ad.getUser().getNickname())
