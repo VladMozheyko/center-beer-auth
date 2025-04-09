@@ -1,6 +1,7 @@
 package fr.mossaab.security.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.mossaab.security.config.AesDecryptService;
+import fr.mossaab.security.dto.payment.RustoreCallbackRequest;
 import fr.mossaab.security.dto.payment.VerifiedPurchaseRequest;
 import fr.mossaab.security.dto.payment.PaymentResponse;
 import fr.mossaab.security.service.PaymentService;
@@ -19,8 +20,9 @@ public class PaymentController {
     private final ObjectMapper objectMapper;
 
     @PostMapping("/verify")
-    public ResponseEntity<PaymentResponse> verifyAndProcessPayment(@RequestBody String encryptedRequestBase64) {
+    public ResponseEntity<PaymentResponse> verifyAndProcessPayment(@RequestBody RustoreCallbackRequest callbackRequest) {
         try {
+            String encryptedRequestBase64 = callbackRequest.getPayload(); // извлекаем payload
             System.out.println("📥 [INPUT] Encrypted Base64: " + encryptedRequestBase64);
 
             String decryptedJson = aesDecryptService.decrypt(encryptedRequestBase64);
@@ -33,7 +35,7 @@ public class PaymentController {
             return ResponseEntity.ok(new PaymentResponse("Покупка подтверждена", updatedPears));
 
         } catch (Exception e) {
-            e.printStackTrace(); // ⛔ покажем stacktrace в лог
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(new PaymentResponse("Ошибка обработки: " + e.getMessage(), -1));
         }
     }
