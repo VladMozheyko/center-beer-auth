@@ -49,7 +49,8 @@ public class PaymentController {
 
             if ("INVOICE_STATUS".equals(type)) {
                 JsonNode dataNode = root.get("data");
-                InvoiceStatusData invoice = objectMapper.readValue(dataNode.toString(), InvoiceStatusData.class);
+                String rawData = root.get("data").asText(); // вытаскиваем строку
+                InvoiceStatusData invoice = objectMapper.readValue(rawData, InvoiceStatusData.class);
 
                 if ("confirmed".equals(invoice.getStatusNew())) {
                     int updated = paymentService.handleInvoice(invoice);
