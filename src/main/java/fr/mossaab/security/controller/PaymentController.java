@@ -26,44 +26,36 @@ public class PaymentController {
         return ResponseEntity.ok("Привет");
     }
 
-    //    @PostMapping("/verify")
-//    public ResponseEntity<PaymentResponse> verifyAndProcessPayment(@RequestBody String rawBody) {
-//        try {
-//            System.out.println("📥 [RAW BODY] → " + rawBody);
-//
-//            RustoreCallbackRequest callbackRequest = objectMapper.readValue(rawBody, RustoreCallbackRequest.class);
-//
-//            String encryptedRequestBase64 = callbackRequest.getPayload();
-//            System.out.println("📥 [Payload] Encrypted Base64: " + encryptedRequestBase64);
-//
-//            String decryptedJson = aesDecryptService.decrypt(encryptedRequestBase64);
-//            System.out.println("🔓 [Decrypted JSON] → " + decryptedJson);
-//
-//            VerifiedPurchaseRequest request = objectMapper.readValue(decryptedJson, VerifiedPurchaseRequest.class);
-//            System.out.println("📦 [Parsed Purchase Request] → " + request);
-//
-//            int updatedPears = paymentService.verifyAndHandlePurchase(request);
-//            return ResponseEntity.ok(new PaymentResponse("Покупка подтверждена", updatedPears));
-//
-//        } catch (Exception e) {
-//            System.err.println("❌ Ошибка обработки запроса:");
-//            e.printStackTrace();
-//            return ResponseEntity.badRequest().body(new PaymentResponse("Ошибка обработки: " + e.getMessage(), -1));
-//        }
-//    }
     @PostMapping("/verify")
-    public ResponseEntity<String> debugVerify(@RequestBody RustoreCallbackRequest callbackRequest) {
+    public ResponseEntity<String> verifyCallback(@RequestBody RustoreCallbackRequest callbackRequest,
+                                                 HttpServletRequest request) {
         try {
-            System.out.println("📥 [Payload] Encrypted Base64: " + callbackRequest.getPayload());
+            String ip = request.getRemoteAddr();
+            String userAgent = request.getHeader("User-Agent");
 
+            System.out.println("📡 IP: " + ip);
+            System.out.println("🧭 User-Agent: " + userAgent);
+            System.out.println("📥 Encrypted Payload (Base64): " + callbackRequest.getPayload());
+
+            // Расшифровка
             String decryptedJson = aesDecryptService.decrypt(callbackRequest.getPayload());
-            System.out.println("🔓 [Decrypted JSON] → " + decryptedJson);
+            System.out.println("🔓 Decrypted JSON: " + decryptedJson);
 
-            return ResponseEntity.ok(decryptedJson);
+            // Парсинг в объект
+            VerifiedPurchaseRequest purchase = objectMapper.readValue(decryptedJson, VerifiedPurchaseRequest.class);
+            System.out.println("📦 Purchase: " + purchase);
 
+            // Валидация подписи и логика
+            int updatedPears = paymentService.verifyAndHandlePurchase(purchase);
+            return ResponseEntity.ok("✅ Покупка обработана. Новый баланс: " + updatedPears);
+
+        } catch (IllegalArgumentException e) {
+            System.err.println("⚠️ Некорректный payload: " + e.getMessage());
+            return ResponseEntity.badRequest().body("⚠️ Некорректный payload или формат");
         } catch (Exception e) {
+            System.err.println("❌ Ошибка обработки: " + e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.badRequest().body("❌ Ошибка расшифровки: " + e.getMessage());
+            return ResponseEntity.badRequest().body("❌ Ошибка обработки: " + e.getMessage());
         }
     }
 
