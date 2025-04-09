@@ -67,8 +67,8 @@ public class SecurityConfiguration {
                                         "/quiz/**",
                                         "/payment/**",
                                         "/advertisements/**",
-                                        "/devops/**",
-                                        "/payment/**"
+                                        "/devops/**"
+                                        //"/payment/**"
                                 )
                                 .permitAll() // Разрешение доступа к определенным ресурсам без аутентификации
                                 .requestMatchers(HttpMethod.POST, "/api/v1/resource").hasRole("ADMIN") // Разрешение доступа с ролью ADMIN
