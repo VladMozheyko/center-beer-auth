@@ -21,17 +21,19 @@ public class PaymentController {
     @PostMapping("/verify")
     public ResponseEntity<PaymentResponse> verifyAndProcessPayment(@RequestBody String encryptedRequestBase64) {
         try {
-            // 1. Расшифровываем JSON
+            System.out.println("📥 [INPUT] Encrypted Base64: " + encryptedRequestBase64);
+
             String decryptedJson = aesDecryptService.decrypt(encryptedRequestBase64);
+            System.out.println("🔓 [DECRYPTED JSON] " + decryptedJson);
 
-            // 2. Преобразуем в VerifiedPurchaseRequest
             VerifiedPurchaseRequest request = objectMapper.readValue(decryptedJson, VerifiedPurchaseRequest.class);
+            System.out.println("📦 [Parsed Request] " + request);
 
-            // 3. Обрабатываем покупку
             int updatedPears = paymentService.verifyAndHandlePurchase(request);
             return ResponseEntity.ok(new PaymentResponse("Покупка подтверждена", updatedPears));
 
         } catch (Exception e) {
+            e.printStackTrace(); // ⛔ покажем stacktrace в лог
             return ResponseEntity.badRequest().body(new PaymentResponse("Ошибка обработки: " + e.getMessage(), -1));
         }
     }

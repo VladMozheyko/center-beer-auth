@@ -30,16 +30,25 @@ public class SignatureUtil {
                     "developerPayload", request.getDeveloperPayload()
             ));
 
+            System.out.println("🔐 [SIGNATURE CHECK] Payload: " + payload);
+            System.out.println("🔐 [SIGNATURE CHECK] Signature: " + request.getSignature());
+
             byte[] signatureBytes = Base64.getDecoder().decode(request.getSignature());
             Signature sig = Signature.getInstance("SHA256withRSA");
             sig.initVerify(getPublicKey());
             sig.update(payload.getBytes(StandardCharsets.UTF_8));
-            return sig.verify(signatureBytes);
+            boolean valid = sig.verify(signatureBytes);
+
+            System.out.println("✅ Подпись корректна? → " + valid);
+            return valid;
+
         } catch (Exception e) {
+            System.err.println("❌ Ошибка при проверке подписи: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
     }
+
 
     private static PublicKey getPublicKey() throws Exception {
         URL url = new URL(PUBLIC_KEY_URL);

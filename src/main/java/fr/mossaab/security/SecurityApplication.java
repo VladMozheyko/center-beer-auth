@@ -1,5 +1,12 @@
 package fr.mossaab.security;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.util.Base64;
+import java.util.Map;
 import fr.mossaab.security.service.UserCreateService;
 import fr.mossaab.security.controller.QuizController;
 import jakarta.annotation.PostConstruct;
@@ -29,6 +36,7 @@ import java.util.Arrays;
 public class SecurityApplication {
 
     private boolean schemaIsEmpty = false;
+    private static final String AES_SECRET_BASE64 = "dbHLeKsgfs6DnkZe/G1JgUZqiWl+SVpo91w+QfjAxQ8=";
 
     @Autowired
     private UserCreateService userCreationService;
