@@ -19,24 +19,30 @@ public class PaymentController {
     private final AesDecryptService aesDecryptService;
     private final ObjectMapper objectMapper;
 
-    @PostMapping("/verify")
-    public ResponseEntity<PaymentResponse> verifyAndProcessPayment(@RequestBody RustoreCallbackRequest callbackRequest) {
+    @PostMapping(value = "/verify", consumes = "application/json")
+    public ResponseEntity<PaymentResponse> verifyAndProcessPayment(@RequestBody String rawBody) {
         try {
-            String encryptedRequestBase64 = callbackRequest.getPayload(); // извлекаем payload
-            System.out.println("📥 [INPUT] Encrypted Base64: " + encryptedRequestBase64);
+            System.out.println("📥 [RAW BODY] → " + rawBody);
+
+            RustoreCallbackRequest callbackRequest = objectMapper.readValue(rawBody, RustoreCallbackRequest.class);
+
+            String encryptedRequestBase64 = callbackRequest.getPayload();
+            System.out.println("📥 [Payload] Encrypted Base64: " + encryptedRequestBase64);
 
             String decryptedJson = aesDecryptService.decrypt(encryptedRequestBase64);
-            System.out.println("🔓 [DECRYPTED JSON] " + decryptedJson);
+            System.out.println("🔓 [Decrypted JSON] → " + decryptedJson);
 
             VerifiedPurchaseRequest request = objectMapper.readValue(decryptedJson, VerifiedPurchaseRequest.class);
-            System.out.println("📦 [Parsed Request] " + request);
+            System.out.println("📦 [Parsed Purchase Request] → " + request);
 
             int updatedPears = paymentService.verifyAndHandlePurchase(request);
             return ResponseEntity.ok(new PaymentResponse("Покупка подтверждена", updatedPears));
 
         } catch (Exception e) {
+            System.err.println("❌ Ошибка обработки запроса:");
             e.printStackTrace();
             return ResponseEntity.badRequest().body(new PaymentResponse("Ошибка обработки: " + e.getMessage(), -1));
         }
     }
+
 }
