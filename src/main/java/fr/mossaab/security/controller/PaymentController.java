@@ -1,10 +1,11 @@
 package fr.mossaab.security.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.mossaab.security.config.AesDecryptService;
+import fr.mossaab.security.dto.payment.InvoiceStatusData;
 import fr.mossaab.security.dto.payment.RustoreCallbackRequest;
 import fr.mossaab.security.dto.payment.VerifiedPurchaseRequest;
-import fr.mossaab.security.dto.payment.PaymentResponse;
 import fr.mossaab.security.service.PaymentService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,13 +43,31 @@ public class PaymentController {
             String decryptedJson = aesDecryptService.decrypt(callbackRequest.getPayload());
             System.out.println("🔓 Decrypted JSON: " + decryptedJson);
 
-            // Парсинг в объект
-            VerifiedPurchaseRequest purchase = objectMapper.readValue(decryptedJson, VerifiedPurchaseRequest.class);
-            System.out.println("📦 Purchase: " + purchase);
+            // Разбор JSON
+            JsonNode root = objectMapper.readTree(decryptedJson);
+            String type = root.get("notification_type").asText();
 
-            // Валидация подписи и логика
-            int updatedPears = paymentService.verifyAndHandlePurchase(purchase);
-            return ResponseEntity.ok("✅ Покупка обработана. Новый баланс: " + updatedPears);
+            if ("INVOICE_STATUS".equals(type)) {
+                JsonNode dataNode = root.get("data");
+                InvoiceStatusData invoice = objectMapper.readValue(dataNode.toString(), InvoiceStatusData.class);
+
+                if ("confirmed".equals(invoice.getStatusNew())) {
+                    int updated = paymentService.handleInvoice(invoice);
+                    return ResponseEntity.ok("✅ INVOICE_STATUS обработан. Груши: " + updated);
+                } else {
+                    System.out.println("ℹ️ INVOICE_STATUS: статус = " + invoice.getStatusNew());
+                    return ResponseEntity.ok("ℹ️ INVOICE_STATUS пропущен.");
+                }
+            }
+
+            // ✅ Обработка подписи (боевые покупки)
+            if ("PURCHASE".equals(type) || root.has("signature")) {
+                VerifiedPurchaseRequest purchase = objectMapper.readValue(decryptedJson, VerifiedPurchaseRequest.class);
+                int updatedPears = paymentService.verifyAndHandlePurchase(purchase);
+                return ResponseEntity.ok("✅ Покупка обработана. Новый баланс: " + updatedPears);
+            }
+
+            return ResponseEntity.ok("🔔 Неизвестный тип уведомления: " + type);
 
         } catch (IllegalArgumentException e) {
             System.err.println("⚠️ Некорректный payload: " + e.getMessage());
@@ -59,6 +78,4 @@ public class PaymentController {
             return ResponseEntity.badRequest().body("❌ Ошибка обработки: " + e.getMessage());
         }
     }
-
-
 }
