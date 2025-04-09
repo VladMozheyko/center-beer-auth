@@ -62,36 +62,5 @@ public class PaymentService {
         };
     }
 
-    public int handlePurchase(PurchaseRequest request) {
-        if (paymentRepository.existsByTransactionId(request.getTransactionId())) {
-            throw new IllegalArgumentException("Transaction already processed");
-        }
-
-        // Курс: 10₽ = 1 груша
-        int rublesPerPear = 100;
-        int pearsToAdd = request.getAmount().intValue() / rublesPerPear;
-
-        if (pearsToAdd <= 0) {
-            throw new IllegalArgumentException("Слишком маленькая сумма. Минимум: " + rublesPerPear + "₽");
-        }
-
-        // Сохраняем транзакцию
-        Payment payment = new Payment();
-        payment.setUserId(request.getUserId());
-        payment.setProductId(request.getProductId());
-        payment.setTransactionId(request.getTransactionId());
-        payment.setAmount(request.getAmount());
-        payment.setConfirmed(true);
-        paymentRepository.save(payment);
-
-        // Обновляем баланс пользователя
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        user.setPears(user.getPears() + pearsToAdd);
-        userRepository.save(user);
-
-        return user.getPears();
-    }
 
 }
