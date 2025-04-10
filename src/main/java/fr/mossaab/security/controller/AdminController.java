@@ -1,6 +1,7 @@
 package fr.mossaab.security.controller;
 
 import com.sun.management.OperatingSystemMXBean;
+import fr.mossaab.security.dto.advertisement.WithdrawalRequestDto;
 import fr.mossaab.security.dto.payment.WithdrawalStatus;
 import fr.mossaab.security.dto.user.GetAllUsersResponse;
 import fr.mossaab.security.entities.Advertisement;
@@ -55,7 +56,7 @@ public class AdminController {
     @Operation(summary = "Список заявок на вывод с фильтрацией по статусу")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/withdrawals")
-    public ResponseEntity<List<WithdrawalRequest>> getWithdrawalsByStatus(
+    public ResponseEntity<List<WithdrawalRequestDto>> getWithdrawalsByStatus(
             @RequestParam(required = false) WithdrawalStatus status
     ) {
         List<WithdrawalRequest> all = withdrawalRequestRepository.findAll();
@@ -66,9 +67,12 @@ public class AdminController {
                     .collect(Collectors.toList());
         }
 
-        return ResponseEntity.ok(all);
-    }
+        List<WithdrawalRequestDto> dtos = all.stream()
+                .map(WithdrawalRequestDto::fromEntity)
+                .collect(Collectors.toList());
 
+        return ResponseEntity.ok(dtos);
+    }
 
     @Operation(summary = "Подтвердить заявку на вывод")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
