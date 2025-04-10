@@ -48,5 +48,18 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+
+  admin-panel:
+    build:
+      context: ../go-mind-admin-panel
+      dockerfile: Dockerfile
+    container_name: go_mind_admin_panel
+    image: go-mind-admin-panel
+    ports:
+      - "3000:80"  # Или другой порт, если 3000 занят
+    depends_on:
+      - backend
+    restart: unless-stopped
+
 volumes:
   mysql_data:
