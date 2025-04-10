@@ -4,8 +4,10 @@ import fr.mossaab.security.config.SignatureUtil;
 import fr.mossaab.security.dto.payment.InvoiceStatusData;
 import fr.mossaab.security.dto.payment.VerifiedPurchaseRequest;
 import fr.mossaab.security.entities.Payment;
+import fr.mossaab.security.entities.PurchaseMapping;
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.repository.PaymentRepository;
+import fr.mossaab.security.repository.PurchaseMappingRepository;
 import fr.mossaab.security.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,7 +17,7 @@ import java.math.BigDecimal;
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
-
+    private final PurchaseMappingRepository purchaseMappingRepository;
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
     public int verifyAndHandlePurchase(VerifiedPurchaseRequest request) {
@@ -59,23 +61,39 @@ public class PaymentService {
     }
 
     public int handleInvoice(InvoiceStatusData invoice) {
-        if (invoice.getDeveloperPayload() == null) {
-            System.out.println("⚠️ developerPayload отсутствует. Пропуск.");
+        String purchaseId = invoice.getPurchaseId();
+        String orderId = invoice.getOrderId();
+
+        Long userId = null;
+
+        // 1. Получаем userId из developerPayload, если есть
+        if (invoice.getDeveloperPayload() != null) {
+            userId = Long.valueOf(invoice.getDeveloperPayload());
+        }
+
+        // 2. Если developerPayload нет — пробуем взять из маппинга
+        if (userId == null) {
+            userId = purchaseMappingRepository.findByPurchaseId(purchaseId)
+                    .map(PurchaseMapping::getUserId)
+                    .orElse(null);
+        }
+
+        if (userId == null) {
+            System.out.println("⚠️ Не удалось определить userId для покупки: " + purchaseId);
             return 0;
         }
 
-        if (paymentRepository.existsByTransactionId(invoice.getOrderId())) {
-            System.out.println("⚠️ Транзакция уже была обработана: " + invoice.getOrderId());
+        if (paymentRepository.existsByTransactionId(orderId)) {
+            System.out.println("⚠️ Транзакция уже обработана: " + orderId);
             return 0;
         }
 
-        Long userId = Long.valueOf(invoice.getDeveloperPayload());
-        int pears = calculatePears(invoice.getProductCode(), 1); // По умолчанию quantity = 1
+        int pears = calculatePears(invoice.getProductCode(), 1);
 
         Payment payment = Payment.builder()
                 .userId(userId)
                 .productId(invoice.getProductCode())
-                .transactionId(invoice.getOrderId())
+                .transactionId(orderId)
                 .amount(BigDecimal.valueOf(pears * 100))
                 .confirmed(true)
                 .build();

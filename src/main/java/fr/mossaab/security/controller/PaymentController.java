@@ -6,6 +6,8 @@ import fr.mossaab.security.config.AesDecryptService;
 import fr.mossaab.security.dto.payment.InvoiceStatusData;
 import fr.mossaab.security.dto.payment.RustoreCallbackRequest;
 import fr.mossaab.security.dto.payment.VerifiedPurchaseRequest;
+import fr.mossaab.security.entities.PurchaseMapping;
+import fr.mossaab.security.repository.PurchaseMappingRepository;
 import fr.mossaab.security.service.PaymentService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,10 +24,22 @@ public class PaymentController {
     private final PaymentService paymentService;
     private final AesDecryptService aesDecryptService;
     private final ObjectMapper objectMapper;
-
+    private final PurchaseMappingRepository repository;
     @GetMapping("/ping")
     public ResponseEntity<String> ping() {
         return ResponseEntity.ok("Привет");
+    }
+
+    @PostMapping("/mapping")
+    public ResponseEntity<?> save(@RequestParam String purchaseId, @RequestParam Long userId) {
+        if (repository.findByPurchaseId(purchaseId).isEmpty()) {
+            repository.save(PurchaseMapping.builder()
+                    .purchaseId(purchaseId)
+                    .userId(userId)
+                    .build()
+            );
+        }
+        return ResponseEntity.ok("✅ Mapping сохранён");
     }
 
     @PostMapping("/verify")
