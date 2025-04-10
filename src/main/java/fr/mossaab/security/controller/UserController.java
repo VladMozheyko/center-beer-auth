@@ -90,6 +90,7 @@ public class UserController {
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 
         UserProfileResponse profile = UserProfileResponse.builder()
+                .id(user.getId()) // <-- добавлено
                 .nickname(user.getNickname())
                 .email(user.getEmail())
                 .pears(user.getPears())
@@ -97,7 +98,6 @@ public class UserController {
 
         return ResponseEntity.ok(profile);
     }
-
 
     @Operation(summary = "Изменить никнейм текущего пользователя")
     @PatchMapping("/update-nickname")
