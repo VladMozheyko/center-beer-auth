@@ -111,9 +111,12 @@ public class JwtService {
         return ResponseCookie.from(jwtCookieName, jwt)
                 .path("/")
                 .maxAge(24 * 60 * 60 * 300) // 24 часа
-                .httpOnly(false)
-                .secure(false)
-                .sameSite("Strict")
+//                .httpOnly(false)
+//                .secure(false)
+//                .sameSite("Strict")
+                .httpOnly(true)
+                .secure(true) // Убедитесь, что флаг secure установлен для HTTPS
+                .sameSite("None") // Для кросс-доменных запросов
                 .build();
     }
 
