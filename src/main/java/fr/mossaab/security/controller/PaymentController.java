@@ -26,6 +26,7 @@ public class PaymentController {
     private final AesDecryptService aesDecryptService;
     private final ObjectMapper objectMapper;
     private final PurchaseMappingRepository repository;
+
     @GetMapping("/ping")
     public ResponseEntity<String> ping() {
         return ResponseEntity.ok("Привет");
@@ -33,15 +34,11 @@ public class PaymentController {
 
     @PostMapping("/mapping")
     public ResponseEntity<?> save(@RequestBody MappingRequest request) {
-        String purchaseId = request.getPurchaseId();
-        Long userId = request.getUserId();
-
-        if (repository.findByPurchaseId(purchaseId).isEmpty()) {
+        if (repository.findByPurchaseId(request.getPurchaseId()).isEmpty()) {
             repository.save(PurchaseMapping.builder()
-                    .purchaseId(purchaseId)
-                    .userId(userId)
-                    .build()
-            );
+                    .purchaseId(request.getPurchaseId())
+                    .userId(request.getUserId())
+                    .build());
         }
         return ResponseEntity.ok("✅ Mapping сохранён");
     }
@@ -50,19 +47,19 @@ public class PaymentController {
     public ResponseEntity<String> verifyCallback(@RequestBody RustoreCallbackRequest callbackRequest,
                                                  HttpServletRequest request) {
         try {
-            String ip = request.getRemoteAddr();
-            String userAgent = request.getHeader("User-Agent");
-
-            System.out.println("📡 IP: " + ip);
-            System.out.println("🧭 User-Agent: " + userAgent);
-            System.out.println("📥 Encrypted Payload (Base64): " + callbackRequest.getPayload());
-
-            // Расшифровка
+            System.out.println("📥 Encrypted Payload: " + callbackRequest.getPayload());
             String decryptedJson = aesDecryptService.decrypt(callbackRequest.getPayload());
             System.out.println("🔓 Decrypted JSON: " + decryptedJson);
 
             JsonNode root = objectMapper.readTree(decryptedJson);
             String type = root.get("notification_type").asText();
+
+            if ("INVOICE_STATUS".equals(type)) {
+                String dataJson = root.get("data").asText();
+                InvoiceStatusData invoice = objectMapper.readValue(dataJson, InvoiceStatusData.class);
+                int updatedPears = paymentService.handleInvoice(invoice);
+                return ResponseEntity.ok("✅ INVOICE_STATUS обработан. Новый баланс: " + updatedPears);
+            }
 
             if ("PURCHASE".equals(type) || root.has("signature")) {
                 VerifiedPurchaseRequest purchase = objectMapper.readValue(decryptedJson, VerifiedPurchaseRequest.class);
@@ -70,12 +67,9 @@ public class PaymentController {
                 return ResponseEntity.ok("✅ Покупка обработана. Новый баланс: " + updatedPears);
             }
 
-            return ResponseEntity.ok("🔔 Неизвестный тип уведомления: " + type);
-
+            return ResponseEntity.ok("ℹ️ Необработанный тип уведомления: " + type);
         } catch (Exception e) {
-            System.err.println("❌ Ошибка обработки: " + e.getMessage());
             return ResponseEntity.badRequest().body("❌ Ошибка обработки: " + e.getMessage());
         }
     }
-
 }

@@ -55,34 +55,25 @@ public class PaymentService {
     }
 
     public int verifyAndHandlePurchase(VerifiedPurchaseRequest request) {
-
         if (request.getSignature() == null || request.getOrderId() == null) {
-            System.out.println("🧪 Получено тестовое уведомление. Подпись отсутствует — пропуск.");
-            return 0;
+            return 0; // тестовая покупка
         }
 
         boolean validSignature = SignatureUtil.verifySignature(request);
-        if (!validSignature) {
-            System.out.println("❌ Невалидная подпись.");
-            throw new SecurityException("Invalid signature from RuStore");
-        }
+        if (!validSignature) throw new SecurityException("Invalid signature from RuStore");
 
         if (paymentRepository.existsByTransactionId(request.getOrderId())) {
-            System.out.println("⚠️ Транзакция уже обработана: " + request.getOrderId());
-            return 0;
+            return 0; // уже обработано
         }
 
         Long userId = Long.valueOf(request.getDeveloperPayload());
-        int quantity = request.getQuantity() > 0 ? request.getQuantity() : 1;
-        int pears = calculatePears(request.getProductId(), quantity);
-
-        BigDecimal amount = BigDecimal.valueOf(pears * 100); // 👉 по 100 копеек за 1 грушу
+        int pears = calculatePears(request.getProductId(), request.getQuantity());
 
         Payment payment = Payment.builder()
                 .userId(userId)
                 .productId(request.getProductId())
                 .transactionId(request.getOrderId())
-                .amount(amount)
+                .amount(BigDecimal.valueOf(pears * 100))
                 .confirmed(true)
                 .build();
 
@@ -93,8 +84,6 @@ public class PaymentService {
         user.setPears(user.getPears() + pears);
         userRepository.save(user);
 
-        System.out.println("✅ Боевой платёж. Пользователю " + userId + " начислено " + pears + " груш");
-
         return user.getPears();
     }
 
@@ -102,7 +91,8 @@ public class PaymentService {
     public int handleInvoice(InvoiceStatusData invoice) {
         String purchaseId = invoice.getPurchaseId();
         String orderId = invoice.getOrderId();
-        String token = invoice.getPurchaseToken();
+        String productCode = invoice.getProductCode();
+        int quantity = invoice.getQuantity() > 0 ? invoice.getQuantity() : 1;
 
         Long userId = null;
 
@@ -117,22 +107,20 @@ public class PaymentService {
         }
 
         if (userId == null) {
-            System.out.println("⚠️ Не удалось определить userId для покупки: " + purchaseId);
+            System.out.println("❗ Не найден userId для purchaseId: " + purchaseId);
             return 0;
         }
 
         if (paymentRepository.existsByTransactionId(orderId)) {
-            System.out.println("⚠️ Транзакция уже обработана: " + orderId);
-            return 0;
+            return 0; // дублирование
         }
 
-        // 👇 Получаем сумму из RuStore API
-        BigDecimal amount = fetchAmountFromRuStore(token);
-        int pears = convertAmountToPears(amount);
+        int pears = calculatePears(productCode, quantity);
+        BigDecimal amount = BigDecimal.valueOf(pears * 100); // фиксировано 1 груша = 100 копеек
 
         Payment payment = Payment.builder()
                 .userId(userId)
-                .productId(invoice.getProductCode())
+                .productId(productCode)
                 .transactionId(orderId)
                 .amount(amount)
                 .confirmed(true)
@@ -145,19 +133,17 @@ public class PaymentService {
         user.setPears(user.getPears() + pears);
         userRepository.save(user);
 
-        System.out.println("✅ Пользователю " + userId + " начислено " + pears + " груш");
-
         return pears;
     }
 
 
     private int calculatePears(String productCode, int quantity) {
         return switch (productCode) {
-            case "pear_id" -> 1 * quantity; // 👈 Добавлена базовая покупка "Груша"
+            case "pear_id" -> 1 * quantity;
             case "pear_pack_10", "pear_id_10" -> 10 * quantity;
             case "pear_pack_50", "pear_id_50" -> 50 * quantity;
             case "pear_pack_100", "pear_id_100" -> 100 * quantity;
-            default -> throw new IllegalArgumentException("Неизвестный товар: " + productCode);
+            default -> 0;
         };
     }
 }
