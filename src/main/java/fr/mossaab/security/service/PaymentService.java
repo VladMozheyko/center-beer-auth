@@ -112,6 +112,7 @@ public class PaymentService {
 
     private int calculatePears(String productCode, int quantity) {
         return switch (productCode) {
+            case "pear_id" -> 1 * quantity; // 👈 Добавлена базовая покупка "Груша"
             case "pear_pack_10", "pear_id_10" -> 10 * quantity;
             case "pear_pack_50", "pear_id_50" -> 50 * quantity;
             case "pear_pack_100", "pear_id_100" -> 100 * quantity;
