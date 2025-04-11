@@ -113,9 +113,12 @@ public class RefreshTokenService {
         return ResponseCookie.from(refreshTokenName, token)
                 .path("/")
                 .maxAge(refreshExpiration/1000 * 20) // 15 дней в секундах
-                .httpOnly(false)
-                .secure(false)
-                .sameSite("Strict")
+//                .httpOnly(false)
+//                .secure(false)
+//                .sameSite("Strict")
+                .httpOnly(true) // Убедитесь, что куки доступны только на сервере
+                .secure(true) // Для HTTPS
+                .sameSite("None") // Для кросс-доменных запросов
                 .build();
     }
 
