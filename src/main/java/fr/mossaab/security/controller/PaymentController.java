@@ -65,13 +65,21 @@ public class PaymentController {
             JsonNode root = objectMapper.readTree(decryptedJson);
             String type = root.get("notification_type").asText();
 
-            // ❌ INVOICE_STATUS больше не обрабатываем, только логируем
             if ("INVOICE_STATUS".equals(type)) {
-                System.out.println("ℹ️ INVOICE_STATUS получен, но не обрабатывается.");
-                return ResponseEntity.ok("ℹ️ INVOICE_STATUS получен. Пропущен.");
+                JsonNode dataNode = root.get("data");
+                String rawData = root.get("data").asText(); // вытаскиваем строку
+                InvoiceStatusData invoice = objectMapper.readValue(rawData, InvoiceStatusData.class);
+
+                if ("confirmed".equals(invoice.getStatusNew())) {
+                    int updated = paymentService.handleInvoice(invoice);
+                    return ResponseEntity.ok("✅ INVOICE_STATUS обработан. Груши: " + updated);
+                } else {
+                    System.out.println("ℹ️ INVOICE_STATUS: статус = " + invoice.getStatusNew());
+                    return ResponseEntity.ok("ℹ️ INVOICE_STATUS пропущен.");
+                }
             }
 
-            // ✅ Только PURCHASE
+            // ✅ Обработка подписи (боевые покупки)
             if ("PURCHASE".equals(type) || root.has("signature")) {
                 VerifiedPurchaseRequest purchase = objectMapper.readValue(decryptedJson, VerifiedPurchaseRequest.class);
                 int updatedPears = paymentService.verifyAndHandlePurchase(purchase);
@@ -89,5 +97,4 @@ public class PaymentController {
             return ResponseEntity.badRequest().body("❌ Ошибка обработки: " + e.getMessage());
         }
     }
-
 }
