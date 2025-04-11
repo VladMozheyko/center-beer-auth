@@ -35,5 +35,7 @@ public class InvoiceStatusData {
 
     @JsonProperty("developer_payload")
     private String developerPayload;
+    @JsonProperty("quantity")
+    private int quantity = 1; // по умолчанию 1, если не передано
 }
 

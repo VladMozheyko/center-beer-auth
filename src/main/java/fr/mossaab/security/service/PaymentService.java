@@ -88,7 +88,8 @@ public class PaymentService {
             return 0;
         }
 
-        int pears = calculatePears(invoice.getProductCode(), 1);
+        int quantity = invoice.getQuantity() > 0 ? invoice.getQuantity() : 1;
+        int pears = calculatePears(invoice.getProductCode(), quantity);
 
         Payment payment = Payment.builder()
                 .userId(userId)
