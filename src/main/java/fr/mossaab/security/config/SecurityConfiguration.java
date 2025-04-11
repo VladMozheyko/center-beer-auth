@@ -89,6 +89,7 @@ public class SecurityConfiguration {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true); // Разрешение использования учетных данных в запросах CORS
+        config.addAllowedOrigin("https://www.gwork.press");
         config.addAllowedOrigin("http://localhost:4200"); // Разрешенный источник запросов
         config.setAllowedHeaders(Arrays.asList(
                 HttpHeaders.AUTHORIZATION,
