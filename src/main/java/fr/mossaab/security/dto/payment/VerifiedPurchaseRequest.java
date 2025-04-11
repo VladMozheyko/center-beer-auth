@@ -5,20 +5,33 @@ import lombok.Data;
 
 @Data
 public class VerifiedPurchaseRequest {
-    @JsonProperty("product_id")
-    private String productId;
 
     @JsonProperty("order_id")
     private String orderId;
 
-    @JsonProperty("purchase_id")
-    private String purchaseId;
+    @JsonProperty("package_name")
+    private String packageName;
 
-    @JsonProperty("developer_payload")
-    private String developerPayload;
+    @JsonProperty("product_id")
+    private String productId;
+
+    @JsonProperty("purchase_time")
+    private long purchaseTime;
+
+    @JsonProperty("purchase_token")
+    private String purchaseToken;
+
+    @JsonProperty("purchase_state")
+    private int purchaseState;
+
+    @JsonProperty("purchase_type")
+    private int purchaseType;
 
     @JsonProperty("quantity")
     private int quantity;
+
+    @JsonProperty("developer_payload")
+    private String developerPayload;
 
     @JsonProperty("signature")
     private String signature;
