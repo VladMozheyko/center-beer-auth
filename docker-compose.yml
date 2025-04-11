@@ -6,7 +6,7 @@ services:
     container_name: go_mind_backend
     image: go-mind-backend
     ports:
-      - "8443:8443"
+      - "8443:8443"  # SSL-сервер сам слушает 8443
     volumes:
       - /var/www:/app/uploads
     environment:
@@ -14,10 +14,6 @@ services:
       SPRING_DATASOURCE_USERNAME: go_mind_user
       SPRING_DATASOURCE_PASSWORD: rootpassword
       JAVA_OPTS: "-Xms1024m -Xmx2048m -XX:MaxMetaspaceSize=512m -Xss512k -XX:+UseG1GC -server -XX:ActiveProcessorCount=4"
-    deploy:
-      resources:
-        limits:
-          cpus: '2.0'
     depends_on:
       - db
     restart: unless-stopped
@@ -44,7 +40,7 @@ services:
     container_name: go_mind_frontend
     image: go-mind-frontend
     ports:
-      - "8080:80"
+      - "80:80"  # или другой внешний порт
     depends_on:
       - backend
     restart: unless-stopped
@@ -56,7 +52,7 @@ services:
     container_name: go_mind_admin_panel
     image: go-mind-admin-panel
     ports:
-      - "3000:80"  # Или другой порт, если 3000 занят
+      - "3000:80"  # или другой порт
     depends_on:
       - backend
     restart: unless-stopped
