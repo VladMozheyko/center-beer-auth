@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.mossaab.security.config.AesDecryptService;
 import fr.mossaab.security.dto.payment.InvoiceStatusData;
+import fr.mossaab.security.dto.payment.MappingRequest;
 import fr.mossaab.security.dto.payment.RustoreCallbackRequest;
 import fr.mossaab.security.dto.payment.VerifiedPurchaseRequest;
 import fr.mossaab.security.entities.PurchaseMapping;
@@ -31,7 +32,10 @@ public class PaymentController {
     }
 
     @PostMapping("/mapping")
-    public ResponseEntity<?> save(@RequestParam String purchaseId, @RequestParam Long userId) {
+    public ResponseEntity<?> save(@RequestBody MappingRequest request) {
+        String purchaseId = request.getPurchaseId();
+        Long userId = request.getUserId();
+
         if (repository.findByPurchaseId(purchaseId).isEmpty()) {
             repository.save(PurchaseMapping.builder()
                     .purchaseId(purchaseId)
