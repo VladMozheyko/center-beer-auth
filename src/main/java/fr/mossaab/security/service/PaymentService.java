@@ -68,17 +68,21 @@ public class PaymentService {
         }
 
         if (paymentRepository.existsByTransactionId(request.getOrderId())) {
-            throw new IllegalStateException("Transaction already processed");
+            System.out.println("⚠️ Транзакция уже обработана: " + request.getOrderId());
+            return 0;
         }
 
         Long userId = Long.valueOf(request.getDeveloperPayload());
-        int pears = calculatePears(request.getProductId(), request.getQuantity());
+        int quantity = request.getQuantity() > 0 ? request.getQuantity() : 1;
+        int pears = calculatePears(request.getProductId(), quantity);
+
+        BigDecimal amount = BigDecimal.valueOf(pears * 100); // 👉 по 100 копеек за 1 грушу
 
         Payment payment = Payment.builder()
                 .userId(userId)
                 .productId(request.getProductId())
                 .transactionId(request.getOrderId())
-                .amount(BigDecimal.valueOf(pears * 100))
+                .amount(amount)
                 .confirmed(true)
                 .build();
 
@@ -93,6 +97,7 @@ public class PaymentService {
 
         return user.getPears();
     }
+
 
     public int handleInvoice(InvoiceStatusData invoice) {
         String purchaseId = invoice.getPurchaseId();

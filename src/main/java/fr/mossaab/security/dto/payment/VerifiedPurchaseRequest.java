@@ -1,17 +1,25 @@
 package fr.mossaab.security.dto.payment;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
 public class VerifiedPurchaseRequest {
-    private String orderId;
-    private String packageName;
+    @JsonProperty("product_id")
     private String productId;
-    private long purchaseTime;
-    private String purchaseToken;
-    private int purchaseState;
-    private int purchaseType;
+
+    @JsonProperty("order_id")
+    private String orderId;
+
+    @JsonProperty("purchase_id")
+    private String purchaseId;
+
+    @JsonProperty("developer_payload")
+    private String developerPayload;
+
+    @JsonProperty("quantity")
     private int quantity;
-    private String developerPayload; // userId как строка
+
+    @JsonProperty("signature")
     private String signature;
 }

@@ -61,25 +61,9 @@ public class PaymentController {
             String decryptedJson = aesDecryptService.decrypt(callbackRequest.getPayload());
             System.out.println("🔓 Decrypted JSON: " + decryptedJson);
 
-            // Разбор JSON
             JsonNode root = objectMapper.readTree(decryptedJson);
             String type = root.get("notification_type").asText();
 
-            if ("INVOICE_STATUS".equals(type)) {
-                JsonNode dataNode = root.get("data");
-                String rawData = root.get("data").asText(); // вытаскиваем строку
-                InvoiceStatusData invoice = objectMapper.readValue(rawData, InvoiceStatusData.class);
-
-                if ("confirmed".equals(invoice.getStatusNew())) {
-                    int updated = paymentService.handleInvoice(invoice);
-                    return ResponseEntity.ok("✅ INVOICE_STATUS обработан. Груши: " + updated);
-                } else {
-                    System.out.println("ℹ️ INVOICE_STATUS: статус = " + invoice.getStatusNew());
-                    return ResponseEntity.ok("ℹ️ INVOICE_STATUS пропущен.");
-                }
-            }
-
-            // ✅ Обработка подписи (боевые покупки)
             if ("PURCHASE".equals(type) || root.has("signature")) {
                 VerifiedPurchaseRequest purchase = objectMapper.readValue(decryptedJson, VerifiedPurchaseRequest.class);
                 int updatedPears = paymentService.verifyAndHandlePurchase(purchase);
@@ -88,13 +72,10 @@ public class PaymentController {
 
             return ResponseEntity.ok("🔔 Неизвестный тип уведомления: " + type);
 
-        } catch (IllegalArgumentException e) {
-            System.err.println("⚠️ Некорректный payload: " + e.getMessage());
-            return ResponseEntity.badRequest().body("⚠️ Некорректный payload или формат");
         } catch (Exception e) {
             System.err.println("❌ Ошибка обработки: " + e.getMessage());
-            e.printStackTrace();
             return ResponseEntity.badRequest().body("❌ Ошибка обработки: " + e.getMessage());
         }
     }
+
 }
