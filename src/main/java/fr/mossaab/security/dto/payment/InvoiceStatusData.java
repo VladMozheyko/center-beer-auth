@@ -6,6 +6,8 @@ import lombok.Data;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 public class InvoiceStatusData {
 
@@ -35,7 +37,11 @@ public class InvoiceStatusData {
 
     @JsonProperty("developer_payload")
     private String developerPayload;
-    @JsonProperty("quantity")
-    private int quantity = 1; // по умолчанию 1, если не передано
-}
 
+    @JsonProperty("quantity")
+    private int quantity = 1;
+
+    // 👇 Добавляем новое поле
+    @JsonProperty("amount")
+    private BigDecimal amount;
+}

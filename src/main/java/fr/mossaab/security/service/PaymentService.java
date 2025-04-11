@@ -1,4 +1,6 @@
 package fr.mossaab.security.service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.*;
 
 import fr.mossaab.security.config.SignatureUtil;
 import fr.mossaab.security.dto.payment.InvoiceStatusData;
@@ -13,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +23,37 @@ public class PaymentService {
     private final PurchaseMappingRepository purchaseMappingRepository;
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
+    private BigDecimal fetchAmountFromRuStore(String purchaseToken) {
+        try {
+            String url = "https://public-api.rustore.ru/public/purchase/" + purchaseToken;
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Public-Token", "ТВОЙ_API_ТОКЕН"); // 🔐 замени на свой
+
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);
+
+            Map<String, Object> body = (Map<String, Object>) response.getBody().get("body");
+            Map<String, Object> paymentInfo = (Map<String, Object>) body.get("payment_info");
+            double amount = Double.parseDouble(paymentInfo.get("amount").toString());
+
+            return BigDecimal.valueOf(amount);
+        } catch (Exception e) {
+            System.out.println("⚠️ Ошибка получения суммы из RuStore API: " + e.getMessage());
+            return BigDecimal.ZERO;
+        }
+    }
+
+    private int convertAmountToPears(BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.valueOf(100)) == 0) return 1;
+        if (amount.compareTo(BigDecimal.valueOf(1000)) == 0) return 10;
+        if (amount.compareTo(BigDecimal.valueOf(5000)) == 0) return 50;
+        if (amount.compareTo(BigDecimal.valueOf(10000)) == 0) return 100;
+        return 0;
+    }
+
     public int verifyAndHandlePurchase(VerifiedPurchaseRequest request) {
 
         if (request.getSignature() == null || request.getOrderId() == null) {
@@ -63,15 +97,14 @@ public class PaymentService {
     public int handleInvoice(InvoiceStatusData invoice) {
         String purchaseId = invoice.getPurchaseId();
         String orderId = invoice.getOrderId();
+        String token = invoice.getPurchaseToken();
 
         Long userId = null;
 
-        // 1. Получаем userId из developerPayload, если есть
         if (invoice.getDeveloperPayload() != null) {
             userId = Long.valueOf(invoice.getDeveloperPayload());
         }
 
-        // 2. Если developerPayload нет — пробуем взять из маппинга
         if (userId == null) {
             userId = purchaseMappingRepository.findByPurchaseId(purchaseId)
                     .map(PurchaseMapping::getUserId)
@@ -88,14 +121,15 @@ public class PaymentService {
             return 0;
         }
 
-        int quantity = invoice.getQuantity() > 0 ? invoice.getQuantity() : 1;
-        int pears = calculatePears(invoice.getProductCode(), quantity);
+        // 👇 Получаем сумму из RuStore API
+        BigDecimal amount = fetchAmountFromRuStore(token);
+        int pears = convertAmountToPears(amount);
 
         Payment payment = Payment.builder()
                 .userId(userId)
                 .productId(invoice.getProductCode())
                 .transactionId(orderId)
-                .amount(BigDecimal.valueOf(pears * 100))
+                .amount(amount)
                 .confirmed(true)
                 .build();
 
@@ -110,6 +144,7 @@ public class PaymentService {
 
         return pears;
     }
+
 
     private int calculatePears(String productCode, int quantity) {
         return switch (productCode) {
