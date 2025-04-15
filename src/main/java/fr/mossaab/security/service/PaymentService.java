@@ -91,41 +91,41 @@ public class PaymentService {
 
 
     public int handleInvoice(InvoiceStatusData invoice) {
-        String purchaseId = invoice.getPurchaseId();     // bdc9bfe8-78b8-4361-a017-7cc62fa37d6f
-        String orderId = invoice.getOrderId();           // 1
-        String productCode = invoice.getProductCode();    // pear_id / pear_pack_10 / ...
+        String purchaseId = invoice.getPurchaseId();
+        String orderId = invoice.getOrderId();
+        String productCode = invoice.getProductCode();
 
-        // 1. Пытаемся взять userId из нашей БД, куда ранее записали (purchaseId -> userId)
+        // ---------- 1) Парсим quantity из orderId (формат "|число|")
+        int quantityFromOrderId = parseQuantityFromOrderId(orderId);
+
+        // ---------- 2) Если не удалось вытащить (0 или <1), fallback на invoice.getQuantity()
+        int quantityFinal = (quantityFromOrderId > 0)
+                ? quantityFromOrderId
+                : Math.max(1, invoice.getQuantity());
+
+        // ---------- 3) Находим userId в своей БД (mapping)
         Long userId = purchaseMappingRepository.findByPurchaseId(purchaseId)
                 .map(PurchaseMapping::getUserId)
                 .orElse(null);
-
-        // Если userId не нашли, значит /payment/mapping ещё не успели вызвать или что-то пошло не так
         if (userId == null) {
             System.out.println("❗ Не найден userId для purchaseId: " + purchaseId);
-            return 0; // Прекращаем обработку, чтобы не дублировать платёж
+            return 0;
         }
 
-        // 2. Проверяем, вдруг мы уже обрабатывали такой orderId (RuStore присылает несколько статусов)
+        // ---------- 4) Проверяем, не обрабатывали ли orderId уже
         if (paymentRepository.existsByTransactionId(orderId)) {
-            System.out.println("🔎 Транзакция " + orderId + " уже есть. Пропускаем повторный статус: " + invoice.getStatusNew());
-            return 0; // Дублирование
+            System.out.println("🔎 Транзакция " + orderId
+                    + " уже есть. Пропускаем статус: " + invoice.getStatusNew());
+            return 0;
         }
 
-        // 3. Узнаём quantity — либо из invoice, либо (если 0) через Public API RuStore по purchaseToken
-        int quantityFromInvoice = invoice.getQuantity();
-        if (quantityFromInvoice <= 0) {
-            // Если вдруг RuStore не прислало quantity в колбэке
-            quantityFromInvoice = fetchQuantityFromRuStore(invoice.getPurchaseToken());
-        }
+        // ---------- 5) Считаем, сколько груш положено за такой productCode (с учётом quantity)
+        int pears = calculatePears(productCode, quantityFinal);
 
-        // 4. Считаем, сколько «груш» положено за productCode (с учётом quantity)
-        int pears = calculatePears(productCode, quantityFromInvoice);
-
-        // 5. Проставим какую-нибудь условную сумму, например 1 груша = 100 копеек
+        // ---------- 6) Допустим, 1 груша = 100 копеек
         BigDecimal amount = BigDecimal.valueOf(pears * 100);
 
-        // 6. Сохраняем запись о платеже в БД
+        // ---------- 7) Сохраняем оплату
         Payment payment = Payment.builder()
                 .userId(userId)
                 .productId(productCode)
@@ -133,10 +133,9 @@ public class PaymentService {
                 .amount(amount)
                 .confirmed(true)
                 .build();
-
         paymentRepository.save(payment);
 
-        // 7. Начисляем «груши» пользователю
+        // ---------- 8) Начисляем «груши» пользователю
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         user.setPears(user.getPears() + pears);
@@ -145,6 +144,28 @@ public class PaymentService {
         System.out.println("✅ Начислено " + pears + " груш пользователю ID=" + userId);
         return user.getPears();
     }
+
+    private int parseQuantityFromOrderId(String orderId) {
+        if (orderId == null) return 0;
+
+        // Разбиваем строку по символу "|"
+        // Если пользователь передаст что-то вида "abc|15|xyz",
+        // то parts[0] = "abc", parts[1] = "15", parts[2] = "xyz"
+        String[] parts = orderId.split("\\|");
+        if (parts.length < 2) {
+            // Нет нужного формата "|число|"
+            return 0;
+        }
+
+        try {
+            return Integer.parseInt(parts[1]);
+        } catch (NumberFormatException e) {
+            System.out.println("⚠️ parseQuantityFromOrderId: не смогли преобразовать '"
+                    + parts[1] + "' в число. " + e.getMessage());
+            return 0;
+        }
+    }
+
 
     private int fetchQuantityFromRuStore(String purchaseToken) {
         try {
