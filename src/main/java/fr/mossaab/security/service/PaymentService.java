@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -145,66 +147,31 @@ public class PaymentService {
         return user.getPears();
     }
 
+    private static final Pattern QTY_PATTERN = Pattern.compile("quantity(\\d+)quantity");
+
     private int parseQuantityFromOrderId(String orderId) {
         if (orderId == null) return 0;
 
-        // Разбиваем строку по символу "|"
-        // Если пользователь передаст что-то вида "abc|15|xyz",
-        // то parts[0] = "abc", parts[1] = "15", parts[2] = "xyz"
-        String[] parts = orderId.split("\\|");
-        if (parts.length < 2) {
-            // Нет нужного формата "|число|"
-            return 0;
+        // Ищем по регулярке "quantity<число>quantity"
+        Matcher matcher = QTY_PATTERN.matcher(orderId);
+        if (matcher.find()) {
+            // matcher.group(1) – это то, что попало в скобки (\d+)
+            String digits = matcher.group(1);
+            try {
+                return Integer.parseInt(digits);
+            } catch (NumberFormatException e) {
+                System.out.println("⚠️ parseQuantityFromOrderId: не смогли преобразовать '"
+                        + digits + "' в число. " + e.getMessage());
+                return 0;
+            }
         }
 
-        try {
-            return Integer.parseInt(parts[1]);
-        } catch (NumberFormatException e) {
-            System.out.println("⚠️ parseQuantityFromOrderId: не смогли преобразовать '"
-                    + parts[1] + "' в число. " + e.getMessage());
-            return 0;
-        }
+        // Если нет совпадений — возвращаем 0 (fallback)
+        return 0;
     }
 
 
-    private int fetchQuantityFromRuStore(String purchaseToken) {
-        try {
-            // 1) URL из документации RuStore (примерный)
-            String url = "https://public-api.rustore.ru/public/v1/payment-info?token=" + purchaseToken;
 
-            // 2) Заголовки
-            HttpHeaders headers = new HttpHeaders();
-            // Например, если нужен Public-Token:
-            // headers.set("Public-Token", "ВАШ_ПУБЛИК_ТОКЕН");
-            // или если нужен Bearer-токен:
-            // headers.set("Authorization", "Bearer ВАШ_ПУБЛИК_ТОКЕН");
-
-            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
-            RestTemplate restTemplate = new RestTemplate();
-
-            // 3) Выполняем запрос
-            ResponseEntity<String> response = restTemplate.exchange(
-                    url,
-                    HttpMethod.GET,
-                    requestEntity,
-                    String.class
-            );
-
-            // 4) Парсим JSON
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode root = mapper.readTree(response.getBody());
-            // Допустим, в "body" лежит объект с полем "quantity"
-            int quantity = root.path("body").path("quantity").asInt(1); // fallback = 1
-
-            System.out.println("🎯 Из RuStore API получили quantity=" + quantity);
-            return quantity;
-
-        } catch (Exception e) {
-            System.out.println("⚠️ Ошибка при запросе к RuStore: " + e.getMessage());
-            // Если не получилось — возвращаем 1 по умолчанию
-            return 1;
-        }
-    }
 
 
 
