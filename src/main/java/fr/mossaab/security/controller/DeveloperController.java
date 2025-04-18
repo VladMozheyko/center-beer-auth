@@ -252,36 +252,34 @@ public class DeveloperController {
         return ResponseEntity.ok(map);
     }
 
-    @Operation(summary = "Все логи Docker Compose", description = "Возвращает весь вывод команды docker-compose logs.")
+    @Operation(summary = "Все логи Docker Compose", description = "Возвращает весь вывод команды docker-compose logs")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/docker-logs")
-    public ResponseEntity<Map<String, Object>> getDockerLogs() {
+    public ResponseEntity<Map<String, Object>> getDockerComposeLogs() {
         Map<String, Object> result = new HashMap<>();
-        StringBuilder logs = new StringBuilder();
 
         try {
-            ProcessBuilder processBuilder = new ProcessBuilder();
-            processBuilder.command("sh", "-c", "docker-compose logs");
+            ProcessBuilder pb = new ProcessBuilder("sh", "-c", "docker-compose logs");
+            pb.redirectErrorStream(true);
 
-            Process process = processBuilder.start();
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(process.getInputStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    logs.append(line).append("\n");
-                }
-            }
+            Process process = pb.start();
+            String logs = new BufferedReader(new InputStreamReader(process.getInputStream()))
+                    .lines()
+                    .reduce("", (acc, line) -> acc + line + "\n");
 
             int exitCode = process.waitFor();
             result.put("exitCode", exitCode);
-            result.put("logs", logs.toString());
+            result.put("logs", logs);
 
             return ResponseEntity.ok(result);
+
         } catch (Exception e) {
+            result.put("exitCode", -1);
             result.put("error", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+            return ResponseEntity.status(500).body(result);
         }
     }
+
 
 
     @Operation(summary = "Загруженные классы JVM", description = "Показывает общее количество загруженных классов и их размер.")
