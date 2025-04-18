@@ -252,15 +252,19 @@ public class DeveloperController {
         return ResponseEntity.ok(map);
     }
 
-    @Operation(summary = "Все логи Docker Compose", description = "Возвращает весь вывод команды docker-compose logs")
+    @Operation(summary = "Все логи Docker Compose", description = "Возвращает весь вывод команды docker compose logs (включая -f).")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/docker-logs")
     public ResponseEntity<Map<String, Object>> getDockerComposeLogs() {
         Map<String, Object> result = new HashMap<>();
 
         try {
-            ProcessBuilder pb = new ProcessBuilder("sh", "-c", "docker-compose logs");
+            ProcessBuilder pb = new ProcessBuilder("sh", "-c", "docker compose logs --no-color");
             pb.redirectErrorStream(true);
+
+            // Установка PATH явно (если надо)
+            Map<String, String> env = pb.environment();
+            env.put("PATH", "/usr/local/bin:/usr/bin:/bin");
 
             Process process = pb.start();
             String logs = new BufferedReader(new InputStreamReader(process.getInputStream()))
@@ -279,6 +283,7 @@ public class DeveloperController {
             return ResponseEntity.status(500).body(result);
         }
     }
+
 
 
 
