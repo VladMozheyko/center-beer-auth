@@ -203,10 +203,9 @@ public class JwtService {
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
-        } catch (ExpiredJwtException e) {
-            throw new TokenException(token, "Token expired");
         } catch (JwtException e) {
-            throw new TokenException(token, "Invalid token");
+            logger.warn("JWT processing failed: {}", e.getMessage()); // или log.error, если критично
+            throw new RuntimeException("Invalid or expired token");
         }
     }
 
