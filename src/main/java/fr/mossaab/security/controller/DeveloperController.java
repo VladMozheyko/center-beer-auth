@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.sql.DataSource;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
@@ -249,6 +251,38 @@ public class DeveloperController {
 
         return ResponseEntity.ok(map);
     }
+
+    @Operation(summary = "Все логи Docker Compose", description = "Возвращает весь вывод команды docker-compose logs.")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/docker-logs")
+    public ResponseEntity<Map<String, Object>> getDockerLogs() {
+        Map<String, Object> result = new HashMap<>();
+        StringBuilder logs = new StringBuilder();
+
+        try {
+            ProcessBuilder processBuilder = new ProcessBuilder();
+            processBuilder.command("sh", "-c", "docker-compose logs");
+
+            Process process = processBuilder.start();
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    logs.append(line).append("\n");
+                }
+            }
+
+            int exitCode = process.waitFor();
+            result.put("exitCode", exitCode);
+            result.put("logs", logs.toString());
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            result.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+        }
+    }
+
 
     @Operation(summary = "Загруженные классы JVM", description = "Показывает общее количество загруженных классов и их размер.")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
