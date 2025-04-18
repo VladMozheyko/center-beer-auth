@@ -2,9 +2,7 @@ package fr.mossaab.security.service;
 
 import fr.mossaab.security.controller.AdminController;
 import fr.mossaab.security.exception.TokenException;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.Cookie;
@@ -205,16 +203,13 @@ public class JwtService {
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
-        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+        } catch (ExpiredJwtException e) {
             throw new TokenException(token, "Token expired");
-        } catch (io.jsonwebtoken.MalformedJwtException e) {
-            throw new TokenException(token, "Token malformed");
-        } catch (io.jsonwebtoken.SignatureException e) {
-            throw new TokenException(token, "Invalid signature");
-        } catch (Exception e) {
+        } catch (JwtException e) {
             throw new TokenException(token, "Invalid token");
         }
     }
+
 
     public String extractRole(String token) {
         logger.debug("Extracted role: {}");
