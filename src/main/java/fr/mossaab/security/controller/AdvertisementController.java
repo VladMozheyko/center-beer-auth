@@ -76,32 +76,68 @@ public class AdvertisementController {
     }
 
     @Operation(
-            summary = "Получение рекламы по убыванию стоимости с выводом идентификатора изображения",
-            description = "Возвращает список рекламы, отсортированный по убыванию стоимости. Реклама фильтруется по переданному параметру status, " +
-                    "значение которого должно соответствовать одному из значений AdvertisementStatus (например, APPROVED, PENDING, REJECTED)."
+            summary     = "Получение объявлений по статусу, отсортированных по стоимости (убывающая)",
+            description = "Возвращает все объявления с указанным статусом, отсортированные по стоимости в порядке убывания."
     )
-    @GetMapping("/advertisements-by-cost")
-    public ResponseEntity<List<AdvertisementResponse>> getAdvertisementsByCost(@RequestParam AdvertisementStatus status) {
-        List<Advertisement> advertisements = advertisementRepository.findAll().stream()
+    @GetMapping("/advertisements-by-moderation-status")
+    public ResponseEntity<List<AdvertisementResponse>> listAdvertisementsByStatusAndCostDesc(
+            @Parameter(
+                    description = "Статус объявления для фильтрации (например, APPROVED, PENDING, REJECTED)",
+                    required    = true
+            )
+            @RequestParam("status") AdvertisementStatus status
+    ) {
+
+        var ads = advertisementRepository.findAll().stream()
                 .filter(ad -> ad.getStatus() == status)
+                .sorted(Comparator.comparingInt(Advertisement::getCost).reversed())
+                .toList();
+
+        List<AdvertisementResponse> response = new ArrayList<>(ads.size());
+        int rank = 1;
+        for (Advertisement ad : ads) {
+            response.add(AdvertisementResponse.builder()
+                    .id(ad.getId())
+                    .position(rank++)
+                    .cost(ad.getCost())
+                    .nickname(ad.getUser().getNickname())
+                    .fileDataId(ad.getFileData() != null
+                            ? ad.getFileData().getId()
+                            : null)
+                    .link(ad.getLink())
+                    .build());
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/advertisements-by-queue-status")
+    public ResponseEntity<List<AdvertisementResponse>> getAdvertisementsByQueueStatus(
+            @RequestParam AdQueueStatus queueStatus) {
+
+        // Получаем все объявления из БД и фильтруем по очередному статусу
+        List<Advertisement> advertisements = advertisementRepository.findAll().stream()
+                .filter(ad -> ad.getQueueStatus() == queueStatus)
                 .collect(Collectors.toList());
 
-        advertisements.sort((a1, a2) -> Integer.compare(a2.getCost(), a1.getCost()));
+        // Сортируем по убыванию cost
+        advertisements.sort(Comparator.comparingInt(Advertisement::getCost).reversed());
 
+        // Мапим в DTO с позицией в отсортированном списке
         List<AdvertisementResponse> response = new ArrayList<>();
         int position = 1;
         for (Advertisement ad : advertisements) {
             AdvertisementResponse adResponse = AdvertisementResponse.builder()
-                    .id(ad.getId()) // <-- добавлено
-                    .position(position)
+                    .id(ad.getId())
+                    .position(position++)
                     .cost(ad.getCost())
                     .nickname(ad.getUser().getNickname())
                     .fileDataId(ad.getFileData() != null ? ad.getFileData().getId() : null)
                     .link(ad.getLink())
                     .build();
             response.add(adResponse);
-            position++;
         }
+
         return ResponseEntity.ok(response);
     }
 

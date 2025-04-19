@@ -79,6 +79,7 @@ public class AdvertisementQueueService {
 
 
     public Optional<Advertisement> getCurrentLeader() {
+        updateLeadership();
         return advertisementRepository.findAll().stream()
                 .filter(ad -> ad.getStatus() == AdvertisementStatus.APPROVED)
                 .filter(ad -> ad.getQueueStatus() == AdQueueStatus.LEADING)
