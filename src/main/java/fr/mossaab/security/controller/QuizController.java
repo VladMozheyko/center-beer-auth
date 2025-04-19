@@ -162,6 +162,7 @@ public class QuizController {
     @Operation(summary = "Получить текущего лидера рекламы")
     @GetMapping("/current-leader")
     public ResponseEntity<AdvertisementResponse> getCurrentLeader() {
+        advertisementQueueService.updateLeadership();
         return advertisementQueueService.getCurrentLeader()
                 .map(ad -> ResponseEntity.ok(AdvertisementResponse.builder()
                         .position(1)

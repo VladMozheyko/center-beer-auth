@@ -28,11 +28,11 @@ public class AdvertisementQueueService {
     private final ReentrantLock lock = new ReentrantLock();
     private ScheduledFuture<?> currentLeaderTask;
 
-    @PostConstruct
-    public void init() {
-        updateLeadership(); // запуск при старте
-    }
-
+//    @PostConstruct
+//    public void init() {
+//        updateLeadership(); // запуск при старте
+//    }
+//
     public AdTimeLeftResponse getRemainingTimeForCurrentLeader() {
         Optional<Advertisement> currentOpt = getCurrentLeader();
         if (currentOpt.isEmpty()) {
@@ -78,12 +78,50 @@ public class AdvertisementQueueService {
 
 
 
-    public Optional<Advertisement> getCurrentLeader() {
-        updateLeadership();
+    public Optional<Advertisement> findCurrentLeader() {
         return advertisementRepository.findAll().stream()
                 .filter(ad -> ad.getStatus() == AdvertisementStatus.APPROVED)
                 .filter(ad -> ad.getQueueStatus() == AdQueueStatus.LEADING)
                 .findFirst();
+    }
+
+    public void updateLeadership() {
+        lock.lock();
+        try {
+            Optional<Advertisement> current = findCurrentLeader();  // теперь без рекурсии
+            LocalDateTime now = LocalDateTime.now();
+
+            if (current.isEmpty()) {
+                promoteNextFromQueue();
+                return;
+            }
+
+            Advertisement leader = current.get();
+            long minutes = Duration.between(leader.getStartTime(), now).toMinutes();
+            if (minutes >= 60) {
+                leader.setQueueStatus(AdQueueStatus.COMPLETED);
+                advertisementRepository.save(leader);
+                promoteNextFromQueue();
+                return;
+            }
+
+            // проверка перебития и т.д.
+            List<Advertisement> betterAds = getQueue().stream()
+                    .filter(ad -> ad.getCost() > leader.getCost())
+                    .collect(Collectors.toList());
+            if (!betterAds.isEmpty()) {
+                long remaining = 60 - minutes;
+                long delay = Math.min(15, remaining);
+                scheduleLeadershipChange(betterAds.get(0), delay);
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /** Старая getCurrentLeader теперь просто обёртка */
+    public Optional<Advertisement> getCurrentLeader() {
+        return findCurrentLeader();
     }
 
     public List<Advertisement> getQueue() {
@@ -96,43 +134,7 @@ public class AdvertisementQueueService {
                 .collect(Collectors.toList());
     }
 
-    public void updateLeadership() {
-        lock.lock();
-        try {
-            Optional<Advertisement> current = getCurrentLeader();
-            LocalDateTime now = LocalDateTime.now();
 
-            if (current.isEmpty()) {
-                promoteNextFromQueue();
-                return;
-            }
-
-            Advertisement currentLeader = current.get();
-            long minutes = Duration.between(currentLeader.getStartTime(), now).toMinutes();
-
-            // Завершение через 60 минут
-            if (minutes >= 60) {
-                currentLeader.setQueueStatus(AdQueueStatus.COMPLETED);
-                advertisementRepository.save(currentLeader);
-                promoteNextFromQueue();
-                return;
-            }
-
-            // Проверка на перебивку
-            List<Advertisement> betterAds = getQueue().stream()
-                    .filter(ad -> ad.getCost() > currentLeader.getCost())
-                    .collect(Collectors.toList());
-
-            if (!betterAds.isEmpty()) {
-                long remaining = 60 - minutes;
-                long delay = Math.min(15, remaining);
-                scheduleLeadershipChange(betterAds.get(0), delay);
-            }
-
-        } finally {
-            lock.unlock();
-        }
-    }
 
     private void scheduleLeadershipChange(Advertisement newLeader, long delayMinutes) {
         if (currentLeaderTask != null) currentLeaderTask.cancel(false);
