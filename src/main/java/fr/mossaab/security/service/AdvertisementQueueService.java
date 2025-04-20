@@ -47,6 +47,10 @@ public class AdvertisementQueueService {
         }
 
         long secondsPassed = Duration.between(current.getStartTime(), now).toSeconds();
+        long secondsLeft = Math.max(0, 3600 - secondsPassed); // всегда максимум 1 час
+
+        int min = (int) (secondsLeft / 60);
+        int sec = (int) (secondsLeft % 60);
 
         // Проверка: есть ли перебивка
         List<Advertisement> queue = getQueue();
@@ -54,32 +58,19 @@ public class AdvertisementQueueService {
                 .filter(ad -> ad.getCost() > current.getCost())
                 .findFirst();
 
+        String msg;
         if (stronger.isPresent()) {
-            long secondsRemainingToMin = Math.max(0, 15 * 60 - secondsPassed);
-            long secondsRemainingToHour = Math.max(0, 60 * 60 - secondsPassed);
-            long remainingSec = Math.min(secondsRemainingToMin, secondsRemainingToHour);
-
-            int min = (int) (remainingSec / 60);
-            int sec = (int) (remainingSec % 60);
-
-            String msg;
-            if (secondsRemainingToMin > 0) {
-                msg = String.format("Текущая реклама будет показываться ещё %02d:%02d (перебита, но висит минимум)", min, sec);
+            if (secondsPassed < 15 * 60) {
+                long secUntil15min = 15 * 60 - secondsPassed;
+                int m = (int) (secUntil15min / 60);
+                int s = (int) (secUntil15min % 60);
+                msg = String.format("Текущая реклама перебита, но будет показываться ещё минимум %02d:%02d", m, s);
             } else {
-                msg = "Текущая реклама может быть перебита в любой момент";
+                msg = "Текущая реклама перебита и может быть заменена в любой момент";
             }
-
-            return new AdTimeLeftResponse(min, sec, msg);
+        } else {
+            msg = String.format("Осталось %02d:%02d до завершения показа текущей рекламы", min, sec);
         }
-
-        if (secondsPassed >= 3600) {
-            return new AdTimeLeftResponse(0, 0, "Период показа завершён");
-        }
-
-        long secondsLeft = 3600 - secondsPassed;
-        int min = (int) (secondsLeft / 60);
-        int sec = (int) (secondsLeft % 60);
-        String msg = String.format("Осталось %02d:%02d до завершения показа текущей рекламы", min, sec);
 
         return new AdTimeLeftResponse(min, sec, msg);
     }
