@@ -28,7 +28,7 @@ public class AdvertisementQueueService {
     private final ReentrantLock lock = new ReentrantLock();
     private ScheduledFuture<?> currentLeaderTask;
 
-//    @PostConstruct
+    //    @PostConstruct
 //    public void init() {
 //        updateLeadership(); // запуск при старте
 //    }
@@ -77,7 +77,6 @@ public class AdvertisementQueueService {
     }
 
 
-
     public Optional<Advertisement> findCurrentLeader() {
         return advertisementRepository.findAll().stream()
                 .filter(ad -> ad.getStatus() == AdvertisementStatus.APPROVED)
@@ -110,16 +109,32 @@ public class AdvertisementQueueService {
                     .filter(ad -> ad.getCost() > leader.getCost())
                     .collect(Collectors.toList());
             if (!betterAds.isEmpty()) {
-                long remaining = 60 - minutes;
-                long delay = Math.min(15, remaining);
-                scheduleLeadershipChange(betterAds.get(0), delay);
+                long minutesSinceStart = Duration.between(leader.getStartTime(), now).toMinutes();
+
+                if (minutesSinceStart >= 15) {
+                    // ✅ МГНОВЕННАЯ замена лидера
+                    leader.setQueueStatus(AdQueueStatus.COMPLETED);
+                    advertisementRepository.save(leader);
+
+                    Advertisement newLeader = betterAds.get(0);
+                    newLeader.setQueueStatus(AdQueueStatus.LEADING);
+                    newLeader.setStartTime(LocalDateTime.now());
+                    advertisementRepository.save(newLeader);
+
+                    System.out.println("⚡ Лидер сменён из-за перебивки (прошло >15 мин)");
+                } else {
+                    // 🕒 лог ожидания
+                    System.out.println("⏳ Перебивка найдена, но текущий лидер висит только " + minutesSinceStart + " мин — ждём.");
+                }
             }
         } finally {
             lock.unlock();
         }
     }
 
-    /** Старая getCurrentLeader теперь просто обёртка */
+    /**
+     * Старая getCurrentLeader теперь просто обёртка
+     */
     public Optional<Advertisement> getCurrentLeader() {
         return findCurrentLeader();
     }
@@ -133,7 +148,6 @@ public class AdvertisementQueueService {
                         .thenComparing(Advertisement::getCreatedAt))
                 .collect(Collectors.toList());
     }
-
 
 
     private void scheduleLeadershipChange(Advertisement newLeader, long delayMinutes) {
