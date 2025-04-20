@@ -55,12 +55,20 @@ public class AdvertisementQueueService {
                 .findFirst();
 
         if (stronger.isPresent()) {
-            long remainingToHourSec = 60 * 60 - secondsPassed;
-            long remainingSec = Math.min(15 * 60, remainingToHourSec);
+            long secondsRemainingToMin = Math.max(0, 15 * 60 - secondsPassed);
+            long secondsRemainingToHour = Math.max(0, 60 * 60 - secondsPassed);
+            long remainingSec = Math.min(secondsRemainingToMin, secondsRemainingToHour);
 
             int min = (int) (remainingSec / 60);
             int sec = (int) (remainingSec % 60);
-            String msg = String.format("Текущая реклама будет показываться ещё %02d:%02d (перебита, но висит минимум)", min, sec);
+
+            String msg;
+            if (secondsRemainingToMin > 0) {
+                msg = String.format("Текущая реклама будет показываться ещё %02d:%02d (перебита, но висит минимум)", min, sec);
+            } else {
+                msg = "Текущая реклама может быть перебита в любой момент";
+            }
+
             return new AdTimeLeftResponse(min, sec, msg);
         }
 
