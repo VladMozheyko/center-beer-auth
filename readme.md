@@ -49,5 +49,9 @@ Vlad!123
 cd go-mind
 git pull
 docker-compose down
+docker-compose down -v
+docker-compose build --no-cache
 docker-compose up --build -d
+docker-compose up -d
+docker-compose logs -f
 ```
