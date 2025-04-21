@@ -5,15 +5,17 @@ import fr.mossaab.security.entities.Advertisement;
 import fr.mossaab.security.enums.AdQueueStatus;
 import fr.mossaab.security.enums.AdvertisementStatus;
 import fr.mossaab.security.repository.AdvertisementRepository;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
-
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -26,104 +28,96 @@ public class AdvertisementQueueService {
     private final TaskScheduler taskScheduler;
 
     private final ReentrantLock lock = new ReentrantLock();
+
+    // Задача по автоматической смене лидера через 1 час
     private ScheduledFuture<?> currentLeaderTask;
-
-    //    @PostConstruct
-//    public void init() {
-//        updateLeadership(); // запуск при старте
-//    }
-//
-    public AdTimeLeftResponse getRemainingTimeForCurrentLeader() {
-        Optional<Advertisement> currentOpt = getCurrentLeader();
-        if (currentOpt.isEmpty()) {
-            return new AdTimeLeftResponse(0, 0, "Нет активного лидера рекламы");
-        }
-
-        Advertisement current = currentOpt.get();
-        LocalDateTime now = LocalDateTime.now();
-
-        if (current.getStartTime() == null) {
-            return new AdTimeLeftResponse(0, 0, "Реклама ещё не начала отображаться");
-        }
-
-        long secondsPassed = Duration.between(current.getStartTime(), now).toSeconds();
-        long secondsLeft = Math.max(0, 3600 - secondsPassed); // всегда максимум 1 час
-
-        int min = (int) (secondsLeft / 60);
-        int sec = (int) (secondsLeft % 60);
-
-        // Проверка: есть ли перебивка
-        List<Advertisement> queue = getQueue();
-        Optional<Advertisement> stronger = queue.stream()
-                .filter(ad -> ad.getCost() > current.getCost())
-                .findFirst();
-
-        String msg;
-        if (stronger.isPresent()) {
-            if (secondsPassed < 15 * 60) {
-                long secUntil15min = 15 * 60 - secondsPassed;
-                int m = (int) (secUntil15min / 60);
-                int s = (int) (secUntil15min % 60);
-                msg = String.format("Текущая реклама перебита, но будет показываться ещё минимум %02d:%02d", m, s);
-            } else {
-                msg = "Текущая реклама перебита и может быть заменена в любой момент";
-            }
-        } else {
-            msg = String.format("Осталось %02d:%02d до завершения показа текущей рекламы", min, sec);
-        }
-
-        return new AdTimeLeftResponse(min, sec, msg);
-    }
-
-
-    public Optional<Advertisement> findCurrentLeader() {
+    // Задача по отложенной замене через 15 минут
+    private ScheduledFuture<?> replacementTask;
+    // Кандидат на замену, для которого уже запланирована replacementTask
+    private Advertisement pendingReplacement;
+    public int calculateAdRevenueForLastHour() {
+        LocalDateTime cutoff = LocalDateTime.now().minusHours(1);
         return advertisementRepository.findAll().stream()
-                .filter(ad -> ad.getStatus() == AdvertisementStatus.APPROVED)
                 .filter(ad -> ad.getQueueStatus() == AdQueueStatus.LEADING)
-                .findFirst();
+                .filter(ad -> ad.getStartTime() != null && ad.getStartTime().isAfter(cutoff))
+                .mapToInt(Advertisement::getCost)
+                .sum();
     }
 
+
+    /**
+     * Принудительная смена лидера рекламы (без учёта 15‑минутного ограничения).
+     */
+    public void forceSwitchToNextLeader() {
+        lock.lock();
+        try {
+            cancelPendingTasks();
+            completeCurrentLeader();
+            promoteNextFromQueue();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * Основной метод, запускаемый каждые 60 секунд:
+     * 1) Завершает лидера, если прошло ≥1 час.
+     * 2) Если есть более высокая ставка — мгновенно (после 15 мин) или отложенно (до 15 мин) планирует замену.
+     */
     public void updateLeadership() {
         lock.lock();
         try {
-            Optional<Advertisement> current = findCurrentLeader();  // теперь без рекурсии
+            Optional<Advertisement> currentOpt = findCurrentLeader();
             LocalDateTime now = LocalDateTime.now();
 
-            if (current.isEmpty()) {
+            // Если лидера нет — сразу назначаем следующего
+            if (currentOpt.isEmpty()) {
                 promoteNextFromQueue();
                 return;
             }
 
-            Advertisement leader = current.get();
-            long minutes = Duration.between(leader.getStartTime(), now).toMinutes();
-            if (minutes >= 60) {
+            Advertisement leader = currentOpt.get();
+            long secondsSinceStart = Duration.between(leader.getStartTime(), now).getSeconds();
+
+            // 1) Если висит ≥ 1 час — завершаем и назначаем следующего
+            if (secondsSinceStart >= 3600) {
+                cancelPendingTasks();
                 leader.setQueueStatus(AdQueueStatus.COMPLETED);
                 advertisementRepository.save(leader);
                 promoteNextFromQueue();
                 return;
             }
 
-            // проверка перебития и т.д.
+            // 2) Ищем более дорогие объявления в очереди
             List<Advertisement> betterAds = getQueue().stream()
                     .filter(ad -> ad.getCost() > leader.getCost())
                     .collect(Collectors.toList());
-            if (!betterAds.isEmpty()) {
-                long minutesSinceStart = Duration.between(leader.getStartTime(), now).toMinutes();
 
-                if (minutesSinceStart >= 15) {
-                    // ✅ МГНОВЕННАЯ замена лидера
-                    leader.setQueueStatus(AdQueueStatus.COMPLETED);
-                    advertisementRepository.save(leader);
+            if (betterAds.isEmpty()) {
+                // нет перебивок
+                return;
+            }
 
-                    Advertisement newLeader = betterAds.get(0);
-                    newLeader.setQueueStatus(AdQueueStatus.LEADING);
-                    newLeader.setStartTime(LocalDateTime.now());
-                    advertisementRepository.save(newLeader);
+            Advertisement topChallenger = betterAds.get(0);
 
-                    System.out.println("⚡ Лидер сменён из-за перебивки (прошло >15 мин)");
-                } else {
-                    // 🕒 лог ожидания
-                    System.out.println("⏳ Перебивка найдена, но текущий лидер висит только " + minutesSinceStart + " мин — ждём.");
+            // 3) Если прошло ≥ 15 мин — мгновенная замена
+            if (secondsSinceStart >= 15 * 60) {
+                cancelPendingTasks();
+                replaceLeader();
+            } else {
+                // 4) Иначе — планируем замену на 15‑ю минуту (если ещё не запланировано)
+                long delaySec = 15 * 60 - secondsSinceStart;
+                if (replacementTask == null || !topChallenger.equals(pendingReplacement)) {
+                    cancelReplacementTask();
+                    pendingReplacement = topChallenger;
+                    replacementTask = taskScheduler.schedule(() -> {
+                        lock.lock();
+                        try {
+                            replaceLeader();
+                        } finally {
+                            lock.unlock();
+                        }
+                    }, Date.from(Instant.now().plusSeconds(delaySec)));
                 }
             }
         } finally {
@@ -132,42 +126,33 @@ public class AdvertisementQueueService {
     }
 
     /**
-     * Старая getCurrentLeader теперь просто обёртка
+     * Возвращает текущего лидера (без изменения состояний).
      */
     public Optional<Advertisement> getCurrentLeader() {
         return findCurrentLeader();
     }
 
-    public List<Advertisement> getQueue() {
-        return advertisementRepository.findAll().stream()
-                .filter(ad -> ad.getStatus() == AdvertisementStatus.APPROVED)
-                .filter(ad -> ad.getQueueStatus() == AdQueueStatus.WAITING)
-                .filter(ad -> ad.getStartTime() == null)
-                .sorted(Comparator.comparingInt(Advertisement::getCost).reversed()
-                        .thenComparing(Advertisement::getCreatedAt))
-                .collect(Collectors.toList());
+    /**
+     * Завершает текущего лидера и назначает нового из очереди.
+     */
+    private void replaceLeader() {
+        completeCurrentLeader();
+        promoteNextFromQueue();
     }
 
-
-    private void scheduleLeadershipChange(Advertisement newLeader, long delayMinutes) {
-        if (currentLeaderTask != null) currentLeaderTask.cancel(false);
-        currentLeaderTask = taskScheduler.schedule(() -> {
-            lock.lock();
-            try {
-                getCurrentLeader().ifPresent(current -> {
-                    current.setQueueStatus(AdQueueStatus.COMPLETED);
-                    advertisementRepository.save(current);
-                });
-
-                newLeader.setQueueStatus(AdQueueStatus.LEADING);
-                newLeader.setStartTime(LocalDateTime.now());
-                advertisementRepository.save(newLeader);
-            } finally {
-                lock.unlock();
-            }
-        }, Date.from(LocalDateTime.now().plusMinutes(delayMinutes).atZone(TimeZone.getDefault().toZoneId()).toInstant()));
+    /**
+     * Завершает (помечает как COMPLETED) текущее ведущие объявление.
+     */
+    private void completeCurrentLeader() {
+        findCurrentLeader().ifPresent(curr -> {
+            curr.setQueueStatus(AdQueueStatus.COMPLETED);
+            advertisementRepository.save(curr);
+        });
     }
 
+    /**
+     * Назначает в лидеры первое объявление из очереди и ставит таймер на 1 час.
+     */
     private void promoteNextFromQueue() {
         List<Advertisement> queue = getQueue();
         if (queue.isEmpty()) return;
@@ -177,7 +162,8 @@ public class AdvertisementQueueService {
         next.setStartTime(LocalDateTime.now());
         advertisementRepository.save(next);
 
-        if (currentLeaderTask != null) currentLeaderTask.cancel(false);
+        // Сбрасываем все отложенные задачи и ставим новую на 1 час
+        cancelPendingTasks();
         currentLeaderTask = taskScheduler.schedule(() -> {
             lock.lock();
             try {
@@ -187,24 +173,100 @@ public class AdvertisementQueueService {
             } finally {
                 lock.unlock();
             }
-        }, Date.from(LocalDateTime.now().plusHours(1).atZone(TimeZone.getDefault().toZoneId()).toInstant()));
+        }, Date.from(Instant.now().plusSeconds(3600)));
     }
 
-    public int calculateAdRevenueForLastHour() {
-        return advertisementRepository.findAll().stream()
-                .filter(ad -> ad.getQueueStatus() == AdQueueStatus.LEADING)
-                .filter(ad -> ad.getStartTime() != null)
-                .filter(ad -> ad.getStartTime().isAfter(LocalDateTime.now().minusHours(1)))
-                .mapToInt(Advertisement::getCost)
-                .sum();
-    }
-
-    public void resetAdQueue() {
-        List<Advertisement> all = advertisementRepository.findAll();
-        for (Advertisement ad : all) {
-            ad.setQueueStatus(AdQueueStatus.WAITING);
-            ad.setStartTime(null);
+    /**
+     * Возвращает DTO с оставшимся временем и сообщением для текущего лидера.
+     */
+    public AdTimeLeftResponse getRemainingTimeForCurrentLeader() {
+        Optional<Advertisement> currentOpt = findCurrentLeader();
+        if (currentOpt.isEmpty()) {
+            return new AdTimeLeftResponse(0, 0, "Нет активного лидера рекламы");
         }
-        advertisementRepository.saveAll(all);
+        Advertisement current = currentOpt.get();
+        long secondsSinceStart = Duration.between(current.getStartTime(), LocalDateTime.now()).toSeconds();
+        long secondsLeft = Math.max(0, 3600 - secondsSinceStart);
+
+        boolean hasStronger = getQueue().stream()
+                .anyMatch(ad -> ad.getCost() > current.getCost());
+
+        String msg;
+        if (hasStronger) {
+            if (secondsSinceStart < 15 * 60) {
+                long until15 = 15 * 60 - secondsSinceStart;
+                msg = String.format(
+                        "Текущая реклама перебита, но будет показываться ещё минимум %02d:%02d",
+                        until15 / 60, until15 % 60
+                );
+            } else {
+                msg = "Текущая реклама перебита и может быть заменена в любой момент";
+            }
+        } else {
+            msg = String.format(
+                    "Осталось %02d:%02d до завершения показа текущей рекламы",
+                    secondsLeft / 60, secondsLeft % 60
+            );
+        }
+        return new AdTimeLeftResponse((int)(secondsLeft/60), (int)(secondsLeft%60), msg);
+    }
+
+    /**
+     * Список ожидающих в очереди объявлений.
+     */
+    private List<Advertisement> getQueue() {
+        return advertisementRepository.findAll().stream()
+                .filter(ad -> ad.getStatus() == AdvertisementStatus.APPROVED)
+                .filter(ad -> ad.getQueueStatus() == AdQueueStatus.WAITING)
+                .filter(ad -> ad.getStartTime() == null)
+                .sorted(Comparator.comparingInt(Advertisement::getCost).reversed()
+                        .thenComparing(Advertisement::getCreatedAt))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Текущий лидер (если есть).
+     */
+    private Optional<Advertisement> findCurrentLeader() {
+        return advertisementRepository.findAll().stream()
+                .filter(ad -> ad.getStatus() == AdvertisementStatus.APPROVED)
+                .filter(ad -> ad.getQueueStatus() == AdQueueStatus.LEADING)
+                .findFirst();
+    }
+
+    /**
+     * Отменяет все запланированные задачи (и часовой, и 15‑минутный).
+     */
+    private void cancelPendingTasks() {
+        cancelReplacementTask();
+        if (currentLeaderTask != null) {
+            currentLeaderTask.cancel(false);
+            currentLeaderTask = null;
+        }
+    }
+
+    private void cancelReplacementTask() {
+        if (replacementTask != null) {
+            replacementTask.cancel(false);
+            replacementTask = null;
+            pendingReplacement = null;
+        }
+    }
+
+    /**
+     * Сброс очереди в начальное состояние: все WAITING, без времени старта, без задач.
+     */
+    public void resetAdQueue() {
+        lock.lock();
+        try {
+            cancelPendingTasks();
+            advertisementRepository.findAll().forEach(ad -> {
+                ad.setQueueStatus(AdQueueStatus.WAITING);
+                ad.setStartTime(null);
+            });
+            advertisementRepository.saveAll(advertisementRepository.findAll());
+        } finally {
+            lock.unlock();
+        }
     }
 }
