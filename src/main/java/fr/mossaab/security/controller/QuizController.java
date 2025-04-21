@@ -151,13 +151,12 @@ public class QuizController {
     public ResponseEntity<AdTimeLeftResponse> getRemainingAdLeaderTime() {
         return ResponseEntity.ok(advertisementQueueService.getRemainingTimeForCurrentLeader());
     }
-    @Operation(summary = "Принудительное обновление лидера рекламы",
-            description = "Обновляет лидера рекламы вручную через сервис очереди рекламы. Требуется роль администратора.")
+    @Operation(summary = "Принудительная смена лидера рекламы (без задержек)")
     @PostMapping("/force-next-leader")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<String> forceNextLeader() {
-        advertisementQueueService.updateLeadership();
-        return ResponseEntity.ok("Лидер обновлён вручную.");
+        advertisementQueueService.forceSwitchToNextLeader();
+        return ResponseEntity.ok("Лидер немедленно сменён вручную.");
     }
     @Operation(summary = "Получить текущего лидера рекламы")
     @GetMapping("/current-leader")

@@ -11,45 +11,28 @@ import org.hibernate.annotations.OnDeleteAction;
  */
 @Entity
 @Table(name = "FILE_DATA")
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Getter
-@Setter
-@Builder
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(exclude = "advertisement")
 public class FileData {
 
-    /**
-     * Уникальный идентификатор файла.
-     */
     @Id
     @GeneratedValue
+    @EqualsAndHashCode.Include
     private Long id;
 
-    /**
-     * Имя файла.
-     */
     private String name;
-
-    /**
-     * Тип файла.
-     */
     private String type;
-
-    /**
-     * Путь к файлу.
-     */
     private String filePath;
 
-    /**
-     * Пользователь, связанный с файлом.
-     */
     @OneToOne(optional = true)
-    @JoinColumn(name = "_user_id", referencedColumnName = "id", unique = true, nullable = true)
+    @JoinColumn(name = "_user_id", referencedColumnName = "id", unique = true)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonBackReference
+    @EqualsAndHashCode.Exclude
     private User user;
 
     @OneToOne(mappedBy = "fileData", cascade = CascadeType.ALL, orphanRemoval = true)
+    @EqualsAndHashCode.Exclude
     private Advertisement advertisement;
 }

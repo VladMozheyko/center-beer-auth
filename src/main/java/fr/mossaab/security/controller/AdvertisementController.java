@@ -115,31 +115,30 @@ public class AdvertisementController {
     public ResponseEntity<List<AdvertisementResponse>> getAdvertisementsByQueueStatus(
             @RequestParam AdQueueStatus queueStatus) {
 
-        // Получаем все объявления из БД и фильтруем по очередному статусу
+        // Фильтруем по статусу очереди И по статусу модерации (только APPROVED)
         List<Advertisement> advertisements = advertisementRepository.findAll().stream()
                 .filter(ad -> ad.getQueueStatus() == queueStatus)
+                .filter(ad -> ad.getStatus() == AdvertisementStatus.APPROVED)
+                .sorted(Comparator.comparingInt(Advertisement::getCost).reversed())
                 .collect(Collectors.toList());
 
-        // Сортируем по убыванию cost
-        advertisements.sort(Comparator.comparingInt(Advertisement::getCost).reversed());
-
-        // Мапим в DTO с позицией в отсортированном списке
+        // Мапим в DTO с позицией
         List<AdvertisementResponse> response = new ArrayList<>();
         int position = 1;
         for (Advertisement ad : advertisements) {
-            AdvertisementResponse adResponse = AdvertisementResponse.builder()
+            response.add(AdvertisementResponse.builder()
                     .id(ad.getId())
                     .position(position++)
                     .cost(ad.getCost())
                     .nickname(ad.getUser().getNickname())
                     .fileDataId(ad.getFileData() != null ? ad.getFileData().getId() : null)
                     .link(ad.getLink())
-                    .build();
-            response.add(adResponse);
+                    .build());
         }
 
         return ResponseEntity.ok(response);
     }
+
 
 
     @Operation(
