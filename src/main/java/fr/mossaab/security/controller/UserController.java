@@ -1,30 +1,19 @@
 package fr.mossaab.security.controller;
 
-import fr.mossaab.security.dto.payment.WithdrawalStatus;
+
 import fr.mossaab.security.dto.user.UserProfileResponse;
 import fr.mossaab.security.entities.*;
 import fr.mossaab.security.repository.*;
 import fr.mossaab.security.service.MailSender;
-import fr.mossaab.security.service.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -38,48 +27,6 @@ public class UserController {
     private final UserRepository userRepository;
     private final MailSender mailSender;
 
-    @Autowired
-    private WithdrawalRequestRepository withdrawalRequestRepository;
-    @Operation(summary = "Мои заявки на вывод")
-    @GetMapping("/my-withdrawals")
-    public ResponseEntity<List<WithdrawalRequest>> getMyWithdrawals() {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
-
-        List<WithdrawalRequest> list = withdrawalRequestRepository.findAll().stream()
-                .filter(req -> req.getUser().getId().equals(user.getId()))
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(list);
-    }
-
-    @Operation(summary = "Создать заявку на вывод средств")
-    @PostMapping("/withdraw")
-    public ResponseEntity<String> createWithdrawalRequest(
-            @RequestParam String paymentDetails,
-            @RequestParam Integer amount
-    ) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
-
-        if (user.getPears() < amount) {
-            return ResponseEntity.badRequest().body("Недостаточно груш для вывода");
-        }
-
-        WithdrawalRequest request = WithdrawalRequest.builder()
-                .user(user)
-                .paymentDetails(paymentDetails)
-                .amount(amount)
-                .status(WithdrawalStatus.PENDING)
-                .createdAt(LocalDateTime.now())
-                .build();
-
-        withdrawalRequestRepository.save(request);
-
-        return ResponseEntity.ok("Заявка на вывод создана и ожидает подтверждения администратором.");
-    }
 
     @Operation(summary = "Получить профиль пользователя")
     @GetMapping("/profile")
@@ -155,30 +102,5 @@ public class UserController {
 
         return ResponseEntity.ok("E-mail успешно изменён на " + updatedEmail);
     }
-    @Operation(summary = "Начисление груш за мини игру")
-    @PostMapping("/catch-pear")
-    public ResponseEntity<String> catchPear(@RequestParam Long userId, @RequestParam int pearsCaught) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 
-        // Проверка, не превышено ли "макс. возможное".
-        // Допустим, создадим метод user.canCatchMorePears(pearsCaught).
-        if (!canCatchMorePears(user, pearsCaught)) {
-            // Либо пишем в лог подозрительные действия
-            return ResponseEntity.badRequest().body("Превышен лимит на количество груш в этой мини-игре");
-        }
-
-        // Увеличиваем pears (возможно, временно)
-        user.setPears(user.getPears() + pearsCaught);
-        userRepository.save(user);
-
-        return ResponseEntity.ok("Груши успешно начислены пользователю " + user.getNickname());
-    }
-
-    private boolean canCatchMorePears(User user, int pearsCaught) {
-        // Тут любая своя логика, например:
-        // - За одну сессию игры нельзя поймать больше 100 груш
-        // - Или сверяться с user.getMaxPossiblePearsThisGame() и т.п.
-        return true;
-    }
 }
