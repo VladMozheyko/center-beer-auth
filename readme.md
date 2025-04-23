@@ -1,57 +1,31 @@
-# Go Mind  
-**Приложение "Go Mind" - это викторина, в которой можно заработать своим умом. Отвечайте на вопросы быстрее остальных и получайте бонусы.**  
+# center-beer-auth-service
 
----
+Сервис аутентификации и управления пользователями для цифровой платформы **center.beer**.
 
-## 🛠 Технологический стек  
+## 🔐 Возможности
 
-Эта система построена с использованием современных технологий для обеспечения высокой производительности, безопасности и масштабируемости.  
+- Регистрация и аутентификация пользователей
+- Управление JWT-токенами (включая обновление)
+- Сброс и изменение пароля
+- Валидация данных на серверной стороне
+- Защищённое взаимодействие через HTTPS
 
-### 🔹 **Основные компоненты**  
+## ⚙️ Технологии
 
-| **Категория**        | **Технологии** |
-|----------------------|---------------|
-| **🖥️ Ядро**         | Java 17 • Spring Boot 3.1 • Spring Security 6 • Spring Data JPA |
-| **🔐 Аутентификация** | JWT 0.11.5 • BCrypt • OAuth2 • Spring Security ACL |
-| **🗄️ Базы данных**   | MySQL 8 • Hibernate 6 • Flyway Migrations • Redis 7 |
-| **🌐 API**           | REST/JSON • OpenAPI 3 • WebSockets (Pusher 1.0) |
-| **🔧 Утилиты**       | Lombok • MapStruct 1.4 • Apache POI 3.9 • OpenCSV 5.7 |
-| **📦 Инфраструктура** | Docker 24 • NGINX 1.25 • GitHub Actions • Prometheus |
+- Java 17
+- Spring Boot 3.1 (Web, Security, Data JPA, Validation)
+- MySQL
+- JWT (jjwt)
+- BCrypt для хэширования паролей
+- Swagger (springdoc-openapi) для документации API
+- Docker для контейнеризации
 
----
+## 📄 Документация API
 
-## 🔄 Обновление проекта на сервере  
+После запуска приложения, документация API доступна по адресу:
+http://localhost:8080/swagger-ui.html
 
-Чтобы внести последние изменения, выполните следующие шаги:
+## 📬 Контакты
 
-### 1️⃣ **Загрузка SSH-ключей**  
-Скачайте файлы SSH-ключей:  
-🔗 [Ключ 1](https://drive.google.com/file/d/1q93OyIv5nmqhqlKl7V9l89rxnkOL_pio/view?usp=sharing)  
-🔗 [Ключ 2](https://drive.google.com/file/d/1E_6AnxJhlAL4Z0-5zYfgfvZZwbPhrlbD/view?usp=sharing)  
-
-Поместите их в папку:  
-📂 `C:\Users\Asus\.ssh\`  
-
----
-
-### 2️⃣ **Подключение к серверу**  
-Откройте терминал (PowerShell или CMD) и выполните команду:  
-```sh
-ssh -i C:\Users\Asus\.ssh\GoMind admin@158.160.138.117
-```
-Введите пароль при запросе:
-```sh
-Vlad!123
-```
-### 3️⃣ Обновление кода и перезапуск сервера
-После успешного входа введите следующие команды:
-```sh
-cd go-mind
-git pull
-docker-compose down
-docker-compose down -v
-docker-compose build --no-cache
-docker-compose up --build -d
-docker-compose up -d
-docker-compose logs -f
-```
+Разработчик: Александр Кичмарев
+Telegram: [@xela2003](https://t.me/xela2003)
