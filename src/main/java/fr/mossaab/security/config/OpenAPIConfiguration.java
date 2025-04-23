@@ -21,7 +21,7 @@ public class OpenAPIConfiguration {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new io.swagger.v3.oas.models.info.Info()
-                        .title("Go Mind API")
+                        .title("CENTER.BEER API")
                         .version("0.0.1-SNAPSHOT")
                         .description("Документация доступна по ссылке: " + baseUrl + "/v3/api-docs")
                         .contact(new io.swagger.v3.oas.models.info.Contact()

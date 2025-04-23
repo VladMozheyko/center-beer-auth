@@ -1,6 +1,5 @@
 package fr.mossaab.security.service;
 
-import fr.mossaab.security.entities.Advertisement;
 import fr.mossaab.security.entities.FileData;
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.repository.FileDataRepository;
@@ -66,12 +65,12 @@ public class StorageService {
                 saveFile(file, path);
                 builder.name(name + ".png").type("image/png").filePath(path).user(user);
             }
-            case "Advertisement" -> {
-                Advertisement advertisement = (Advertisement) relatedEntity;
-                String path = uploadBasePath + "/advertisement_files/" + name + ".png";
-                saveFile(file, path);
-                builder.name(name + ".png").type("image/png").filePath(path).advertisement(advertisement);
-            }
+//            case "Advertisement" -> {
+//                Advertisement advertisement = (Advertisement) relatedEntity;
+//                String path = uploadBasePath + "/advertisement_files/" + name + ".png";
+//                saveFile(file, path);
+//                builder.name(name + ".png").type("image/png").filePath(path).advertisement(advertisement);
+//            }
             default -> throw new IllegalArgumentException("Unsupported related entity type: " + relatedEntity.getClass().getSimpleName());
         }
 

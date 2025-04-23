@@ -32,7 +32,4 @@ public class FileData {
     @EqualsAndHashCode.Exclude
     private User user;
 
-    @OneToOne(mappedBy = "fileData", cascade = CascadeType.ALL, orphanRemoval = true)
-    @EqualsAndHashCode.Exclude
-    private Advertisement advertisement;
 }
