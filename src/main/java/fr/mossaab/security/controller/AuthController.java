@@ -1,10 +1,8 @@
 package fr.mossaab.security.controller;
 
-import fr.mossaab.security.dto.auth.AuthenticationRequest;
-import fr.mossaab.security.dto.auth.AuthenticationResponse;
-import fr.mossaab.security.dto.auth.RegisterRequest;
-import fr.mossaab.security.dto.auth.ResetPasswordRequest;
+import fr.mossaab.security.dto.auth.*;
 import fr.mossaab.security.service.AuthenticationService;
+import fr.mossaab.security.service.PhoneRegistrationFacade;
 import fr.mossaab.security.service.RefreshTokenService;
 import fr.mossaab.security.service.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,10 +11,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.*;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,7 +19,12 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Map;
-
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import fr.mossaab.security.entities.User;
+import fr.mossaab.security.repository.UserRepository;
+import fr.mossaab.security.service.JwtService;
+import fr.mossaab.security.enums.Role;
 
 @Tag(name = "Аутентификация", description = "API для работы с аутентификацией пользователей")
 @RestController
@@ -35,6 +35,25 @@ public class AuthController {
     private final AuthenticationService authenticationService;
     private final StorageService storageService;
     private final RefreshTokenService refreshTokenService;
+    private final PhoneRegistrationFacade phoneRegistrationFacade;
+    private final JwtService jwtService;
+    private final UserRepository userRepository;
+
+
+
+
+    @PostMapping("/register-phone")
+    public ResponseEntity<?> registerByPhone(@RequestBody PhoneRegisterRequest dto) {
+        phoneRegistrationFacade.start(dto);
+        return ResponseEntity.ok("Код отправлен");
+    }
+
+
+    @PostMapping("/confirm-phone")
+    public ResponseEntity<?> confirmPhone(@RequestBody ConfirmPhoneRequest req) {
+        phoneRegistrationFacade.confirm(req.getPhone(), req.getCode());
+        return ResponseEntity.ok("Телефон подтверждён");
+    }
 
     @Operation(summary = "Загрузка PDF-файла из файловой системы", description = "Этот endpoint позволяет загрузить PDF-файл из файловой системы.")
     @GetMapping("/file-system-pdf/{fileName}")

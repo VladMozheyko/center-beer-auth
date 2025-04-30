@@ -47,6 +47,14 @@ public class User implements UserDetails {
     private String tempEmail;
     private String password;
 
+    @Column(length = 20, unique = true)
+    private String phone;
+
+    @Column(length = 6)
+    private String phoneActivationCode;
+
+    private Boolean phoneVerified = false;
+
     private String activationCode;
 
     @Column(nullable = false, columnDefinition = "bigint default 0")
