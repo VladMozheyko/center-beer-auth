@@ -1,5 +1,6 @@
 package fr.mossaab.security.config;
 
+import fr.mossaab.security.service.OAuth2LoginSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -29,7 +30,7 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @RequiredArgsConstructor
 @EnableMethodSecurity
 public class SecurityConfiguration {
-
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
     private static final Long MAX_AGE = 3600L; // Максимальное время жизни CORS-заголовков
     private static final int CORS_FILTER_ORDER = -102; // Порядок CORS-фильтра
     private final JwtAuthenticationFilter jwtAuthenticationFilter; // Фильтр аутентификации по JWT
@@ -37,67 +38,68 @@ public class SecurityConfiguration {
 
     /**
      * Конфигурация цепочки фильтров безопасности.
-     *
-     * @param http Объект HttpSecurity для настройки
-     * @return Цепочка фильтров безопасности
-     * @throws Exception Исключение, выбрасываемое при настройке
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                //.cors(AbstractHttpConfigurer::disable) // Отключение CORS
-                .csrf(AbstractHttpConfigurer::disable) // Отключение CSRF
-                .authorizeHttpRequests(request ->
-                        request
-                                .requestMatchers(
-                                        "/authentication/**",
-                                        "/user/**",
-                                        "/admin/**",
-                                        "/v2/api-docs",
-                                        "/v3/api-docs",
-                                        "/v3/api-docs/**",
-                                        "/swagger-resources",
-                                        "/swagger-resources/**",
-                                        "/configuration/ui",
-                                        "/configuration/security",
-                                        "/swagger-ui/**",
-                                        "/webjars/**",
-                                        "/swagger-ui.html"
-                                )
-                                .permitAll() // Разрешение доступа к определенным ресурсам без аутентификации
-                                .requestMatchers(HttpMethod.POST, "/api/v1/resource").hasRole("ADMIN") // Разрешение доступа с ролью ADMIN
-                                .anyRequest().authenticated()) // Аутентификация для остальных запросов
-                .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS)) // Установка политики управления сеансами
-                .authenticationProvider(authenticationProvider) // Установка провайдера аутентификации
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // Добавление фильтра аутентификации JWT
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(request -> request
+                        .requestMatchers(
+                                "/authentication/**",
+                                "/user/**",
+                                "/admin/**",
+                                "/v2/api-docs",
+                                "/v3/api-docs",
+                                "/v3/api-docs/**",
+                                "/swagger-resources",
+                                "/swagger-resources/**",
+                                "/configuration/ui",
+                                "/configuration/security",
+                                "/swagger-ui/**",
+                                "/webjars/**",
+                                "/swagger-ui.html",
+                                "/login/**",
+                                "/oauth2/**", // Важно для OAuth2
+                                "/login/oauth2/code/google"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/resource").hasRole("ADMIN")
+                        .anyRequest().authenticated()
+                )
+                .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS))
+                .authenticationProvider(authenticationProvider)
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler(oAuth2LoginSuccessHandler) // <-- передаём наш кастомный handler
+                )
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
     /**
      * Конфигурация фильтра CORS.
-     *
-     * @return Фильтр CORS
      */
     @Bean
-    public FilterRegistrationBean corsFilter() {
+    public FilterRegistrationBean<CorsFilter> corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true); // Разрешение использования учетных данных в запросах CORS
+        config.setAllowCredentials(true);
         config.addAllowedOrigin("https://www.gwork.press");
-        config.addAllowedOrigin("http://localhost:4200"); // Разрешенный источник запросов
+        config.addAllowedOrigin("http://localhost:4200");
         config.setAllowedHeaders(Arrays.asList(
                 HttpHeaders.AUTHORIZATION,
                 HttpHeaders.CONTENT_TYPE,
-                HttpHeaders.ACCEPT)); // Разрешенные заголовки
+                HttpHeaders.ACCEPT
+        ));
         config.setAllowedMethods(Arrays.asList(
                 HttpMethod.GET.name(),
                 HttpMethod.POST.name(),
                 HttpMethod.PUT.name(),
-                HttpMethod.DELETE.name())); // Разрешенные методы HTTP
-        config.setMaxAge(MAX_AGE); // Максимальное время жизни заголовков CORS
+                HttpMethod.DELETE.name()
+        ));
+        config.setMaxAge(MAX_AGE);
         source.registerCorsConfiguration("/**", config);
-        FilterRegistrationBean bean = new FilterRegistrationBean(new CorsFilter(source));
-        bean.setOrder(CORS_FILTER_ORDER); // Установка порядка фильтра
+
+        FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(source));
+        bean.setOrder(CORS_FILTER_ORDER);
         return bean;
     }
 }

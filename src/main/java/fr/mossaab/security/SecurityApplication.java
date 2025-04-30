@@ -31,22 +31,8 @@ public class SecurityApplication {
 
     @Transactional
     @PostConstruct
-    public void createSamplePresentation() throws IOException {
+    public void createSamplePresentation()  {
         userCreationService.createUsers();
-        printPhysicalResourcesFolder();
     }
-
-    private void printPhysicalResourcesFolder() {
-        String resourcePath = "src/main/resources";
-
-        try {
-            Files.walk(Paths.get(resourcePath))
-                    .filter(Files::isRegularFile)
-                    .forEach(path -> System.out.println("📄 " + path.toAbsolutePath()));
-        } catch (IOException e) {
-            System.err.println("Ошибка при чтении папки: " + e.getMessage());
-        }
-    }
-
 
 }
