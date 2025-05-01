@@ -260,7 +260,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -272,43 +271,46 @@ public class SecurityConfiguration {
     private final AuthenticationProvider authenticationProvider;
 
     /**
-     * Основной бин CorsConfigurationSource, помечен @Primary,
-     * чтобы никакие другие реализации не конфликтовали.
+     * Единственный bean CorsConfigurationSource — помечен @Primary,
+     * так что Spring не будет путаться между несколькими реализациями.
      */
     @Bean
     @Primary
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-        config.setAllowedOrigins(Arrays.asList(
+        CorsConfiguration cfg = new CorsConfiguration();
+        cfg.setAllowCredentials(true);
+        cfg.setAllowedOrigins(Arrays.asList(
                 "http://localhost:5173",
                 "https://www.gwork.press",
                 "https://api.center.beer",
                 "https://center.beer"
         ));
-        config.setAllowedHeaders(Arrays.asList(
+        cfg.setAllowedHeaders(Arrays.asList(
                 HttpHeaders.AUTHORIZATION,
                 HttpHeaders.CONTENT_TYPE,
                 HttpHeaders.ACCEPT
         ));
-        config.setAllowedMethods(Arrays.asList(
+        cfg.setAllowedMethods(Arrays.asList(
                 HttpMethod.GET.name(),
                 HttpMethod.POST.name(),
                 HttpMethod.PUT.name(),
                 HttpMethod.DELETE.name(),
                 HttpMethod.OPTIONS.name()
         ));
-        config.setMaxAge(3600L);
+        cfg.setMaxAge(3600L);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
+        UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
+        src.registerCorsConfiguration("/**", cfg);
+        return src;
     }
 
     /**
-     * Основная цепочка безопасности.
-     * При неавторизованном доступе возвращаем 401,
-     * настраиваем stateless-сессию, OAuth2-login и JWT-фильтр.
+     * Основная цепочка фильтров безопасности:
+     * – stateless-сессия
+     * – CSRF выключен
+     * – OAuth2-login по пути /oauth2/authorization/vk
+     * – JWT-фильтр
+     * – неавторизованный доступ отдаёт 401, а не редирект
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
@@ -325,21 +327,11 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/authentication/**",
-                                "/user/**",
-                                "/admin/**",
-                                "/v2/api-docs",
-                                "/v3/api-docs",
-                                "/v3/api-docs/**",
-                                "/swagger-resources",
-                                "/swagger-resources/**",
-                                "/configuration/ui",
-                                "/configuration/security",
-                                "/swagger-ui/**",
-                                "/webjars/**",
-                                "/swagger-ui.html",
-                                "/login/**",
-                                "/oauth2/**", // Важно для OAuth2
-                                "/login/oauth2/code/google"
+                                "/v2/api-docs", "/v3/api-docs", "/v3/api-docs/**",
+                                "/swagger-resources", "/swagger-resources/**",
+                                "/configuration/ui", "/configuration/security",
+                                "/swagger-ui/**", "/webjars/**", "/swagger-ui.html",
+                                "/oauth2/**", "/login/oauth2/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
