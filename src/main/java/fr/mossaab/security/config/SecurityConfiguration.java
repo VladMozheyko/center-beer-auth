@@ -84,6 +84,8 @@ public class SecurityConfiguration {
         config.setAllowCredentials(true);
         config.addAllowedOrigin("https://www.gwork.press");
         config.addAllowedOrigin("http://localhost:4200");
+        config.addAllowedOrigin("https://api.center.beer");       // <--- ваш API-хост
+        config.addAllowedOrigin("https://center.beer");
         config.setAllowedHeaders(Arrays.asList(
                 HttpHeaders.AUTHORIZATION,
                 HttpHeaders.CONTENT_TYPE,
