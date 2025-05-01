@@ -19,6 +19,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
@@ -82,26 +83,32 @@ public class SecurityConfiguration {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
+
+        // добавляем адреса, с которых будем принимать запросы
+        config.addAllowedOrigin("http://localhost:5173");    // ваш Vite-dev
         config.addAllowedOrigin("https://www.gwork.press");
-        config.addAllowedOrigin("http://localhost:4200");
-        config.addAllowedOrigin("https://api.center.beer");       // <--- ваш API-хост
-        config.addAllowedOrigin("https://center.beer");
-        config.setAllowedHeaders(Arrays.asList(
+        config.addAllowedOrigin("https://api.center.beer");  // если фронт на этом же хосте
+        config.addAllowedOrigin("https://center.beer");      // при необходимости
+
+        config.setAllowedHeaders(List.of(
                 HttpHeaders.AUTHORIZATION,
                 HttpHeaders.CONTENT_TYPE,
                 HttpHeaders.ACCEPT
         ));
-        config.setAllowedMethods(Arrays.asList(
+        config.setAllowedMethods(List.of(
                 HttpMethod.GET.name(),
                 HttpMethod.POST.name(),
                 HttpMethod.PUT.name(),
-                HttpMethod.DELETE.name()
+                HttpMethod.DELETE.name(),
+                HttpMethod.OPTIONS.name()
         ));
         config.setMaxAge(MAX_AGE);
+
         source.registerCorsConfiguration("/**", config);
 
         FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(source));
         bean.setOrder(CORS_FILTER_ORDER);
         return bean;
     }
+
 }
