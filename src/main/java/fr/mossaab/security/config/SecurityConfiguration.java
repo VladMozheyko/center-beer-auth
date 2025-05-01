@@ -7,12 +7,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -40,11 +43,60 @@ public class SecurityConfiguration {
     /**
      * Конфигурация цепочки фильтров безопасности.
      */
+//    @Bean
+//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//        return http
+//                .csrf(AbstractHttpConfigurer::disable)
+//                .authorizeHttpRequests(request -> request
+//                        .requestMatchers(
+//                                "/authentication/**",
+//                                "/user/**",
+//                                "/admin/**",
+//                                "/v2/api-docs",
+//                                "/v3/api-docs",
+//                                "/v3/api-docs/**",
+//                                "/swagger-resources",
+//                                "/swagger-resources/**",
+//                                "/configuration/ui",
+//                                "/configuration/security",
+//                                "/swagger-ui/**",
+//                                "/webjars/**",
+//                                "/swagger-ui.html",
+//                                "/login/**",
+//                                "/oauth2/**", // Важно для OAuth2
+//                                "/login/oauth2/code/google"
+//                        ).permitAll()
+//                        .requestMatchers(HttpMethod.POST, "/api/v1/resource").hasRole("ADMIN")
+//                        .anyRequest().authenticated()
+//                )
+//                .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS))
+//                .authenticationProvider(authenticationProvider)
+//                .oauth2Login(oauth2 -> oauth2
+//                        .successHandler(oAuth2LoginSuccessHandler) // <-- передаём наш кастомный handler
+//                )
+//                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+//                .build();
+//    }
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
+        http
+                // 1) CSRF off, сессии у нас stateless
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(request -> request
+                .sessionManagement(m -> m.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // 2) Отключаем стандартную форму логина
+                .formLogin(AbstractHttpConfigurer::disable)
+
+                // 3) Настраиваем OAuth2 login (чтобы работало /oauth2/authorization/{registrationId})
+                .oauth2Login(oauth2 -> oauth2
+                        // если вы хотите задать свой «начальный» URL для старта OAuth-потока:
+                        .loginPage("/oauth2/authorization/vk")
+                        .successHandler(oAuth2LoginSuccessHandler)
+                )
+
+                // 4) Кто и куда может ходить без авторизации
+                .authorizeHttpRequests(auth -> auth
+                        // публичные API (регистрация, получения токена, OAuth callbacks и документация)
                         .requestMatchers(
                                 "/authentication/**",
                                 "/user/**",
@@ -63,18 +115,24 @@ public class SecurityConfiguration {
                                 "/oauth2/**", // Важно для OAuth2
                                 "/login/oauth2/code/google"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/resource").hasRole("ADMIN")
+
+                        // остальным — нужна авторизация
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS))
-                .authenticationProvider(authenticationProvider)
-                .oauth2Login(oauth2 -> oauth2
-                        .successHandler(oAuth2LoginSuccessHandler) // <-- передаём наш кастомный handler
-                )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
-    }
 
+                // 5) Наш JWT-фильтр
+                .authenticationProvider(authenticationProvider)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+
+                // 6) Если кто-то неавторизован — пусть возвращает 401, а не редиректит.
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(
+                                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                )
+        ;
+
+        return http.build();
+    }
     /**
      * Конфигурация фильтра CORS.
      */
