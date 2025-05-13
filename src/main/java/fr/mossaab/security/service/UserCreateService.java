@@ -33,8 +33,6 @@ public class UserCreateService {
                     .temporarySecondsBalance(0)
                     .tempEmail(null)
                     .nickname("Vlad72229@yandex.ru")
-                    .pears(300)
-                    .points(0)
                     .id(id) // Предполагается, что id уже задан
                     .email(email)
                     .password(password) // Пароль уже зашифрован

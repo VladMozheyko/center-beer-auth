@@ -28,7 +28,7 @@ public class PhoneRegistrationFacade {
                 .password(passwordEncoder.encode(dto.getPassword()))
                 .phone(dto.getPhone())
                 .role(Role.USER)
-                .pears(0).points(0).temporarySecondsBalance(0)
+                .temporarySecondsBalance(0)
                 .build();
 
         // *** Сохраняем, чтобы получить id ***

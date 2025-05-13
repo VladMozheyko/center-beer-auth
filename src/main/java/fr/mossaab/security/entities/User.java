@@ -57,12 +57,6 @@ public class User implements UserDetails {
 
     private String activationCode;
 
-    @Column(nullable = false, columnDefinition = "bigint default 0")
-    private Integer pears = 0; // Количество груш пользователя (может быть null)
-
-    @Column(nullable = false, columnDefinition = "bigint default 0")
-    private Integer points = 0; // Баллы пользователя (может быть null)
-
     @OneToOne(mappedBy = "user", cascade = CascadeType.MERGE, orphanRemoval = true)
     @JsonManagedReference
     private FileData fileData;

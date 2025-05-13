@@ -41,8 +41,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                     .email(email)
                     .nickname(name.replaceAll("\\s+", "_") + "_" + UUID.randomUUID().toString().substring(0, 5))
                     .role(Role.USER)
-                    .points(0)
-                    .pears(0)
                     .temporarySecondsBalance(0)
                     .phoneVerified(false)
                     .build();
