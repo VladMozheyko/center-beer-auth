@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.HashMap;
 import java.util.Map;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -36,8 +37,6 @@ public class AuthController {
     private final StorageService storageService;
     private final RefreshTokenService refreshTokenService;
     private final PhoneRegistrationFacade phoneRegistrationFacade;
-    private final JwtService jwtService;
-    private final UserRepository userRepository;
 
 
 
@@ -84,11 +83,19 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<Object> authenticate(@RequestBody AuthenticationRequest request) {
         AuthenticationResponse authenticationResponse = authenticationService.authenticate(request);
+
+        // Создание тела ответа с токенами
+        Map<String, String> responseBody = new HashMap<>();
+        responseBody.put("accessToken", authenticationResponse.getAccessToken());
+        responseBody.put("refreshToken", authenticationResponse.getRefreshToken());
+        responseBody.put("message", "Вход в систему пользователя успешно совершен");
+
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, authenticationResponse.getJwtCookie())
                 .header(HttpHeaders.SET_COOKIE, authenticationResponse.getRefreshTokenCookie())
-                .body("Вход в систему пользователя успешно совершен");
+                .body(responseBody);
     }
+
 
     @Operation(summary = "Отправить повторный код активации", description = "Этот endpoint позволяет отправить повторный код активации пользователю.")
     @PostMapping("/resend-activation-code")

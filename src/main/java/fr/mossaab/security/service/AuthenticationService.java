@@ -65,8 +65,6 @@ public class AuthenticationService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER)
-                .pears(0)
-                .points(0)
                 .temporarySecondsBalance(0)
                 .tempEmail(null)
                 .nickname(request.getNickname())
@@ -76,12 +74,12 @@ public class AuthenticationService {
         if (!StringUtils.isEmpty(user.getEmail())) {
             String message = String.format(
                     "Здравствуйте, %s! \n" +
-                            "Добро пожаловать в Gо Mind. Ваша ссылка для активации: "+baseUrl+"/authentication/activate/%s",
+                            "Добро пожаловать в CENTER.BEER. Ваша ссылка для активации: "+baseUrl+"/authentication/activate/%s",
                     user.getUsername(),
                     user.getActivationCode()
             );
 
-            mailSender.send(user.getEmail(), "Ссылка активации Gо Mind", message);
+            mailSender.send(user.getEmail(), "Ссылка активации CENTER.BEER", message);
         }
         user = userRepository.save(user);
         var jwt = jwtService.generateToken(user);
@@ -120,7 +118,7 @@ public class AuthenticationService {
                 user.getActivationCode()
         );
 
-        mailSender.send(user.getEmail(), "Код смены пароля в Gо Mind", message);
+        mailSender.send(user.getEmail(), "Код смены пароля в CENTER.BEER", message);
     }
     public ResponseEntity<Void> refreshTokenUsingCookie(HttpServletRequest request) {
         String refreshToken = refreshTokenService.getRefreshTokenFromCookies(request);
@@ -164,12 +162,12 @@ public class AuthenticationService {
         if (!StringUtils.isEmpty(user.getEmail())) {
             String message = String.format(
                     "Здравствуйте, %s! \n" +
-                            "Добро пожаловать в GоMind. Ваш ссылка активации: " + baseUrl +"/authentication/activate/%s",
+                            "Добро пожаловать в CENTER.BEER. Ваш ссылка активации: " + baseUrl +"/authentication/activate/%s",
                     user.getUsername(),
                     user.getActivationCode()
             );
 
-            mailSender.send(user.getEmail(), "Ссылка активации Gо Mind", message);
+            mailSender.send(user.getEmail(), "Ссылка активации CENTER.BEER", message);
         }
         userRepository.save(user);
     }
