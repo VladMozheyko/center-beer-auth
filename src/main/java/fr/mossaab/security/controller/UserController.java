@@ -27,21 +27,6 @@ public class UserController {
     private final UserRepository userRepository;
     private final MailSender mailSender;
 
-    @Operation(summary = "Получить пользователя по идентификатору")
-    @GetMapping("/by-id/{id}")
-    public ResponseEntity<UserProfileResponse> getUserById(@PathVariable Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Пользователь с ID " + id + " не найден"));
-
-        UserProfileResponse response = UserProfileResponse.builder()
-                .id(user.getId())
-                .nickname(user.getNickname())
-                .email(user.getEmail())
-                .build();
-
-        return ResponseEntity.ok(response);
-    }
-
     @Operation(summary = "Получить профиль пользователя")
     @GetMapping("/profile")
     public ResponseEntity<UserProfileResponse> getSimpleProfile() {

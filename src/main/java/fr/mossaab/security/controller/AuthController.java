@@ -1,6 +1,7 @@
 package fr.mossaab.security.controller;
 
 import fr.mossaab.security.dto.auth.*;
+import fr.mossaab.security.dto.user.UserProfileResponse;
 import fr.mossaab.security.service.AuthenticationService;
 import fr.mossaab.security.service.PhoneRegistrationFacade;
 import fr.mossaab.security.service.RefreshTokenService;
@@ -37,9 +38,22 @@ public class AuthController {
     private final StorageService storageService;
     private final RefreshTokenService refreshTokenService;
     private final PhoneRegistrationFacade phoneRegistrationFacade;
+    private final UserRepository userRepository;
 
+    @Operation(summary = "Получить пользователя по идентификатору")
+    @GetMapping("/by-id/{id}")
+    public ResponseEntity<UserProfileResponse> getUserById(@PathVariable Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Пользователь с ID " + id + " не найден"));
 
+        UserProfileResponse response = UserProfileResponse.builder()
+                .id(user.getId())
+                .nickname(user.getNickname())
+                .email(user.getEmail())
+                .build();
 
+        return ResponseEntity.ok(response);
+    }
 
     @PostMapping("/register-phone")
     public ResponseEntity<?> registerByPhone(@RequestBody PhoneRegisterRequest dto) {
