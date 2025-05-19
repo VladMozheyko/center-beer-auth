@@ -42,6 +42,7 @@ public class SecurityConfiguration {
         CorsConfiguration cfg = new CorsConfiguration();
         cfg.setAllowCredentials(true);
         cfg.setAllowedOrigins(Arrays.asList(
+                "https://new.center.beer/",
                 "http://localhost:5173",
                 "https://www.gwork.press",
                 "https://api.center.beer",
