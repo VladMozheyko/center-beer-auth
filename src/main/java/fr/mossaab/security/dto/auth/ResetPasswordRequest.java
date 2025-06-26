@@ -1,17 +1,24 @@
 package fr.mossaab.security.dto.auth;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
+import jakarta.validation.constraints.NotBlank;
+import lombok.*;
+
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class ResetPasswordRequest {
+
+    /** Код из письма */
+    @NotBlank
     private String code;
+
+    /** Новый пароль */
+    @NotBlank
     private String newPassword;
 
-    // Геттеры и сеттеры
+    /** Повтор нового пароля */
+    @NotBlank
+    private String newPasswordRepeat;
 }

@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.*;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -146,9 +147,9 @@ public class AuthController {
         return new ResponseEntity<>("Код для смены пароля успешно отправлен", HttpStatus.OK);
     }
 
-    @Operation(summary = "Смена пароля", description = "Этот endpoint позволяет сменить пароль пользователя с использованием кода активации.")
+    @Operation(summary = "Смена пароля по коду")
     @PostMapping("/reset-password")
-    public ResponseEntity<Object> resetPassword(@RequestBody ResetPasswordRequest request) {
+    public ResponseEntity<Object> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         return authenticationService.resetPassword(request);
     }
 }

@@ -101,24 +101,31 @@ public class AuthenticationService {
     }
 
     public void requestPasswordReset(String email) {
-        Optional<User> userOptional = userRepository.findByEmail(email);
-        if (userOptional.isEmpty()) {
-            throw new UsernameNotFoundException("Пользователь с email " + email + " не найден");
-        }
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        "Пользователь с email %s не найден".formatted(email)));
 
-        User user = userOptional.get();
-        String activationCode = UUID.randomUUID().toString(); // Генерация нового кода
-        user.setActivationCode(activationCode);
+        String resetCode = UUID.randomUUID().toString();
+        user.setActivationCode(resetCode);            // переиспользуем то же поле
         userRepository.save(user);
 
-        String message = String.format(
-                "Здравствуйте, %s! \n" +
-                        "Ваша ссылка для смены пароля: "+baseUrl+"/authentication/activate/%s",
-                user.getUsername(),
-                user.getActivationCode()
-        );
+        /* ======= ССЫЛКА СТАЛА КОРРЕКТНОЙ ======= */
+        String link = "%s/authentication/reset-password?code=%s".formatted(baseUrl, resetCode);
 
-        mailSender.send(user.getEmail(), "Код смены пароля в CENTER.BEER", message);
+        String message = """
+            Здравствуйте, %s!
+            
+            Вы запросили смену пароля в CENTER.BEER.
+            Перейдите по ссылке или скопируйте код вручную:
+
+            %s
+
+            Код: %s
+
+            Если это были не вы — просто проигнорируйте письмо.
+            """.formatted(user.getUsername(), link, resetCode);
+
+        mailSender.send(user.getEmail(), "Смена пароля в CENTER.BEER", message);
     }
     public ResponseEntity<Void> refreshTokenUsingCookie(HttpServletRequest request) {
         String refreshToken = refreshTokenService.getRefreshTokenFromCookies(request);
@@ -129,17 +136,27 @@ public class AuthenticationService {
                 .header(HttpHeaders.SET_COOKIE, newJwtCookie.toString())
                 .build();
     }
-    public ResponseEntity<Object> resetPassword(ResetPasswordRequest request) {
-        User user = userRepository.findByActivationCode(request.getCode());
-        if (user == null) {
-            return new ResponseEntity<>("Код активации не найден", HttpStatus.BAD_REQUEST);
+    public ResponseEntity<Object> resetPassword(ResetPasswordRequest req) {
+
+        // 1. Совпадают ли пароли?
+        if (!req.getNewPassword().equals(req.getNewPasswordRepeat())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Пароли не совпадают");
         }
 
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        user.setActivationCode(null); // Удаление использованного кода
+        // 2. Есть ли пользователь с таким кодом?
+        User user = userRepository.findByActivationCode(req.getCode());
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Неверный или просроченный код");
+        }
+
+        // 3. Меняем пароль
+        user.setPassword(passwordEncoder.encode(req.getNewPassword()));
+        user.setActivationCode(null);          // обнуляем, чтобы 1 раз = 1 сброс
         userRepository.save(user);
 
-        return new ResponseEntity<>("Пароль успешно изменен", HttpStatus.OK);
+        return ResponseEntity.ok("Пароль успешно изменён");
     }
     public ResponseEntity<Void> logout(HttpServletRequest request) {
         String refreshToken = refreshTokenService.getRefreshTokenFromCookies(request);
