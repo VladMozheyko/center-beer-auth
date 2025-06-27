@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.security.SecureRandom;
 import java.text.ParseException;
 import java.util.*;
 
@@ -105,27 +106,26 @@ public class AuthenticationService {
                 .orElseThrow(() -> new UsernameNotFoundException(
                         "Пользователь с email %s не найден".formatted(email)));
 
-        String resetCode = UUID.randomUUID().toString();
-        user.setActivationCode(resetCode);            // переиспользуем то же поле
+        /* ---------- 1. генерируем 4-значный код ---------- */
+        String resetCode = String.format("%04d", new SecureRandom().nextInt(10_000));
+
+        /* ---------- 2. сохраняем код в activationCode ---------- */
+        user.setActivationCode(resetCode);
         userRepository.save(user);
 
-        /* ======= ССЫЛКА СТАЛА КОРРЕКТНОЙ ======= */
-        String link = "%s/authentication/reset-password?code=%s".formatted(baseUrl, resetCode);
-
+        /* ---------- 3. формируем письмо БЕЗ ссылки ---------- */
         String message = """
-            Здравствуйте, %s!
-            
-            Вы запросили смену пароля в CENTER.BEER.
-            Перейдите по ссылке или скопируйте код вручную:
+                Здравствуйте, %s!
 
-            %s
+                Ваш код для смены пароля в CENTER.BEER:
 
-            Код: %s
+                %s
 
-            Если это были не вы — просто проигнорируйте письмо.
-            """.formatted(user.getUsername(), link, resetCode);
+                Введите его в приложении/на сайте. 
+                Если вы не запрашивали смену пароля, просто проигнорируйте это письмо.
+                """.formatted(user.getUsername(), resetCode);
 
-        mailSender.send(user.getEmail(), "Смена пароля в CENTER.BEER", message);
+        mailSender.send(user.getEmail(), "Код для смены пароля", message);
     }
     public ResponseEntity<Void> refreshTokenUsingCookie(HttpServletRequest request) {
         String refreshToken = refreshTokenService.getRefreshTokenFromCookies(request);
