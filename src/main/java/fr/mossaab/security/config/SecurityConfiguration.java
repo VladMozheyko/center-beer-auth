@@ -58,7 +58,8 @@ public class SecurityConfiguration {
                 HttpMethod.POST.name(),
                 HttpMethod.PUT.name(),
                 HttpMethod.DELETE.name(),
-                HttpMethod.OPTIONS.name()
+                HttpMethod.OPTIONS.name(),
+                HttpMethod.PATCH.name()
         ));
         cfg.setMaxAge(3600L);
 
