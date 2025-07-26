@@ -94,7 +94,7 @@ public class SecurityConfiguration {
                                 "/swagger-resources", "/swagger-resources/**",
                                 "/configuration/ui", "/configuration/security",
                                 "/swagger-ui/**", "/webjars/**", "/swagger-ui.html",
-                                "/oauth2/**", "/login/oauth2/**"
+                                "/oauth2/**", "/login/oauth2/**","/auth_service/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
