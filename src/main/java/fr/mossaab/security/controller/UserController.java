@@ -68,7 +68,7 @@ public class UserController {
         user.setTempEmail(newEmail);
         userRepository.save(user);
 
-        String confirmLink = "https://www.gwork.press:8443/user/confirm-email-change?code=" + activationCode;
+        String confirmLink = "https://api.center.beer:8443/user/confirm-email-change?code=" + activationCode;
         String message = "Здравствуйте! Перейдите по ссылке для подтверждения: \n" + confirmLink;
         mailSender.send(newEmail, "Подтверждение смены e-mail", message);
 
