@@ -9,5 +9,4 @@ public class UserProfileResponse {
     private Long id;
     private String nickname;
     private String email;
-    private Integer pears;
 }

@@ -44,7 +44,6 @@ public class SecurityConfiguration {
         cfg.setAllowedOrigins(Arrays.asList(
                 "https://new.center.beer/",
                 "http://localhost:5173",
-                "https://www.gwork.press",
                 "https://api.center.beer",
                 "https://center.beer"
         ));
