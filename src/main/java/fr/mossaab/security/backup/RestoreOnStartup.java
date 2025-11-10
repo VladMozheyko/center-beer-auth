@@ -1,3 +1,4 @@
+/*
 package fr.mossaab.security.backup;
 
 import fr.mossaab.security.backup.BackupService;
@@ -6,10 +7,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Component;
 
+*/
 /**
  * Автоматическое восстановление из backup.json при старте,
  * запускается одним из самых первых.
- */
+ *//*
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -41,3 +44,4 @@ public class RestoreOnStartup implements SmartLifecycle {
         return running;
     }
 }
+*/

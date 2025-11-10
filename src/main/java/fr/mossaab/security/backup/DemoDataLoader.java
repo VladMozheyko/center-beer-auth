@@ -1,3 +1,4 @@
+/*
 package fr.mossaab.security.backup;
 
 
@@ -26,4 +27,4 @@ public class DemoDataLoader implements ApplicationRunner {
         }
         backupService.save();
     }
-}
+}*/

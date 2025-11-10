@@ -1,3 +1,4 @@
+/*
 package fr.mossaab.security.backup;
 
 import fr.mossaab.security.backup.BackupService;
@@ -9,9 +10,11 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+*/
 /**
  * Делает бэкап при остановке приложения.
- */
+ *//*
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -26,3 +29,4 @@ public class BackupOnShutdown {
         backupService.save();
     }
 }
+*/
