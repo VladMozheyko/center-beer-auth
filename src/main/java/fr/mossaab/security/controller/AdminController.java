@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AdminController {
     private final AdminService adminService;
-    //private final BackupService backupService;
     @Operation(summary = "Получить всех пользователей", description = "Этот endpoint возвращает список всех пользователей с пагинацией.")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/all-users")
