@@ -1,3 +1,4 @@
+/*
 package fr.mossaab.security.backup;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -21,3 +22,4 @@ public class BackupPayload {
     private List<RefreshToken> refreshTokens;
 
 }
+*/

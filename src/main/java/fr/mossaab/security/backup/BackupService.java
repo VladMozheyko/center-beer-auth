@@ -1,3 +1,4 @@
+/*
 package fr.mossaab.security.backup;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,39 +23,51 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
+*/
 /**
  * Основной сервис бэкапа/восстановления.
  * Только User, FileData, RefreshToken.
- */
+ *//*
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class BackupService {
 
-    /* ───────────── Repositories ───────────── */
+    */
+/* ───────────── Repositories ───────────── *//*
+
 
     private final UserRepository userRepo;
     private final FileDataRepository fileRepo;
     private final RefreshTokenRepository tokenRepo;
 
-    /* ───────────── Infra ───────────── */
+    */
+/* ───────────── Infra ───────────── *//*
+
 
     private final EntityManager entityManager;
     private final ObjectMapper mapper;
 
-    /* ───────────── Config ───────────── */
+    */
+/* ───────────── Config ───────────── *//*
+
 
     @Value("${app.backup-path}")
     private String backupPath;
 
     private Path json;
 
-    /* ───────────── State ───────────── */
+    */
+/* ───────────── State ───────────── *//*
+
 
     private final ReentrantLock ioLock = new ReentrantLock();
     private final AtomicBoolean alreadyRestored = new AtomicBoolean(false);
 
-    /* ───────────── Init ───────────── */
+    */
+/* ───────────── Init ───────────── *//*
+
 
     @PostConstruct
     void init() throws Exception {
@@ -63,7 +76,9 @@ public class BackupService {
         log.info("📁 Backup file location: {}", json.toAbsolutePath());
     }
 
-    /* ===================== SAVE ===================== */
+    */
+/* ===================== SAVE ===================== *//*
+
 
     @Transactional(readOnly = true)
     public void save() {
@@ -128,7 +143,9 @@ public class BackupService {
         }
     }
 
-    /* ==================== RESTORE ==================== */
+    */
+/* ==================== RESTORE ==================== *//*
+
 
     @Transactional
     public boolean restoreIfExists() {
@@ -171,7 +188,9 @@ public class BackupService {
             // oldId -> new User
             Map<Long, User> oldId2user = new HashMap<>();
 
-            /* ────────── 2. Users ────────── */
+            */
+/* ────────── 2. Users ────────── *//*
+
             for (User fromBackup : safeList(p.getUsers())) {
                 try {
                     Long oldId = fromBackup.getId();
@@ -194,7 +213,9 @@ public class BackupService {
                 }
             }
 
-            /* ────────── 3. FileData ────────── */
+            */
+/* ────────── 3. FileData ────────── *//*
+
             for (FileData fromBackup : safeList(p.getFiles())) {
                 try {
                     Long oldUserId = (fromBackup.getUser() != null)
@@ -219,7 +240,9 @@ public class BackupService {
                 }
             }
 
-            /* ────────── 4. RefreshTokens ────────── */
+            */
+/* ────────── 4. RefreshTokens ────────── *//*
+
             for (RefreshToken fromBackup : safeList(p.getRefreshTokens())) {
                 try {
                     Long oldUserId = (fromBackup.getUser() != null)
@@ -255,7 +278,9 @@ public class BackupService {
         }
     }
 
-    /* ==================== HELPERS ==================== */
+    */
+/* ==================== HELPERS ==================== *//*
+
 
     private Optional<BackupPayload> readBackupPayload(Path primary, Path fallback) {
         try {
@@ -275,9 +300,11 @@ public class BackupService {
         }
     }
 
-    /**
+    */
+/**
      * Безопасно возвращает неизменяемый пустой список, если исходный == null.
-     */
+     *//*
+
     private <T> List<T> safeList(List<T> list) {
         return list != null ? list : List.of();
     }
@@ -331,3 +358,4 @@ public class BackupService {
         return alreadyRestored.get();
     }
 }
+*/

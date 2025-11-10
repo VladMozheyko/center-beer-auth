@@ -1,3 +1,4 @@
+/*
 package fr.mossaab.security.backup;
 
 import lombok.RequiredArgsConstructor;
@@ -6,11 +7,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+*/
 /**
  * Периодический бэкап.
  * CRON можно задать через:
  * backup.cron=0 0 * * * *
- */
+ *//*
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -25,3 +28,4 @@ public class BackupScheduler {
         backupService.save();
     }
 }
+*/
