@@ -1,6 +1,6 @@
 package fr.mossaab.security.entities;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.*;
 import fr.mossaab.security.enums.Role;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -23,6 +23,10 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "_user")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "id", scope = User.class
+)
+@JsonIgnoreProperties(ignoreUnknown = true) // ← чтобы парсинг старых/новых JSON был безопасным
 public class User implements UserDetails {
 
     @Id
@@ -68,6 +72,7 @@ public class User implements UserDetails {
     private List<RefreshToken> refreshTokens;
 
     @Override
+    @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return role.getAuthorities();
     }
@@ -101,4 +106,5 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
 }
