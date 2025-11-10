@@ -202,6 +202,9 @@ public class AuthenticationService {
         logger.debug("Step 2");
         var user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new IllegalArgumentException("Invalid email or password."));
         logger.debug("User authenticated: {}, Role: {}", user.getEmail(), user.getRole().name());
+        if (user.getActivationCode() != null) {
+            throw new IllegalStateException("EMAIL_NOT_CONFIRMED");
+        }
         var roles = user.getRole().getAuthorities()
                 .stream()
                 .map(SimpleGrantedAuthority::getAuthority)
