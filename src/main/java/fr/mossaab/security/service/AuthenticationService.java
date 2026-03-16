@@ -9,6 +9,7 @@ import fr.mossaab.security.dto.auth.ResetPasswordRequest;
 import fr.mossaab.security.entities.FileData;
 import fr.mossaab.security.enums.Role;
 import fr.mossaab.security.enums.TokenType;
+import fr.mossaab.security.exception.DuplicateResourceException;
 import fr.mossaab.security.repository.FileDataRepository;
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.repository.UserRepository;
@@ -51,15 +52,17 @@ public class AuthenticationService {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
     @Value("${app.server.base-url}")
     private String baseUrl;
+    @Value("${app.server.public-url:https://api.center.beer/auth_service}")
+    private String publicUrl;
     public AuthenticationResponse register(RegisterRequest request)  {
         // Проверка существования пользователя с таким же email и activationCode == null
         var existingUserByEmail = userRepository.findByEmail(request.getEmail());
         if (existingUserByEmail.isPresent() && existingUserByEmail.get().getActivationCode() == null) {
-            throw new IllegalArgumentException("Пользователь с таким email уже существует и активирован.");
+            throw new DuplicateResourceException("Пользователь с таким email уже существует и активирован.", "email_exists");
         }
         var existingUserByNickname = userRepository.findByNickname(request.getNickname());
         if (existingUserByNickname.isPresent() && existingUserByNickname.get().getActivationCode() == null) {
-            throw new IllegalArgumentException("Пользователь с таким никнеймом уже существует и активирован.");
+            throw new DuplicateResourceException("Пользователь с таким никнеймом уже существует и активирован.", "nickname_exists");
         }
 
         var user = User.builder()
@@ -75,7 +78,7 @@ public class AuthenticationService {
         if (!StringUtils.isEmpty(user.getEmail())) {
             String message = String.format(
                     "Здравствуйте, %s! \n" +
-                            "Добро пожаловать в CENTER.BEER. Ваша ссылка для активации: "+baseUrl+"/authentication/activate/%s",
+                            "Добро пожаловать в CENTER.BEER. Ваша ссылка для активации: "+publicUrl+"/authentication/activate/%s",
                     user.getUsername(),
                     user.getActivationCode()
             );
@@ -145,7 +148,8 @@ public class AuthenticationService {
         }
 
         // 2. Есть ли пользователь с таким кодом?
-        User user = userRepository.findByActivationCode(req.getCode());
+        User user = userRepository.findByActivationCode(req.getCode())
+                .orElse(null);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Неверный или просроченный код");
@@ -179,7 +183,7 @@ public class AuthenticationService {
         if (!StringUtils.isEmpty(user.getEmail())) {
             String message = String.format(
                     "Здравствуйте, %s! \n" +
-                            "Добро пожаловать в CENTER.BEER. Ваш ссылка активации: " + baseUrl +"/authentication/activate/%s",
+                            "Добро пожаловать в CENTER.BEER. Ваш ссылка активации: " + publicUrl +"/authentication/activate/%s",
                     user.getUsername(),
                     user.getActivationCode()
             );
@@ -227,7 +231,8 @@ public class AuthenticationService {
     }
 
     public synchronized boolean activateUser(String code) {
-        User userEntity = userRepository.findByActivationCode(code);
+        User userEntity = userRepository.findByActivationCode(code)
+                .orElse(null);
         if (userEntity == null) {
             throw new NullPointerException("Пользователь с таким кодом активации не найден ");
         }

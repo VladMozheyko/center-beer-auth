@@ -46,6 +46,10 @@ public class MailConfig {
         Properties properties = mailSender.getJavaMailProperties();
         properties.setProperty("mail.transport.protocol", protocol); // Установка протокола
         properties.setProperty("mail.debug", debug); // Установка флага отладки
+        properties.setProperty("mail.smtp.auth", "true");
+        properties.setProperty("mail.smtp.ssl.enable", "true");
+        properties.setProperty("mail.smtp.ssl.trust", host);
+        properties.setProperty("mail.smtp.ssl.protocols", "TLSv1.2,TLSv1.3");
 
         return mailSender;
     }

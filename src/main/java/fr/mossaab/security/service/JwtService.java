@@ -200,11 +200,12 @@ public class JwtService {
         try {
             return Jwts.parserBuilder()
                     .setSigningKey(getSigningKey())
+                    .setAllowedClockSkewSeconds(60)  // допуск 1 минута для рассинхронизации времени
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
         } catch (JwtException e) {
-            logger.warn("JWT processing failed: {}", e.getMessage()); // или log.error, если критично
+            logger.warn("JWT processing failed: {}", e.getMessage());
             throw new RuntimeException("Invalid or expired token");
         }
     }

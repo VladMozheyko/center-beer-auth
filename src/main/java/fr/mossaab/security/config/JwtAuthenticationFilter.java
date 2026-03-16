@@ -78,8 +78,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         // Извлечение имени пользователя и роли из JWT
-        String userEmail = jwtService.extractUserName(jwt);
-        String role = jwtService.extractRole(jwt); // Извлечение роли из токена
+        String userEmail;
+        String role;
+        try {
+            userEmail = jwtService.extractUserName(jwt);
+            role = jwtService.extractRole(jwt); // Извлечение роли из токена
+        } catch (RuntimeException e) {
+            logger.warn("Invalid or expired JWT token: {}", e.getMessage());
+            
+            if (e.getMessage().contains("Invalid or expired token")) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write("{\"error\": \"token_expired\", \"message\": \"Invalid or expired JWT token\"}");
+                return;
+            }
+            
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         if (StringUtils.isNotEmpty(userEmail)) {
             logger.debug("Extracted userEmail: {} and role: {}", userEmail, role);
@@ -90,7 +107,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
+            UserDetails userDetails;
+            try {
+                userDetails = userDetailsService.loadUserByUsername(userEmail);
+            } catch (Exception e) {
+                logger.warn("Failed to load user by email: {}", userEmail, e);
+                filterChain.doFilter(request, response);
+                return;
+            }
             logger.debug("Loaded userDetails for userEmail: {}", userEmail);
 
             if (jwtService.isTokenValid(jwt, userDetails)) {
