@@ -3,18 +3,22 @@ package fr.mossaab.security.controller;
 
 import fr.mossaab.security.dto.user.UserProfileResponse;
 import fr.mossaab.security.entities.*;
+import fr.mossaab.security.exception.DuplicateResourceException;
 import fr.mossaab.security.repository.*;
 import fr.mossaab.security.service.MailSender;
+import fr.mossaab.security.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,6 +30,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
     private final UserRepository userRepository;
     private final MailSender mailSender;
+    private final UserService userService;
+
+    @Value("${app.server.public-url:https://api.center.beer/auth_service}")
+    private String publicUrl;
 
     @Operation(summary = "Получить профиль пользователя")
     @GetMapping("/profile")
@@ -51,6 +59,14 @@ public class UserController {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 
+        // Проверяем, не занят ли новый никнейм другим пользователем
+        var existingUserByNickname = userRepository.findByNickname(newNickname);
+        if (existingUserByNickname.isPresent() 
+                && !existingUserByNickname.get().getId().equals(user.getId())
+                && existingUserByNickname.get().getActivationCode() == null) {
+            throw new DuplicateResourceException("Пользователь с таким никнеймом уже существует", "nickname_exists");
+        }
+
         user.setNickname(newNickname);
         userRepository.save(user);
         return ResponseEntity.ok("Никнейм успешно обновлён на " + newNickname);
@@ -58,6 +74,7 @@ public class UserController {
 
     @Operation(summary = "Запросить смену e-mail (отправляет ссылку на новый адрес)")
     @PostMapping("/request-email-change")
+    @Transactional
     public ResponseEntity<String> requestEmailChange(@RequestParam String newEmail) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(userEmail)
@@ -66,9 +83,9 @@ public class UserController {
         String activationCode = UUID.randomUUID().toString();
         user.setActivationCode(activationCode);
         user.setTempEmail(newEmail);
-        userRepository.save(user);
+        userRepository.saveAndFlush(user);
 
-        String confirmLink = "https://api.center.beer:8443/user/confirm-email-change?code=" + activationCode;
+        String confirmLink = publicUrl + "/user/confirm-email-change?code=" + activationCode;
         String message = "Здравствуйте! Перейдите по ссылке для подтверждения: \n" + confirmLink;
         mailSender.send(newEmail, "Подтверждение смены e-mail", message);
 
@@ -78,27 +95,29 @@ public class UserController {
     @Operation(summary = "Подтвердить смену e-mail")
     @GetMapping("/confirm-email-change")
     public ResponseEntity<String> confirmEmailChange(@RequestParam String code) {
-        User user = userRepository.findByActivationCode(code);
-        if (user == null) {
-            return ResponseEntity.badRequest().body("Неверный код подтверждения");
+        try {
+            userService.confirmEmailChange(code);
+            return ResponseEntity.ok("E-mail успешно изменён");
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (DuplicateResourceException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Ошибка при подтверждении: " + e.getMessage());
         }
+    }
 
-        if (user.getTempEmail() == null || user.getTempEmail().isEmpty()) {
-            return ResponseEntity.badRequest().body("Отсутствует новый e-mail для изменения");
-        }
+    @Operation(summary = "Удалить аккаунт текущего пользователя")
+    @DeleteMapping("/delete")
+    public ResponseEntity<String> deleteAccount() {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 
-        // Проверяем, не занят ли новый адрес
-        if (userRepository.findByEmail(user.getTempEmail()).isPresent()) {
-            return ResponseEntity.badRequest().body("Данный e-mail уже используется другим пользователем");
-        }
-
-        String updatedEmail = user.getTempEmail();
-        user.setEmail(updatedEmail);
-        user.setTempEmail(null);
-        user.setActivationCode(null);
-        userRepository.save(user);
-
-        return ResponseEntity.ok("E-mail успешно изменён на " + updatedEmail);
+        userService.deleteUser(user.getId());
+        return ResponseEntity.ok("Аккаунт успешно удалён");
     }
 
 }

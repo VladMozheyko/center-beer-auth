@@ -18,6 +18,7 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.ForwardedHeaderFilter;
 import java.util.Arrays;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.context.annotation.Primary;
@@ -31,6 +32,14 @@ public class SecurityConfiguration {
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final AuthenticationProvider authenticationProvider;
+
+    /**
+     * Фильтр для обработки заголовков X-Forwarded-* (Prefix, Host, Proto)
+     */
+    @Bean
+    public ForwardedHeaderFilter forwardedHeaderFilter() {
+        return new ForwardedHeaderFilter();
+    }
 
     /**
      * Единственный bean CorsConfigurationSource — помечен @Primary,
@@ -88,15 +97,7 @@ public class SecurityConfiguration {
                         .successHandler(oAuth2LoginSuccessHandler)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/authentication/**",
-                                "/v2/api-docs", "/v3/api-docs", "/v3/api-docs/**",
-                                "/swagger-resources", "/swagger-resources/**",
-                                "/configuration/ui", "/configuration/security",
-                                "/swagger-ui/**", "/webjars/**", "/swagger-ui.html",
-                                "/oauth2/**", "/login/oauth2/**","/auth_service/**"
-                        ).permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

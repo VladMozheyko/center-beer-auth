@@ -39,7 +39,7 @@ public class User implements UserDetails {
 
     @NotBlank(message = "Электронная почта не может быть пустой.")
     @Pattern(
-            regexp = "^[\\w-\\.]+@[\\w-]+\\.[a-z]{2,4}$",
+            regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
             message = "Неверный формат электронной почты. Пример: «example@domain.com»."
     )
     @Column(nullable = false, unique = true)
@@ -64,7 +64,7 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<RefreshToken> refreshTokens;
 
     @Override
