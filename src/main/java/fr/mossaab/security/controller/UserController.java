@@ -1,6 +1,7 @@
 package fr.mossaab.security.controller;
 
 
+import fr.mossaab.security.dto.user.LocationDto;
 import fr.mossaab.security.dto.user.UserProfileResponse;
 import fr.mossaab.security.entities.*;
 import fr.mossaab.security.exception.DuplicateResourceException;
@@ -31,6 +32,7 @@ public class UserController {
     private final UserRepository userRepository;
     private final MailSender mailSender;
     private final UserService userService;
+    private final LocationRepository locationRepository;
 
     @Value("${app.server.public-url:https://api.center.beer/auth_service}")
     private String publicUrl;
@@ -47,6 +49,11 @@ public class UserController {
                 .id(user.getId()) // <-- добавлено
                 .nickname(user.getNickname())
                 .email(user.getEmail())
+                .createdAt(user.getCreatedAt())
+                .country(user.getLocation() != null ? user.getLocation().getCountry() : null)
+                .city(user.getLocation() != null ? user.getLocation().getCity() : null)
+                .latitude(user.getLocation() != null ? user.getLocation().getLatitude() : null)
+                .longitude(user.getLocation() != null ? user.getLocation().getLongitude() : null)
                 .build();
 
         return ResponseEntity.ok(profile);
@@ -120,4 +127,27 @@ public class UserController {
         return ResponseEntity.ok("Аккаунт успешно удалён");
     }
 
+    @Operation(summary = "Сохранить геолокацию", description = "Сохранение геолокации пользователя")
+    @PostMapping("/profile/location")
+    public ResponseEntity<?> updateMyLocation(@RequestBody LocationDto location) {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+
+        Location loc = Location.builder()
+                .latitude(location.getLatitude())
+                .longitude(location.getLongitude())
+                .country(location.getCountry())
+                .city(location.getCity())
+                .build();
+        if (user.getLocation() != null) {
+            Location oldLocation = user.getLocation();
+            user.setLocation(null);
+            userRepository.save(user);
+            locationRepository.delete(oldLocation);
+        }
+        user.setLocation(loc);
+        userRepository.save(user);
+        return ResponseEntity.ok("Геолокация успешно сохранена longitude: " + loc.getLongitude() + " / latitude: " + loc.getLatitude());
+    }
 }

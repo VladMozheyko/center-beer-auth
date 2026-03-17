@@ -36,6 +36,7 @@ import org.springframework.util.StringUtils;
 
 import java.security.SecureRandom;
 import java.text.ParseException;
+import java.time.LocalDateTime;
 import java.util.*;
 
 
@@ -72,6 +73,7 @@ public class AuthenticationService {
                 .temporarySecondsBalance(0)
                 .tempEmail(null)
                 .nickname(request.getNickname())
+                .createdAt(LocalDateTime.now())
                 .build();
         String activationCode = UUID.randomUUID().toString();
         user.setActivationCode(activationCode);
