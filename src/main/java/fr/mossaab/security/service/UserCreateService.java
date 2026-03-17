@@ -5,11 +5,10 @@ import fr.mossaab.security.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDateTime;
+
 @Service
 public class UserCreateService {
 
@@ -38,6 +37,7 @@ public class UserCreateService {
                     .password(password) // Пароль уже зашифрован
                     .role(role)
                     .activationCode(activationCode)
+                    .createdAt(LocalDateTime.now())
                     .build();
             logger.debug("User create: ", role);
             logger.debug("User create: ", user.getRole());

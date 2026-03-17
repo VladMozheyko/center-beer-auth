@@ -7,13 +7,14 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
+
+import static jakarta.persistence.FetchType.EAGER;
 
 
 @Builder
@@ -57,6 +58,9 @@ public class User implements UserDetails {
 
     private String activationCode;
 
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.MERGE, orphanRemoval = true)
     @JsonManagedReference
     private FileData fileData;
@@ -66,6 +70,10 @@ public class User implements UserDetails {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<RefreshToken> refreshTokens;
+
+    @OneToOne(cascade = CascadeType.ALL, fetch = EAGER)
+    @JoinColumn(name = "location_id")
+    private Location location;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

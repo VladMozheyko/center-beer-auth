@@ -51,6 +51,11 @@ public class AuthController {
                 .id(user.getId())
                 .nickname(user.getNickname())
                 .email(user.getEmail())
+                .createdAt(user.getCreatedAt())
+                .country(user.getLocation() != null ? user.getLocation().getCountry() : null)
+                .city(user.getLocation() != null ? user.getLocation().getCity() : null)
+                .latitude(user.getLocation() != null ? user.getLocation().getLatitude() : null)
+                .longitude(user.getLocation() != null ? user.getLocation().getLongitude() : null)
                 .build();
 
         return ResponseEntity.ok(response);
