@@ -1,7 +1,6 @@
 package fr.mossaab.security.service;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import fr.mossaab.security.dto.SmsRuCallResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.ClientHttpResponse;
@@ -54,14 +53,5 @@ public class SmsRuCallGateway implements PhoneVerificationGateway {
         } catch (RestClientException e) {
             throw new RuntimeException("Не удалось вызвать SMS-ru: " + e.getMessage(), e);
         }
-    }
-
-    // ответ SMS-ru
-    @Data
-    private static class SmsRuCallResponse {
-        private String status;
-        @JsonProperty("status_text")
-        private String statusText;
-        private String code;
     }
 }
