@@ -1,4 +1,4 @@
-package fr.mossaab.security.service;
+package fr.mossaab.security.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
