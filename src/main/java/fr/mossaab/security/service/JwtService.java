@@ -220,7 +220,7 @@ public class JwtService {
      *
      * @return Ключ для подписи JWT токена
      */
-    private Key getSigningKey() {
+    Key getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
