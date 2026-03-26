@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Профиль пользователя</title>
+</head>
+<body>
+<h2>Это профиль</h2>
+<p>Email: <span id="emailSpan"></span></p>
+<p>Никнейм: <span id="nicknameSpan"></span></p>
+
+<script>
+    fetch("/user/profile", {
+        method: "GET",
+        credentials: "include"
+    })
+        .then(resp => {
+            if (!resp.ok) throw new Error("Not authorized");
+            return resp.json();
+        })
+        .then(user => {
+            document.getElementById("emailSpan").textContent = user.email;
+            document.getElementById("nicknameSpan").textContent = user.nickname;
+        })
+        .catch(e => {
+            alert("Вы не авторизованы");
+            window.location.href = "/";
+        });
+</script>
+</body>
+</html>

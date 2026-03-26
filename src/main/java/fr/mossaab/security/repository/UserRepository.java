@@ -1,6 +1,7 @@
 package fr.mossaab.security.repository;
 
 import fr.mossaab.security.entities.User;
+import fr.mossaab.security.enums.OAuthProvider;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -13,4 +14,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByNickname(String nickname);
     Optional<User> findByPhone(String phone);
     boolean existsByEmail(String email);
+
+    @Query("SELECT u FROM User u JOIN u.socialAccounts sa WHERE sa.externalId = :externalId AND sa.provider=:provider")
+    Optional<User> findBySocialId(String externalId, OAuthProvider provider);
+
 }

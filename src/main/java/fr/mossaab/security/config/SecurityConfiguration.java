@@ -54,7 +54,10 @@ public class SecurityConfiguration {
                 "https://new.center.beer/",
                 "http://localhost:5173",
                 "https://api.center.beer",
-                "https://center.beer"
+                "http://localhost:8080",
+                "http://localhost",
+                "https://center.beer",
+                "https://id.vk.ru"
         ));
         cfg.setAllowedHeaders(Arrays.asList(
                 HttpHeaders.AUTHORIZATION,
@@ -73,6 +76,7 @@ public class SecurityConfiguration {
 
         UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
         src.registerCorsConfiguration("/**", cfg);
+        src.registerCorsConfiguration("/oauth2/**", cfg);
         return src;
     }
 

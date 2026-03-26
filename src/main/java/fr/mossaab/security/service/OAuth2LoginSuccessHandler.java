@@ -10,11 +10,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.token.TokenService;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Component
@@ -24,15 +27,27 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
+    private final TokenResponseService tokenResponseService;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
             throws IOException, ServletException {
 
         OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
+        String provider = ((OAuth2AuthenticationToken) authentication).getAuthorizedClientRegistrationId();
 
-        String email = oauth2User.getAttribute("email");
-        String name = oauth2User.getAttribute("name");
+        String email = null;
+        String name = null;
+
+        if ("google".equals(provider)) {
+            email = oauth2User.getAttribute("email");
+            name = oauth2User.getAttribute("name");
+        } else if ("yandex".equals(provider)) {
+            email = oauth2User.getAttribute("default_email");
+            if (email == null) email = oauth2User.getAttribute("email");
+            name = oauth2User.getAttribute("real_name");
+            if (name == null) name = oauth2User.getAttribute("first_name");
+        }
 
         User user = userRepository.findByEmail(email).orElse(null);
 
@@ -43,33 +58,36 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                     .role(Role.USER)
                     .temporarySecondsBalance(0)
                     .phoneVerified(false)
+                    .createdAt(LocalDateTime.now())
                     .build();
             userRepository.save(user);
         }
 
-        String jwtToken = jwtService.generateToken(user);
-        String refreshToken = refreshTokenService.createRefreshToken(user.getId()).getToken();
+        tokenResponseService.sendTokenResponse(user, response); //заменил нижеуказанный код, работает так же
 
-        // Устанавливаем куки (если нужно)
-        ResponseCookie jwtCookie = jwtService.generateJwtCookie(jwtToken);
-        ResponseCookie refreshTokenCookie = refreshTokenService.generateRefreshTokenCookie(refreshToken);
-        response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
-        response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
-
-        // Устанавливаем тип ответа и отправляем JSON
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
-        String jsonResponse = String.format("""
-        {
-            "accessToken": "%s",
-            "refreshToken": "%s",
-            "tokenType": "Bearer",
-            "email": "%s"
-        }
-        """, jwtToken, refreshToken, email);
-
-        response.getWriter().write(jsonResponse);
+//        String jwtToken = jwtService.generateToken(user);
+//        String refreshToken = refreshTokenService.createRefreshToken(user.getId()).getToken();
+//
+//        // Устанавливаем куки (если нужно)
+//        ResponseCookie jwtCookie = jwtService.generateJwtCookie(jwtToken);
+//        ResponseCookie refreshTokenCookie = refreshTokenService.generateRefreshTokenCookie(refreshToken);
+//        response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
+//        response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+//
+//        // Устанавливаем тип ответа и отправляем JSON
+//        response.setContentType("application/json");
+//        response.setCharacterEncoding("UTF-8");
+//
+//        String jsonResponse = String.format("""
+//        {
+//            "accessToken": "%s",
+//            "refreshToken": "%s",
+//            "tokenType": "Bearer",
+//            "email": "%s"
+//        }
+//        """, jwtToken, refreshToken, email);
+//
+//        response.getWriter().write(jsonResponse);
     }
 
 

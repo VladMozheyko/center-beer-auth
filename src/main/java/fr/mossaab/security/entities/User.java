@@ -12,7 +12,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static jakarta.persistence.FetchType.EAGER;
 
@@ -60,6 +62,12 @@ public class User implements UserDetails {
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    // ------------ социальные сети ------------
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private Set<UserSocialAccount> socialAccounts = new HashSet<>();
+    //------------------_____--------------------
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.MERGE, orphanRemoval = true)
     @JsonManagedReference

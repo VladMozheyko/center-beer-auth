@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Главная страница</title>
+</head>
+<body>
+<h1>Привет, это главная страница111!</h1>
+<div id="vkid-container"></div>
+<script nonce="csp_nonce" src="https://unpkg.com/@vkid/sdk@2.6.1/dist-sdk/umd/index.js"></script>
+<script nonce="csp_nonce">
+    fetch('/authentication/vkid-config')
+        .then(r => r.json())
+        .then(cfg => {
+            if (!window.VKIDSDK) {
+                console.error("VKID SDK not found!");
+                return;
+            }
+            const VKID = window.VKIDSDK;
+
+            VKID.Config.init({
+                app: Number(cfg.clientId),
+                redirectUrl: cfg.redirectUri,
+                responseMode: VKID.ConfigResponseMode.Callback,
+                source: VKID.ConfigSource.LOWCODE,
+                scope: cfg.scope
+            });
+
+            const oneTap = new VKID.OneTap();
+
+            oneTap.render({
+                container: document.getElementById('vkid-container'),
+                showAlternativeLogin: true
+            })
+                .on(VKID.WidgetEvents.ERROR, vkidOnError)
+                .on(VKID.OneTapInternalEvents.LOGIN_SUCCESS, function (payload) {
+                    const code = payload.code;
+                    const deviceId = payload.device_id;
+                    // Exchange code/deviceId for VK tokens
+                    VKID.Auth.exchangeCode(code, deviceId)
+                        .then(data => vkidOnSuccess(data, cfg.authBackendUrl))
+                        .catch(vkidOnError);
+                });
+
+            function vkidOnSuccess(data, backendUrl) {
+                // Отправляем токены на backend (куда укажете в конфиге)
+                fetch(backendUrl + "/register", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({
+                        access_token: data.access_token,
+                    })
+                })
+                    .then(res => res.json())
+                    .then(res => {
+                        if (res.accessToken) {
+                            // Успех: можете сохранить токен, поставить куки, сделать редирект и т.д.
+                            window.location.href = "/profile"; // или res.redirect если задано с бэкенда
+                        } else {
+                            alert("Ошибка входа через VK: " + (res.error || "unknown"));
+                        }
+                    });
+            }
+
+            function vkidOnError(error) {
+                alert("Ошибка VK ID: " + JSON.stringify(error));
+            }
+        });
+</script>
+<div id="vkid-container2"></div>
+<script nonce="csp_nonce">
+    fetch('/authentication/vkid-config')
+        .then(r => r.json())
+        .then(cfg => {
+            if (!window.VKIDSDK) {
+                console.error("VKID SDK not found!");
+                return;
+            }
+            const VKID = window.VKIDSDK;
+
+            VKID.Config.init({
+                app: Number(cfg.clientId),
+                redirectUrl: cfg.redirectUri,
+                responseMode: VKID.ConfigResponseMode.Callback,
+                source: VKID.ConfigSource.LOWCODE,
+                scope: cfg.scope
+            });
+
+            const oneTap = new VKID.OneTap();
+
+            oneTap.render({
+                container: document.getElementById('vkid-container2'),
+                showAlternativeLogin: true
+            })
+                .on(VKID.WidgetEvents.ERROR, vkidOnError)
+                .on(VKID.OneTapInternalEvents.LOGIN_SUCCESS, function (payload) {
+                    const code = payload.code;
+                    const deviceId = payload.device_id;
+                    // Exchange code/deviceId for VK tokens
+                    VKID.Auth.exchangeCode(code, deviceId)
+                        .then(data => vkidOnSuccess(data, cfg.authBackendUrl))
+                        .catch(vkidOnError);
+                });
+
+            function vkidOnSuccess(data, backendUrl) {
+                // Отправляем токены на backend (куда укажете в конфиге)
+                fetch(backendUrl + "/add_account", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        access_token: data.access_token,
+                    })
+                })
+                    .then(res => res.json())
+                    .then(res => {
+                        if (res.accessToken) {
+                            // Успех: можете сохранить токен, поставить куки, сделать редирект и т.д.
+                            window.location.href = "/profile"; // или res.redirect если задано с бэкенда
+                        } else {
+                            alert("Ошибка входа через VK: " + (res.error || "unknown"));
+                        }
+                    });
+            }
+
+            function vkidOnError(error) {
+                alert("Ошибка VK ID: " + JSON.stringify(error));
+            }
+        });
+</script>
+</body>
+</html>
