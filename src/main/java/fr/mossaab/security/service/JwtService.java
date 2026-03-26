@@ -109,13 +109,10 @@ public class JwtService {
     public ResponseCookie generateJwtCookie(String jwt) {
         return ResponseCookie.from(jwtCookieName, jwt)
                 .path("/")
-                .maxAge(24 * 60 * 60 * 300) // 24 часа
-//                .httpOnly(false)
-//                .secure(false)
-//                .sameSite("Strict")
+                .maxAge(24 * 60 * 60) // 24 часа
                 .httpOnly(true)
-                .secure(true) // Убедитесь, что флаг secure установлен для HTTPS
-                .sameSite("None") // Для кросс-доменных запросов
+                .secure(false) // Установлено в false для локальной разработки
+                .sameSite("Lax") // Изменено на Lax для лучшей совместимости
                 .build();
     }
 
