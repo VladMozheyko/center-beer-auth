@@ -5,4 +5,12 @@ public enum OAuthProvider {
     GOOGLE,
     YANDEX,
     DEFAULT; // обычная регистрация/аутентификация
+
+    public static OAuthProvider fromString(String providerName) {
+        try {
+            return valueOf(providerName.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
 }

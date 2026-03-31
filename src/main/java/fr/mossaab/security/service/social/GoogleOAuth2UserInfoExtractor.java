@@ -7,10 +7,10 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 @Component
-public class GoogleOAuth2UserInfoExtractor implements OAuth2UserInfoExtractor {
+public class GoogleOAuth2UserInfoExtractor implements OAuth2UserExtractor {
 
     @Override
-    public SocialUserInfo extract(OAuth2User oAuth2User, String accessToken) {
+    public SocialUserInfo extract(OAuth2User oAuth2User) {
         Map<String, Object> attributes = oAuth2User.getAttributes();
 
         String email = (String) attributes.get("email");

@@ -96,7 +96,6 @@ public class AuthController {
     public ResponseEntity<Object> activateUser(@PathVariable String code) {
         authenticationService.activateUser(String.valueOf(code));
         return new ResponseEntity<>("Пользователь успешно зарегистрирован", HttpStatus.OK);
-
     }
 
     @Operation(summary = "Вход пользователя", description = "Этот endpoint позволяет пользователю войти в систему.")
@@ -109,6 +108,7 @@ public class AuthController {
         responseBody.put("accessToken", authenticationResponse.getAccessToken());
         responseBody.put("refreshToken", authenticationResponse.getRefreshToken());
         responseBody.put("message", "Вход в систему пользователя успешно совершен");
+        responseBody.put("status", String.valueOf(HttpStatus.OK.value()));
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, authenticationResponse.getJwtCookie())

@@ -1,10 +1,12 @@
-package fr.mossaab.security.service;
+package fr.mossaab.security.service.social;
 
 import fr.mossaab.security.entities.RefreshToken;
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.enums.Role;
 import fr.mossaab.security.repository.UserRepository;
 
+import fr.mossaab.security.service.JwtService;
+import fr.mossaab.security.service.RefreshTokenService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -33,11 +35,11 @@ import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Unit-tests for OAuth2LoginSuccessHandler")
-class OAuth2LoginSuccessHandlerTest {
+@DisplayName("Unit-tests for OAuth2SocialCallbackHandler")
+class OAuth2SocialCallbackHandlerTest {
 
     @InjectMocks
-    private OAuth2LoginSuccessHandler successHandler;
+    private OAuth2SocialCallbackHandler successHandler;
 
     @Mock
     private UserRepository userRepository;
