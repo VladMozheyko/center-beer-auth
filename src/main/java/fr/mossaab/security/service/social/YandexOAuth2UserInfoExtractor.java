@@ -1,16 +1,17 @@
 package fr.mossaab.security.service.social;
 
 import fr.mossaab.security.dto.social.SocialUserInfo;
+import fr.mossaab.security.enums.OAuthProvider;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
 @Component
-public class YandexOAuth2UserInfoExtractor implements OAuth2UserInfoExtractor {
+public class YandexOAuth2UserInfoExtractor implements OAuth2UserExtractor {
 
     @Override
-    public SocialUserInfo extract(OAuth2User oAuth2User, String accessToken) {
+    public SocialUserInfo extract(OAuth2User oAuth2User) {
         Map<String, Object> attributes = oAuth2User.getAttributes();
 
         String email = (String) attributes.get("default_email");

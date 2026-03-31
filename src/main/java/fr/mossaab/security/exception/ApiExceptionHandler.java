@@ -132,4 +132,19 @@ public class ApiExceptionHandler {
         
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
+
+
+    @ExceptionHandler(SocialAuthException.class)
+    public ResponseEntity<Map<String, Object>> handleSocialAuthException(SocialAuthException ex) {
+        int status = ex.getHttpStatus();
+        HttpStatus httpStatus = HttpStatus.valueOf(status);
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now().toString());
+        body.put("status", status);
+        body.put("error", httpStatus.getReasonPhrase());
+        body.put("message", ex.getMessage());
+
+        return ResponseEntity.status(status).body(body);
+    }
 }

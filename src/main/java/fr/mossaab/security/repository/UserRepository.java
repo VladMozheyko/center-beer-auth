@@ -18,4 +18,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u JOIN u.socialAccounts sa WHERE sa.externalId = :externalId AND sa.provider=:provider")
     Optional<User> findBySocialId(String externalId, OAuthProvider provider);
 
+    boolean existsByNickname(String nickname);
 }
