@@ -1,4 +1,4 @@
-package fr.mossaab.security.service.social;
+package fr.mossaab.security.service.social.extractor;
 
 import fr.mossaab.security.dto.social.SocialUserInfo;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -6,11 +6,15 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
+/**
+ * Извлекает данные пользователя из Google OAuth2.
+ * Поддерживает поля: email, given_name, family_name, sub.
+ */
 @Component
-public class GoogleOAuth2UserInfoExtractor implements OAuth2UserExtractor {
+public class GoogleUserInfoExtractor implements UserInfoExtractor {
 
     @Override
-    public SocialUserInfo extract(OAuth2User oAuth2User) {
+    public SocialUserInfo extract(OAuth2User oAuth2User, String accessToken) {
         Map<String, Object> attributes = oAuth2User.getAttributes();
 
         String email = (String) attributes.get("email");

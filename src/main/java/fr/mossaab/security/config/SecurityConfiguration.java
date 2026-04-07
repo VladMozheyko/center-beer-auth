@@ -1,12 +1,13 @@
 package fr.mossaab.security.config;
 
-import fr.mossaab.security.service.OAuth2LoginSuccessHandler;
+import fr.mossaab.security.service.social.hendler.OAuth2AuthenticationSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -27,9 +28,10 @@ import org.springframework.context.annotation.Primary;
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
+@EnableScheduling
 public class SecurityConfiguration {
 
-    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    private final OAuth2AuthenticationSuccessHandler authenticationSuccessHandler;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final AuthenticationProvider authenticationProvider;
 
@@ -54,7 +56,7 @@ public class SecurityConfiguration {
                 "https://new.center.beer/",
                 "http://localhost:5173",
                 "https://api.center.beer",
-                "http://localhost:8080",
+                "http://localhost:8081",
                 "http://localhost",
                 "https://center.beer",
                 "https://id.vk.ru"
@@ -98,7 +100,7 @@ public class SecurityConfiguration {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/oauth2/authorization/vk")
-                        .successHandler(oAuth2LoginSuccessHandler)
+                        .successHandler(authenticationSuccessHandler)
                 )
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll()
