@@ -111,7 +111,7 @@ public class JwtService {
                 .path("/")
                 .maxAge(24 * 60 * 60) // 24 часа
                 .httpOnly(true)
-                .secure(false) // Установлено в false для локальной разработки
+                .secure(true) // Установлено в false для локальной разработки
                 .sameSite("Lax") // Изменено на Lax для лучшей совместимости
                 .build();
     }

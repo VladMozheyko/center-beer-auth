@@ -1,7 +1,6 @@
 package fr.mossaab.security.dto.social;
 
 import fr.mossaab.security.enums.OAuthProvider;
-import fr.mossaab.security.enums.OAuthRequestStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,8 +14,6 @@ import lombok.Setter;
 public class SocialExchangeRequest {
     @Schema(description = "Одноразовый code, полученный после social-login/init")
     private String authCode;
-    @Schema(description = "Действие: LOGIN, REGISTER, LINK etc (enum OAuthRequestStatus или string)")
-    private OAuthRequestStatus action;
     @Schema(description = "Провайдер: GOOGLE/YANDEX/VK")
     private OAuthProvider provider;
 }

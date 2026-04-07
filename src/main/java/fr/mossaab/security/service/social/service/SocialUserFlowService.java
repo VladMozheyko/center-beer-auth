@@ -1,4 +1,4 @@
-package fr.mossaab.security.service.social;
+package fr.mossaab.security.service.social.service;
 
 import fr.mossaab.security.dto.social.SocialUserInfo;
 import fr.mossaab.security.entities.User;
@@ -13,6 +13,12 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Анализирует состояние пользователя при входе через соцсеть:
+ * - существует ли он,
+ * - нужно ли привязывать,
+ * - занят ли email.
+ */
 @Service
 @RequiredArgsConstructor
 public class SocialUserFlowService {
@@ -21,6 +27,13 @@ public class SocialUserFlowService {
     private final UserSocialAccountRepository socialAccountRepository;
     private final OneTimeAuthCodeService oneTimeAuthCodeService;
 
+    /**
+     * Анализирует поток авторизации пользователя через соцсеть.
+     *
+     * @param userInfo Данные пользователя из соцсети
+     * @param provider Провайдер (Google, VK и т.д.)
+     * @return Результат анализа (статус, сообщение, email, одноразовый код)
+     */
     public SocialAuthResult analyzeUser(SocialUserInfo userInfo, OAuthProvider provider) {
         // 1. Поиск по socialId (уже ранее привязанная соцсеть)
         Optional<User> userBySocialId = userRepository.findBySocialId(userInfo.getId(), provider);
@@ -86,8 +99,7 @@ public class SocialUserFlowService {
         return result;
     }
 
-    @Getter
-    @Setter
+    @Data
     @AllArgsConstructor
     @NoArgsConstructor
     public static class SocialAuthResult {

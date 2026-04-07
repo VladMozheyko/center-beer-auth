@@ -49,9 +49,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 "/swagger-ui.html",
                 "/authentication/",
                 "/login/",
-                "/oauth2/vk/register",
-                "/oauth2/vk/login",
-                "/home"
+                "/oauth2/code/vk",
+                "/oauth2/social/register",
+                "/oauth2/social/login"
         );
 
         String requestURI = request.getRequestURI();

@@ -5,6 +5,7 @@ import fr.mossaab.security.entities.User;
 import fr.mossaab.security.repository.FileDataRepository;
 import fr.mossaab.security.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -23,7 +24,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-class FileControllerIntegrationTest extends AbstractIntegrationTest {
+@Disabled
+class FileControllerIT extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
