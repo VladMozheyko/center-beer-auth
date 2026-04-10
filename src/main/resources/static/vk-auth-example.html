@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Исходный код страницы входа</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            margin: 0;
+            padding: 16px;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #f3f4f6;
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+            color: #111827;
+        }
+
+        p {
+            margin: 0 0 12px 0;
+            color: #4b5563;
+            font-size: 0.95rem;
+        }
+
+        .code-wrapper {
+            background: #111827;
+            border-radius: 8px;
+            padding: 12px 14px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+            overflow: auto;
+        }
+
+        pre {
+            margin: 0;
+            white-space: pre;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #e5e7eb;
+        }
+
+        code {
+            font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+    </style>
+</head>
+<body>
+<h1>Исходный HTML/JS код страницы «Вход в аккаунт»</h1>
+<p>Скопируйте содержимое блока ниже и вставьте в файл <strong>login.html</strong> (или другой нужный вам файл):</p>
+
+<div class="code-wrapper">
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;!-- Блок 1: Основная структура, мета-теги и общие стили --&gt;
+&lt;html lang="ru"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"/&gt;
+    &lt;title&gt;Вход в аккаунт&lt;/title&gt;
+    &lt;meta name="viewport" content="width=430"&gt;
+    &lt;style&gt;
+        /* ---стили не меняем, см. выше --- */
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(120deg,#3959e9 0%,#96c2ff 100%);
+            font-family: 'Segoe UI',Arial,sans-serif;
+        }
+        .centerbox {
+            max-width: 390px;
+            margin: 60px auto 0;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 6px 32px #34345426;
+            padding: 34px 22px 26px;
+        }
+        h1 {
+            margin: 0 0 22px 0;
+            color: #3858e9;
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+        #status-msg {
+            min-height: 28px;
+            margin-bottom: 20px;
+            background: #f6faff;
+            color: #294074;
+            border-radius: 7px;
+            display: flex;
+            align-items: flex-start;
+            font-size: 16px;
+            padding: 9px 13px;
+            word-break: break-word;
+            box-sizing: border-box;
+            overflow-wrap: anywhere;
+            max-height: 135px;
+            overflow-y: auto;
+            flex-direction: column;
+            transition: background .17s;
+        }
+        #status-msg strong { color: #3858e9; }
+        #status-msg:empty { background: transparent; min-height: 0; padding: 0; }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 0 0 15px 0;
+        }
+        input[type="email"], input[type="password"] {
+            background: #f5f8ff;
+            border: 1.1px solid #c9d3ea;
+            padding: 10px 12px;
+            border-radius: 7px;
+            font-size: 15px;
+            transition: border .13s;
+            outline: none;
+        }
+        input:focus { border-color: #3858e9; background: #ecf1ff; }
+
+        button[type="submit"], .exchange-action-btn {
+            background: linear-gradient(90deg,#3858e9,#799fff);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            padding: 11px 0;
+            cursor: pointer;
+            margin-top: 12px;
+            margin-bottom: 2px;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+            transition: background .12s;
+        }
+        button[type="submit"]:hover, .exchange-action-btn:hover {
+            background: linear-gradient(90deg,#3858e9 60%,#5373e3 100%);
+        }
+
+        .soc-links {
+            display: flex;
+            flex-direction: column;
+            gap: 13px;
+            margin: 18px 0 0 0;
+        }
+        .soc-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+            padding: 10px 0;
+            border: none;
+            border-radius: 8px;
+            width: 100%;
+            font-size: 15.5px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: filter 0.13s, box-shadow .13s;
+            box-shadow: 0 1.5px 5px #0001;
+            color: #fff;
+        }
+        .soc-google { background: #dd4b39 linear-gradient(90deg,#dd4b39 70%,#b22e2e 100%); }
+        .soc-google:hover { filter: brightness(1.08); }
+        .soc-ya { background: #ffc800 linear-gradient(90deg,#ffc800 57%,#cca500 100%); color:#493c0f; }
+        .soc-ya:hover { filter: brightness(1.15); }
+        .soc-vk { background: #4a74df; } /* Синий цвет как у VK ID */
+        .soc-vk:hover { filter: brightness(1.1); }
+
+        .soc-btn svg { width: 24px; height: 24px; }
+
+        .or {
+            text-align: center;
+            color: #8fa5ce;
+            margin: 17px 0 5px 0;
+            font-size: 14px;
+            position: relative;
+        }
+        .or:before, .or:after {
+            content: '';
+            display: inline-block;
+            width: 18%;
+            height: 1px;
+            background: #e6eefa;
+            vertical-align: middle;
+            margin: 0 7px 2px;
+        }
+
+        .social-actions-form {
+            margin: 10px 0 0 0;
+            padding: 8px 5px 0 9px;
+        }
+        .radio-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+        .radio-option input[type="radio"] {
+            margin-right: 7px;
+            accent-color: #3858e9;
+            width: 17px; height: 17px;
+        }
+
+        @media (max-width: 480px) {
+            .centerbox { margin:32px 5px; padding:18px 4px 13px; }
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+
+&lt;!-- Блок 2: Единая форма входа с поддержкой Google, Яндекс и ВКонтакте --&gt;
+&lt;body&gt;
+&lt;div class="centerbox"&gt;
+    &lt;h1&gt;Вход в аккаунт&lt;/h1&gt;
+    &lt;div id="status-msg"&gt;&lt;/div&gt;
+
+    &lt;!-- Форма логина по email/паролю --&gt;
+    &lt;form id="login-form" autocomplete="on"&gt;
+        &lt;input type="email" id="email" autocomplete="username" placeholder="E-mail" required&gt;
+        &lt;input type="password" id="pass" autocomplete="current-password" placeholder="Пароль" required&gt;
+        &lt;button type="submit"&gt;Войти&lt;/button&gt;
+    &lt;/form&gt;
+
+    &lt;div class="or"&gt;или через соцсети&lt;/div&gt;
+
+    &lt;!-- Кнопки социальных сетей: Google, Яндекс, ВКонтакте --&gt;
+    &lt;div class="soc-links"&gt;
+        &lt;button class="soc-btn soc-google" id="google-login" type="button"&gt;
+            &lt;svg viewBox="0 0 48 48"&gt;&lt;g&gt;&lt;path fill="#fff" d="M43.6 20.5h-1.6V20H24v8h11.2c-1.3 3.6-4.7 6-8.7 6a9 9 0 110-18c2.2 0 4.3.8 5.9 2.2l6.3-6.3A17 17 0 0024 7a17 17 0 100 34c8.7 0 16-7.1 16-16 0-1.1-.1-2.1-.4-3.1z"/&gt;&lt;path fill="#4285F4" d="M6 14.6l6.6 4.8A9.1 9.1 0 0124 15c2.1 0 4.1.7 5.7 2.1l6.3-6.2C33.8 8.3 29.1 6 24 6c-6 0-11.3 2.7-15 6.9z"/&gt;&lt;path fill="#34A853" d="M24 43c5 0 9.7-1.7 13.3-4.7l-6.6-5.5A9 9 0 0124 39c-3.7 0-7-2.1-8.6-5.3l-6.5 5C12.8 41.4 18.1 43 24 43z"/&gt;&lt;path fill="#FBBC05" d="M9.4 27.6A9 9 0 0115.3 24c.2-1 .6-2.1 1.1-2.9l-6.5-5A17 17 0 007 24c0 2.1.4 4.1 1.1 5.9z"/&gt;&lt;path fill="#EA4335" d="M43.6 20.5h-1.6V20H24v8h11.2c-.5 2.1-1.7 4-3.3 5.3l6.6 5.5c3.1-2.9 5.1-7.1 5.1-12.3 0-1.1-.1-2.1-.4-3.1z"/&gt;&lt;/g&gt;&lt;/svg&gt;
+            Google
+        &lt;/button&gt;
+
+        &lt;button class="soc-btn soc-ya" id="yandex-login" type="button"&gt;
+            &lt;svg viewBox="0 0 48 48"&gt;&lt;g&gt;&lt;circle fill="#fff" cx="24" cy="24" r="24"/&gt;&lt;path fill="#fc3" d="M24 4C13.5 4 5 12.5 5 23c0 5.4 2 10.4 5.7 14l3.5-3.2C10.8 30.2 9 26.7 9 23c0-8.3 6.7-15 15-15s15 6.7 15 15c0 3.7-1.8 7.2-5.2 10.8l3.5 3.2C41 33.4 43 28.4 43 23c0-10.5-8.5-19-19-19z"/&gt;&lt;path fill="#fc3" d="M24 9c7.7 0 14 6.3 14 14s-6.3 14-14 14-14-6.3-14-14S16.3 9 24 9zm0-5C13.5 4 5 12.5 5 23c0 5.4 2 10.4 5.7 14l3.5-3.2C10.8 30.2 9 26.7 9 23c0-8.3 6.7-15 15-15s15 6.7 15 15c0 3.7-1.8 7.2-5.2 10.8l3.5 3.2C41 33.4 43 28.4 43 23c0-10.5-8.5-19-19-19z"/&gt;&lt;/g&gt;&lt;/svg&gt;
+            Яндекс
+        &lt;/button&gt;
+
+        &lt;button class="soc-btn soc-vk" id="vk-login" type="button"&gt;
+            Войти через VK ID
+        &lt;/button&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- Блок 3: Объединённый JavaScript — логика всех провайдеров --&gt;
+&lt;script&gt;
+    let vkConfig = null;
+    const API = "http://localhost"; // Базовый URL для Google/Yandex/внутренних API
+    const API_BASE = "http://localhost:80"; // Отдельный бэкенд для VK PKCE
+
+    // --- Сообщения для OAuth-статусов ---
+    const socialAuthStatusLabels = {
+        SOCIAL_FOUND:   "Аккаунт соцсети уже есть (вы можете войти)",
+        EMAIL_LINKED:   "Email соцсети зарегистрирован (используйте логин/пароль)",
+        NEW_SOCIAL_USER:"Ваша учётка найдена по e-mail. Привязать соцсеть или что сделать?",
+        NEW_ACCOUNT:    "Такой e-mail не найден — вы можете зарегистрироваться через соцсеть",
+        ERROR:          "Ошибка авторизации через соцсеть"
+    };
+    const oauthRequestStatusLabels = {
+        REGISTER: "Зарегистрировать новый аккаунт",
+        LOGIN:    "Войти как найденный пользователь (связать и войти)",
+        LINK:     "Привязать соцсеть к текущей учётке"
+    };
+
+    // --- Показ сообщений ---
+    function showStatus(msg, color) {
+        const el = document.getElementById("status-msg");
+        el.innerHTML = msg || "";
+        el.style.background = color === "red"
+            ? "#ffe9ec" : color === "green"
+                ? "#eaffee" : "#f6faff";
+        el.style.color = color === "red"
+            ? "#b2001c" : color === "green"
+                ? "#117a38" : "#1d415d";
+    }
+
+    // --- Парсинг параметров из URL ---
+    function getQueryParams() {
+        let params = {}, s = window.location.search.replace('?', '').split('&');
+        s.forEach(function(item) {
+            if (!item) return;
+            let kv = item.split('=');
+            params[decodeURIComponent(kv[0])] = decodeURIComponent(kv[1] || '');
+        });
+        return params;
+    }
+
+    // --- Загрузка конфигурации VK с бэкенда ---
+    async function loadVkConfig() {
+        try {
+            const res = await fetch(API_BASE + "/oauth2/vk_id-config", {
+                method: "GET",
+                headers: { "Content-Type": "application/json" }
+            });
+            if (!res.ok) throw new Error("Failed to fetch VK config");
+            vkConfig = await res.json();
+            console.log("VK Config loaded:", vkConfig);
+        } catch (err) {
+            console.error("Error loading VK config:", err);
+            showStatus("Ошибка загрузки настроек VK. Попробуйте позже.", "red");
+        }
+    }
+
+
+
+    // --- Инициализация при загрузке страницы ---
+    document.addEventListener("DOMContentLoaded", async function () {
+        // Загружаем конфиг VK сразу
+        await loadVkConfig();
+
+        const params = getQueryParams();
+
+        // Обработка ответа от Google / Яндекс OAuth
+        if (params.auth_status) {
+            let userMsg = "";
+            let color = ["error", "ERROR"].includes(params.auth_status) ? "red" : "green";
+            const engStatus = params.auth_status.toUpperCase();
+
+            if (socialAuthStatusLabels[engStatus]) {
+                userMsg += `&lt;strong&gt;Статус:&lt;/strong&gt; &lt;b&gt;${engStatus}&lt;/b&gt;&lt;br&gt;`;
+                userMsg += `&lt;span&gt;${socialAuthStatusLabels[engStatus]}&lt;/span&gt;`;
+            } else {
+                userMsg += `&lt;strong&gt;${engStatus}&lt;/strong&gt;`;
+            }
+            if (params.baseUserEmail) {
+                userMsg += `&lt;br&gt;&lt;strong&gt;Email:&lt;/strong&gt; &lt;span style="color:#294074;"&gt;${params.baseUserEmail}&lt;/span&gt;`;
+            }
+            if (params.message) {
+                userMsg += `&lt;br&gt;&lt;span&gt;${params.message}&lt;/span&gt;`;
+            }
+
+            // Если есть auth_code — показываем выбор действия
+            if (params.auth_code &amp;&amp; engStatus !== "ERROR") {
+                userMsg += `&lt;form class="social-actions-form" id="exchange-form"&gt;`;
+                userMsg += `&lt;div style="margin-bottom:6px;font-size:15px;"&gt;Выберите действие:&lt;/div&gt;`;
+                ["REGISTER", "LOGIN", "LINK"].forEach((el, i) =&gt; {
+                    userMsg += `&lt;label class="radio-option"&gt;
+                        &lt;input type="radio" name="exchange-action" value="${el}" ${i === 0 ? "checked" : ""}&gt;
+                        ${oauthRequestStatusLabels[el] || el}
+                    &lt;/label&gt;`;
+                });
+                userMsg += `&lt;button type="submit" class="exchange-action-btn"&gt;Выполнить&lt;/button&gt;`;
+                userMsg += `&lt;/form&gt;`;
+            }
+            showStatus(userMsg, color);
+
+            // Обработка формы выбора действия
+            setTimeout(() =&gt; {
+                const form = document.getElementById('exchange-form');
+                if (form) {
+                    form.onsubmit = function (e) {
+                        e.preventDefault();
+                        const action = form.querySelector('input[name="exchange-action"]:checked');
+                        if (!action) {
+                            showStatus(userMsg + "&lt;div style='color:red;'&gt;Выберите действие&lt;/div&gt;", "red");
+                            return;
+                        }
+                        socialExchangeRequest(params, action.value);
+                    };
+                }
+            }, 100);
+        }
+
+        // Обработка ответа от VK ID после редиректа
+        const vkParams = new URLSearchParams(window.location.search);
+        if (vkParams.has("code") &amp;&amp; vkParams.has("state") &amp;&amp; vkParams.has("device_id")) {
+            handleVkCallback(vkParams);
+        }
+    });
+
+    // --- Обмен кода для Google / Яндекс ---
+    // --- Отправка обмена на нужный endpoint по action ---
+    function socialExchangeRequest(params, action) {
+        showStatus("Отправляем выбранное действие...", "#3858e9");
+        let endpoint = "/oauth2/social/exchange";
+        if (action === "REGISTER") endpoint = "/oauth2/social/register";
+        else if (action === "LOGIN") endpoint = "/oauth2/social/login";
+        else if (action === "LINK") endpoint = "/oauth2/social/link";
+        fetch(API + endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({
+                authCode: params.auth_code,
+                provider: params.provider,
+            })
+        })
+            .then(res =&gt; res.json())
+            .then(res =&gt; {
+                if (res.accessToken) {
+                    localStorage.setItem('accessToken', res.accessToken);
+                    if (res.refreshToken) localStorage.setItem('refreshToken', res.refreshToken);
+                    showStatus(`&lt;span style="color:#117a38;"&gt;Успешно!&lt;/span&gt;&lt;br&gt;${res.message || "Вход выполнен."}`, "green");
+                } else {
+                    showStatus("Ошибка: " + (res.message || ""), "red");
+                }
+            })
+            .catch(() =&gt; showStatus("Ошибка обмена кода!", "red"));
+    }
+
+    // --- Вход по логину/паролю ---
+    document.getElementById('login-form').onsubmit = function (e) {
+        e.preventDefault();
+        showStatus("Выполняется вход...");
+        fetch(API + "/authentication/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({
+                email: this.email.value,
+                password: this.pass.value
+            })
+        })
+            .then(r =&gt; r.json())
+            .then(data =&gt; {
+                if (data.accessToken) {
+                    localStorage.setItem('accessToken', data.accessToken);
+                    if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
+                    showStatus("Успешный вход!", "green");
+                } else {
+                    showStatus(data.message || "Ошибка входа", "red");
+                }
+            })
+            .catch(() =&gt; showStatus("Ошибка соединения с API", "red"));
+    };
+
+    // --- Авторизация через Google и Яндекс ---
+    document.getElementById('google-login').onclick = () =&gt; {
+        window.location.href = API + "/oauth2/authorization/google";
+    };
+    document.getElementById('yandex-login').onclick = () =&gt; {
+        window.location.href = API + "/oauth2/authorization/yandex";
+    };
+
+    // --- Генерация PKCE для VK ID ---
+    async function generatePKCE() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+        const arr = Array.from(crypto.getRandomValues(new Uint8Array(64)));
+        const verifier = arr.map(x =&gt; chars.charAt(x % chars.length)).join('');
+        const data = new TextEncoder().encode(verifier);
+        const hashed = await crypto.subtle.digest("SHA-256", data);
+        const challenge = btoa(String.fromCharCode(...new Uint8Array(hashed)))
+            .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+        return { verifier, challenge };
+    }
+
+    function uuid() {
+        return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =&gt;
+            (c ^ crypto.getRandomValues(new Uint8Array(1))[0] &amp; 15 &gt;&gt; c / 4).toString(16)
+        );
+    }
+
+    // --- Начало авторизации через VK ID ---
+    document.getElementById('vk-login').onclick = async function () {
+        if (!vkConfig) {
+            showStatus("Конфигурация VK ещё не загружена. Подождите...", "red");
+            return;
+        }
+
+        const { verifier, challenge } = await generatePKCE();
+        const state = uuid();
+
+        localStorage.setItem("vk_code_verifier", verifier);
+        localStorage.setItem("vk_auth_state", state);
+
+        const params = new URLSearchParams({
+            response_type: "code",
+            client_id: vkConfig.clientId,
+            redirect_uri: vkConfig.redirectUri,
+            scope: vkConfig.scope,
+            state: state,
+            code_challenge: challenge,
+            code_challenge_method: "S256"
+        });
+
+        window.location = "https://id.vk.ru/authorize?" + params.toString();
+    };
+
+    // --- Обработка колбэка от VK ---
+    async function handleVkCallback(params) {
+        const gotState = params.get("state");
+        const origState = localStorage.getItem("vk_auth_state");
+
+        if (gotState !== origState) {
+            showStatus("Ошибка: state mismatch!", "red");
+            return;
+        }
+
+        const code = params.get("code");
+        const device_id = params.get("device_id");
+        const code_verifier = localStorage.getItem("vk_code_verifier");
+
+        showStatus("Обработка данных от VK...");
+
+        try {
+            const res = await fetch(API_BASE + "/oauth2/vk_pkce_token", {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code, device_id, code_verifier, state: gotState })
+            });
+
+            const data = await res.json();
+
+            // Ожидаем: { status, authCode, baseUserEmail, message }
+            if (!data.status || !data.authCode) {
+                throw new Error("Invalid response from backend: missing status or authCode");
+            }
+
+            const engStatus = data.status.toUpperCase();
+            let userMsg = `&lt;strong&gt;Статус:&lt;/strong&gt; &lt;b&gt;${engStatus}&lt;/b&gt;&lt;br&gt;`;
+            userMsg += `&lt;span&gt;${socialAuthStatusLabels[engStatus] || data.message || "Неизвестный статус"}&lt;/span&gt;`;
+
+            if (data.baseUserEmail) {
+                userMsg += `&lt;br&gt;&lt;strong&gt;Email:&lt;/strong&gt; &lt;span style="color:#294074;"&gt;${data.baseUserEmail}&lt;/span&gt;`;
+            }
+            if (data.message && !userMsg.includes(data.message)) {
+                userMsg += `&lt;br&gt;&lt;span&gt;${data.message}&lt;/span&gt;`;
+            }
+
+            // === Выбор действия если не ошибка ===
+            if (data.authCode && engStatus !== "ERROR") {
+                userMsg += `&lt;form class="social-actions-form" id="exchange-form"&gt;`;
+                userMsg += `&lt;div style="margin-bottom:6px;font-size:15px;"&gt;Выберите действие:&lt;/div&gt;`;
+                ["REGISTER", "LOGIN", "LINK"].forEach((action, i) =&gt; {
+                    userMsg += `&lt;label class="radio-option"&gt;
+                &lt;input type="radio" name="exchange-action" value="${action}" ${i === 0 ? "checked" : ""}&gt;
+                ${oauthRequestStatusLabels[action] || action}
+            &lt;/label&gt;`;
+                });
+                userMsg += `&lt;button type="submit" class="exchange-action-btn"&gt;Выполнить&lt;/button&gt;`;
+                userMsg += `&lt;/form&gt;`;
+            }
+
+            showStatus(userMsg, engStatus === "ERROR" ? "red" : "green");
+
+            // === Форма действия: вызываем socialExchangeRequest с правильным endpoint ===
+            setTimeout(() =&gt; {
+                const form = document.getElementById('exchange-form');
+                if (form) {
+                    form.onsubmit = function (e) {
+                        e.preventDefault();
+                        const actionInput = form.querySelector('input[name="exchange-action"]:checked');
+                        if (!actionInput) {
+                            showStatus(userMsg + "&lt;div style='color:red;'&gt;Выберите действие&lt;/div&gt;", "red");
+                            return;
+                        }
+                        const action = actionInput.value;
+
+                        // ---- ВНИМАНИЕ: отправляем на РАЗНЫЙ endpoint! ----
+                        socialExchangeRequest({
+                            auth_code: data.authCode,
+                            baseUserEmail: data.baseUserEmail,
+                            message: data.message,
+                            provider: "VK"
+                        }, action);
+                    };
+                }
+            }, 100);
+
+        } catch (err) {
+            console.error("Error during VK callback:", err);
+            showStatus("Ошибка при обмене кода с бэкендом: " + (err.message || ""), "red");
+        }
+    }
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+</div>
+</body>
+</html>

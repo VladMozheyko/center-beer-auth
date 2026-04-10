@@ -27,6 +27,9 @@ class UserRegistrationServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private SocialAccountLinkingService linkingService;
+
     @InjectMocks
     private UserRegistrationService userRegistrationService;
 
@@ -109,6 +112,8 @@ class UserRegistrationServiceTest {
             assertEquals(Role.USER, user.getRole());
             assertNotNull(user.getNickname());
             verify(userRepository, times(1)).save(any(User.class));
+            verify(linkingService, times(1)).linkSocialAccount(any(User.class), eq(info), eq(OAuthProvider.VK));
+
         }
 
         @Test
@@ -129,7 +134,7 @@ class UserRegistrationServiceTest {
             User user = userRegistrationService.registerNewUser(OAuthProvider.YANDEX, info);
 
             // then
-            assertEquals("user_name_tag", user.getNickname());
+            assertEquals("user.name+tag@example.com", user.getNickname());
             verify(userRepository).save(any(User.class));
         }
 
@@ -182,7 +187,7 @@ class UserRegistrationServiceTest {
         @DisplayName("Если базовый nickname уже существует — добавляется числовой суффикс")
         void nickname_SuffixAddedWhenExists() {
             // given
-            SocialUserInfo info = buildInfo("ext-6", "nick@example.com", "Иван", "Иванов");
+            SocialUserInfo info = buildInfo("ext-6", null, "Иван", "Иванов");
 
             when(userRepository.existsByNickname("ivan_ivanov")).thenReturn(true);
             when(userRepository.existsByNickname("ivan_ivanov_1")).thenReturn(true);

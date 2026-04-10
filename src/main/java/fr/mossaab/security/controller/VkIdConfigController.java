@@ -1,6 +1,10 @@
 package fr.mossaab.security.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -36,7 +40,27 @@ public class VkIdConfigController {
      */
     @Operation(
             summary = "Получить конфигурацию VK ID",
-            description = "Возвращает clientId, scope, redirectUri и backend auth URL для настройки VK OneTap или OAuth2"
+            description = "Возвращает clientId, scope, redirectUri и backend auth URL для настройки VK OneTap или OAuth2",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Конфигурация VK ID успешно получена",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = VkIdConfigResponse.class),
+                                    examples = @ExampleObject(
+                                            value = """
+                                                    {
+                                                      "clientId": "1234567",
+                                                      "scope": "email profile",
+                                                      "redirectUri": "https://myapp.com/auth/vk/callback",
+                                                      "authBackendUrl": "https://api.myapp.com/api/v1/auth/vk"
+                                                    }
+                                                    """
+                                    )
+                            )
+                    )
+            }
     )
     @GetMapping
     public VkIdConfigResponse getVkIdConfig() {
@@ -46,10 +70,21 @@ public class VkIdConfigController {
 
     @Data
     @AllArgsConstructor
+    @Schema(description = "Конфигурация VK ID для фронтенда")
     public static class VkIdConfigResponse {
-        private String clientId;        // Client ID приложения VK
-        private String scope;           // Запрашиваемые права (например, email)
-        private String redirectUri;     // URI перехвата кода
-        private String authBackendUrl;  // Адрес бэкенда для обмена кода на токен
+
+        @Schema(description = "Client ID приложения VK", example = "1234567")
+        private String clientId;
+
+        @Schema(description = "Запрашиваемые права (через пробел)", example = "email profile")
+        private String scope;
+
+        @Schema(description = "URI редиректа, на который VK отправит код авторизации",
+                example = "https://myapp.com/auth/vk/callback")
+        private String redirectUri;
+
+        @Schema(description = "URL бэкенда для обмена кода авторизации на токен",
+                example = "https://api.myapp.com/api/v1/auth/vk")
+        private String authBackendUrl;
     }
 }

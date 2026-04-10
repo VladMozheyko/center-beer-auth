@@ -153,9 +153,10 @@ class AuthControllerTest {
     @Test
     @DisplayName("Повторная отправка кода активации - успешная")
     void resendActivationCode_Success() throws ParseException {
-        Map<String, String> requestBody = Map.of("email", "email@example.com");
+        EmailRequest req = new EmailRequest();
+        req.setEmail("email@example.com");
 
-        ResponseEntity<Object> response = authController.resendActivationCode(requestBody);
+        ResponseEntity<Object> response = authController.resendActivationCode(req);
 
         assertEquals(200, response.getStatusCode().value());
         verify(authenticationService, times(1)).resendActivationCode("email@example.com");
@@ -194,9 +195,10 @@ class AuthControllerTest {
     @Test
     @DisplayName("Запрос на смену пароля - успешный")
     void requestPasswordReset_Success() {
-        Map<String, String> requestBody = Map.of("email", "email@example.com");
+        EmailRequest emailRequest = new EmailRequest();
+        emailRequest.setEmail("email@example.com");
 
-        ResponseEntity<Object> response = authController.requestPasswordReset(requestBody);
+        ResponseEntity<Object> response = authController.requestPasswordReset(emailRequest);
 
         assertEquals(200, response.getStatusCode().value());
         verify(authenticationService, times(1)).requestPasswordReset("email@example.com");
