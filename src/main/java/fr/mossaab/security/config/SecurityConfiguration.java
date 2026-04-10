@@ -56,6 +56,7 @@ public class SecurityConfiguration {
                 "https://new.center.beer/",
                 "http://localhost:5173",
                 "https://api.center.beer",
+//только для локали
                 "http://localhost:8081",
                 "http://localhost",
                 "https://center.beer",
