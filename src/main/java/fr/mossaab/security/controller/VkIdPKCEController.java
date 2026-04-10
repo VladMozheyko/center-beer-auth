@@ -11,6 +11,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -265,5 +267,22 @@ public class VkIdPKCEController {
             log.error("Ошибка при перенаправлении на фронтенд", e);
             throw e;
         }
+    }
+
+
+    @Data
+    @Schema(description = "Запрос обмена VK PKCE-кода на токен")
+    public class VkPkceTokenRequest {
+
+        @Schema(description = "Код авторизации VK, полученный после редиректа", example = "AQAAABCD1234...")
+        @NotBlank(message = "Поле 'code' обязательно")
+        private String code;
+
+        @Schema(description = "PKCE code_verifier, сгенерированный на клиенте", example = "s0m3L0ngR@nd0mStr1ng")
+        @NotBlank(message = "Поле 'code_verifier' обязательно")
+        private String codeVerifier;
+
+        @Schema(description = "Идентификатор устройства (опционально)", example = "device-12345")
+        private String deviceId;
     }
 }

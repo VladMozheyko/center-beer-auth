@@ -6,28 +6,28 @@ import fr.mossaab.security.service.AuthenticationService;
 import fr.mossaab.security.service.PhoneRegistrationFacade;
 import fr.mossaab.security.service.RefreshTokenService;
 import fr.mossaab.security.service.StorageService;
+import fr.mossaab.security.validation.annotation.ValidPdfFileName;
+import fr.mossaab.security.validation.annotation.ValidSmsCode;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import org.springframework.http.*;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.repository.UserRepository;
-import fr.mossaab.security.service.JwtService;
-import fr.mossaab.security.enums.Role;
 
 @Tag(name = "Аутентификация", description = "API для работы с аутентификацией пользователей")
 @RestController
@@ -43,7 +43,11 @@ public class AuthController {
 
     @Operation(summary = "Получить пользователя по идентификатору")
     @GetMapping("/by-id/{id}")
-    public ResponseEntity<UserProfileResponse> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserProfileResponse> getUserById(
+            @PathVariable
+            @Min(value = 1, message = "ID пользователя должен быть положительным числом")
+            Long id
+    ) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Пользователь с ID " + id + " не найден"));
 
@@ -62,21 +66,24 @@ public class AuthController {
     }
 
     @PostMapping("/register-phone")
-    public ResponseEntity<?> registerByPhone(@RequestBody PhoneRegisterRequest dto) {
+    public ResponseEntity<?> registerByPhone(@Valid @RequestBody PhoneRegisterRequest dto) {
         phoneRegistrationFacade.start(dto);
         return ResponseEntity.ok("Код отправлен");
     }
 
 
     @PostMapping("/confirm-phone")
-    public ResponseEntity<?> confirmPhone(@RequestBody ConfirmPhoneRequest req) {
+    public ResponseEntity<?> confirmPhone(@Valid @RequestBody ConfirmPhoneRequest req) {
         phoneRegistrationFacade.confirm(req.getPhone(), req.getCode());
         return ResponseEntity.ok("Телефон подтверждён");
     }
 
     @Operation(summary = "Загрузка PDF-файла из файловой системы", description = "Этот endpoint позволяет загрузить PDF-файл из файловой системы.")
     @GetMapping("/file-system-pdf/{fileName}")
-    public ResponseEntity<?> downloadPdfFromFileSystem(@PathVariable String fileName) throws IOException {
+    @Validated
+    public ResponseEntity<?> downloadPdfFromFileSystem(
+            @ValidPdfFileName @PathVariable String fileName
+    ) throws IOException {
         byte[] pdfData = storageService.downloadImageFromFileSystem(fileName);
         return ResponseEntity.status(HttpStatus.OK)
                 .contentType(MediaType.valueOf("application/pdf"))
@@ -85,7 +92,7 @@ public class AuthController {
 
     @Operation(summary = "Регистрация пользователя", description = "Позволяет новому пользователю зарегистрироваться в системе.")
     @PostMapping(value = "/register")
-    public ResponseEntity<Object> register(@RequestBody RegisterRequest request) throws IOException{
+    public ResponseEntity<Object> register(@Valid @RequestBody RegisterRequest request) throws IOException {
         authenticationService.register(request);
         return ResponseEntity.ok().body("Код активации для активации аккаунта успешно отправлен на почтовый адрес");
     }
@@ -93,14 +100,16 @@ public class AuthController {
 
     @Operation(summary = "Активация пользователя", description = "Позволяет отправить код активации для регистрации.")
     @GetMapping("/activate/{code}")
-    public ResponseEntity<Object> activateUser(@PathVariable String code) {
+    public ResponseEntity<Object> activateUser(
+            @ValidSmsCode @PathVariable String code
+    ) {
         authenticationService.activateUser(String.valueOf(code));
         return new ResponseEntity<>("Пользователь успешно зарегистрирован", HttpStatus.OK);
     }
 
     @Operation(summary = "Вход пользователя", description = "Этот endpoint позволяет пользователю войти в систему.")
     @PostMapping("/login")
-    public ResponseEntity<Object> authenticate(@RequestBody AuthenticationRequest request) {
+    public ResponseEntity<Object> authenticate(@Valid @RequestBody AuthenticationRequest request) {
         AuthenticationResponse authenticationResponse = authenticationService.authenticate(request);
 
         // Создание тела ответа с токенами
@@ -119,15 +128,17 @@ public class AuthController {
 
     @Operation(summary = "Отправить повторный код активации", description = "Этот endpoint позволяет отправить повторный код активации пользователю.")
     @PostMapping("/resend-activation-code")
-    public ResponseEntity<Object> resendActivationCode(@RequestBody Map<String, String> requestBody) throws ParseException {
-        authenticationService.resendActivationCode(requestBody.get("email"));
+    public ResponseEntity<Object> resendActivationCode(
+            @Valid @RequestBody EmailRequest request
+    ) throws ParseException {
+        authenticationService.resendActivationCode(request.getEmail());
         return new ResponseEntity<>("Код подтверждения аккаунта успешно отправлен на почту", HttpStatus.OK);
     }
 
 
     @Operation(summary = "Обновление токена", description = "Этот endpoint позволяет обновить токен.")
     @PostMapping("/refresh-token")
-    public ResponseEntity<AuthenticationService.RefreshTokenResponse> refreshToken(@RequestBody AuthenticationService.RefreshTokenRequest request) {
+    public ResponseEntity<AuthenticationService.RefreshTokenResponse> refreshToken(@Valid @RequestBody AuthenticationService.RefreshTokenRequest request) {
         return ResponseEntity.ok(refreshTokenService.generateNewToken(request));
     }
 
@@ -147,8 +158,8 @@ public class AuthController {
 
     @Operation(summary = "Запрос на смену пароля", description = "Этот endpoint отправляет код активации на почту пользователя.")
     @PostMapping("/request-password-reset")
-    public ResponseEntity<Object> requestPasswordReset(@RequestBody Map<String, String> requestBody) {
-        authenticationService.requestPasswordReset(requestBody.get("email"));
+    public ResponseEntity<Object> requestPasswordReset(@Valid @RequestBody EmailRequest emailRequest) {
+        authenticationService.requestPasswordReset(emailRequest.getEmail());
         return new ResponseEntity<>("Код для смены пароля успешно отправлен", HttpStatus.OK);
     }
 

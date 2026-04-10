@@ -5,9 +5,15 @@ import fr.mossaab.security.entities.User;
 import fr.mossaab.security.repository.FileDataRepository;
 import fr.mossaab.security.repository.UserRepository;
 import fr.mossaab.security.service.StorageService;
+import fr.mossaab.security.validation.annotation.ValidId;
+import fr.mossaab.security.validation.annotation.ValidImageFile;
+import fr.mossaab.security.validation.annotation.ValidImageFileName;
+import fr.mossaab.security.validation.annotation.ValidPdfFileName;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -31,7 +37,7 @@ public class FileController {
 
     @Operation(summary = "Загрузка PDF-файла из файловой системы", description = "Этот endpoint позволяет загрузить PDF-файл из файловой системы.")
     @GetMapping("/file-system-pdf/{fileName}")
-    public ResponseEntity<?> downloadPdfFromFileSystem(@PathVariable String fileName) throws IOException {
+    public ResponseEntity<?> downloadPdfFromFileSystem(@ValidPdfFileName @PathVariable String fileName) throws IOException {
         byte[] pdfData = storageService.downloadImageFromFileSystem(fileName);
         return ResponseEntity.status(HttpStatus.OK)
                 .contentType(MediaType.valueOf("application/pdf"))
@@ -40,15 +46,16 @@ public class FileController {
 
     @Operation(summary = "Загрузка изображения из файловой системы", description = "Этот endpoint позволяет загрузить изображение из файловой системы.")
     @GetMapping("/file-system/{fileName}")
-    public ResponseEntity<?> downloadImageFromFileSystem(@PathVariable String fileName) throws IOException {
+    public ResponseEntity<?> downloadImageFromFileSystem(@ValidImageFileName @PathVariable String fileName) throws IOException {
         byte[] imageData = storageService.downloadImageFromFileSystem(fileName);
         return ResponseEntity.status(HttpStatus.OK)
                 .contentType(MediaType.valueOf("image/png"))
                 .body(imageData);
     }
+
     @Operation(summary = "Загрузка PDF-файла по идентификатору", description = "Этот endpoint позволяет загрузить PDF-файл по идентификатору.")
     @GetMapping("/file-system-pdf-by-id/{fileDataId}")
-    public ResponseEntity<?> downloadPdfById(@PathVariable Long fileDataId) throws IOException {
+    public ResponseEntity<?> downloadPdfById(@PathVariable @ValidId Long fileDataId) throws IOException {
         FileData fileData = fileDataRepository.findById(fileDataId)
                 .orElseThrow(() -> new RuntimeException("Файл с указанным идентификатором не найден"));
 
@@ -58,9 +65,10 @@ public class FileController {
                 .contentType(MediaType.valueOf("application/pdf"))
                 .body(pdfData);
     }
+
     @Operation(summary = "Загрузка изображения по идентификатору", description = "Этот endpoint позволяет загрузить изображение по идентификатору.")
     @GetMapping("/file-system-image-by-id/{fileDataId}")
-    public ResponseEntity<?> downloadImageById(@PathVariable Long fileDataId) throws IOException {
+    public ResponseEntity<?> downloadImageById(@PathVariable @ValidId Long fileDataId) throws IOException {
         FileData fileData = fileDataRepository.findById(fileDataId)
                 .orElseThrow(() -> new RuntimeException("Файл с указанным идентификатором не найден"));
 
@@ -71,10 +79,10 @@ public class FileController {
                 .body(imageData);
     }
 
-    @Operation(summary = "Загрузка изображения профиля пользователя", description = "Этот endpoint позволяет загрузить изображения профиля в файловую систему")
+    @Operation(summary = "Загрузка изображения профиля пользователя", description = "Этот endpoint позволяет загрузить изображения профиля в файловую систему, максимальный размер 5мб")
     @PostMapping("/profile-image/upload/{userId}")
-    public ResponseEntity<?> uploadProfileImage(@PathVariable Long userId,
-                                                @RequestParam("file") MultipartFile file) throws IOException {
+    public ResponseEntity<?> uploadProfileImage(@PathVariable @ValidId Long userId,
+                                                @RequestParam("file") @ValidImageFile MultipartFile file) throws IOException {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 
@@ -89,7 +97,7 @@ public class FileController {
             description = "Этот endpoint возвращает изображение профиля пользователя по userId."
     )
     @GetMapping("/profile-image/{userId}")
-    public ResponseEntity<?> getUserProfileImage(@PathVariable Long userId) throws IOException {
+    public ResponseEntity<?> getUserProfileImage(@PathVariable @ValidId Long userId) throws IOException {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 

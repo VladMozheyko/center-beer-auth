@@ -8,9 +8,13 @@ import fr.mossaab.security.exception.DuplicateResourceException;
 import fr.mossaab.security.repository.*;
 import fr.mossaab.security.service.MailSender;
 import fr.mossaab.security.service.UserService;
+import fr.mossaab.security.validation.annotation.ValidEmail;
+import fr.mossaab.security.validation.annotation.ValidRuEnNicknameLengthMin4Max50;
+import fr.mossaab.security.validation.annotation.ValidSmsCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -61,7 +65,7 @@ public class UserController {
 
     @Operation(summary = "Изменить никнейм текущего пользователя")
     @PatchMapping("/update-nickname")
-    public ResponseEntity<String> updateNickname(@RequestParam String newNickname) {
+    public ResponseEntity<String> updateNickname(@RequestParam @ValidRuEnNicknameLengthMin4Max50 String newNickname) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
@@ -82,7 +86,7 @@ public class UserController {
     @Operation(summary = "Запросить смену e-mail (отправляет ссылку на новый адрес)")
     @PostMapping("/request-email-change")
     @Transactional
-    public ResponseEntity<String> requestEmailChange(@RequestParam String newEmail) {
+    public ResponseEntity<String> requestEmailChange(@RequestParam @ValidEmail String newEmail) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
@@ -101,7 +105,7 @@ public class UserController {
 
     @Operation(summary = "Подтвердить смену e-mail")
     @GetMapping("/confirm-email-change")
-    public ResponseEntity<String> confirmEmailChange(@RequestParam String code) {
+    public ResponseEntity<String> confirmEmailChange(@RequestParam @ValidSmsCode String code) {
         try {
             userService.confirmEmailChange(code);
             return ResponseEntity.ok("E-mail успешно изменён");
@@ -129,7 +133,7 @@ public class UserController {
 
     @Operation(summary = "Сохранить геолокацию", description = "Сохранение геолокации пользователя")
     @PostMapping("/profile/location")
-    public ResponseEntity<?> updateMyLocation(@RequestBody LocationDto location) {
+    public ResponseEntity<?> updateMyLocation(@Valid @RequestBody LocationDto location) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));

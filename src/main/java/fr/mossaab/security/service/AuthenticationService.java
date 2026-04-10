@@ -13,6 +13,7 @@ import fr.mossaab.security.exception.DuplicateResourceException;
 import fr.mossaab.security.repository.FileDataRepository;
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.repository.UserRepository;
+import fr.mossaab.security.validation.annotation.ValidRefreshToken;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotBlank;
@@ -255,6 +256,7 @@ public class AuthenticationService {
         /**
          * Токен обновления.
          */
+        @ValidRefreshToken
         private String refreshToken;
 
     }

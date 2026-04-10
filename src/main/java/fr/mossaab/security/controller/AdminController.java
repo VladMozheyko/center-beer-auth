@@ -6,6 +6,8 @@ import fr.mossaab.security.service.AdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,8 +23,16 @@ public class AdminController {
     @Operation(summary = "Получить всех пользователей", description = "Этот endpoint возвращает список всех пользователей с пагинацией.")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/all-users")
-    public ResponseEntity<GetAllUsersResponse> getAllUsers(@RequestParam(defaultValue = "0") int page,
-                                                           @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<GetAllUsersResponse> getAllUsers(
+            @RequestParam(defaultValue = "0")
+            @Min(value = 0, message = "Номер страницы не может быть меньше 0")
+            int page,
+
+            @RequestParam(defaultValue = "10")
+            @Min(value = 1, message = "Размер страницы должен быть минимум 1")
+            @Max(value = 100, message = "Размер страницы не может превышать 100")
+            int size
+    ) {
         return ResponseEntity.ok(adminService.getAllUsers(page, size));
     }
 
