@@ -22,6 +22,7 @@ public class SocialAccountLinkingService {
     private final UserRepository userRepository;
 
     public void linkSocialAccount(User user, SocialUserInfo info, OAuthProvider provider) {
+        log.info("[LINK ACCOUNT] - Процесс привязки аккаунта, текущий email:{}, email привязываемый: {}", user.getEmail(), info.getEmail());
         UserSocialAccount socialAcc = UserSocialAccount.builder()
                 .externalId(info.getId())
                 .provider(provider)
@@ -35,6 +36,6 @@ public class SocialAccountLinkingService {
         user.getSocialAccounts().add(socialAcc);
 
         userRepository.saveAndFlush(user);
-        log.info("Social account linked: {} -> {}", provider, user.getEmail());
+        log.info("[LINK ACCOUNT] - Социальный аккаунт привязан успешно: {} -> {}", provider, user.getEmail());
     }
 }

@@ -2,6 +2,7 @@ package fr.mossaab.security.service.social.extractor;
 
 import fr.mossaab.security.dto.social.SocialUserInfo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -16,6 +17,7 @@ import java.util.Map;
  * Извлекает данные пользователя из VK через API.
  * Требует access_token и client_id для запроса к /oauth2/user_info.
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class VkUserInfoExtractor implements UserInfoExtractor {
@@ -27,6 +29,7 @@ public class VkUserInfoExtractor implements UserInfoExtractor {
 
     @Override
     public SocialUserInfo extract(OAuth2User oAuth2User, String accessToken) {
+        log.info("[VK EXTRACTOR] - Процесс извлечения данных о пользователе используя токен {}....", accessToken.substring(0, 10));
         String url = "https://id.vk.ru/oauth2/user_info";
 
         HttpHeaders headers = new HttpHeaders();
@@ -39,11 +42,13 @@ public class VkUserInfoExtractor implements UserInfoExtractor {
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
 
         try {
+            log.info("[VK EXTRACTOR] - Запрос к VK ID используя accessToken");
             ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
             Map<String, Object> body = response.getBody();
 
             if (body == null || !body.containsKey("user")) {
-                throw new IllegalArgumentException("Invalid or empty response from VK: " + body);
+                log.info("[VK EXTRACTOR] - Некорректный или пустой ответ от VK:{}", body);
+                throw new IllegalArgumentException("Некорректный или пустой ответ от VK: " + body);
             }
 
             Map<String, Object> user = (Map<String, Object>) body.get("user");
@@ -53,9 +58,11 @@ public class VkUserInfoExtractor implements UserInfoExtractor {
             String firstName = (String) user.get("first_name");
             String lastName = (String) user.get("last_name");
 
+            log.info("[VK EXTRACTOR] - Данные пользователя успешно получены из VK аутентификации");
             return new SocialUserInfo(userId, email, firstName, lastName);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to fetch user info from VK", e);
+            log.error("[VK EXTRACTOR] - Не удалось получить пользовательскую информацию из VK {}", e.getMessage());
+            throw new RuntimeException("Не удалось получить пользовательскую информацию из VK", e);
         }
     }
 }

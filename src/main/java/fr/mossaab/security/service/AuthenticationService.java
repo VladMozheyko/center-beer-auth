@@ -19,6 +19,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,7 +41,7 @@ import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.util.*;
 
-
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -57,13 +58,16 @@ public class AuthenticationService {
     @Value("${app.server.public-url:https://api.center.beer/auth_service}")
     private String publicUrl;
     public AuthenticationResponse register(RegisterRequest request)  {
+        log.info("[BASE REGISTER] - Процесс регистрации через логин и пароль, email:{}", request.getEmail());
         // Проверка существования пользователя с таким же email и activationCode == null
         var existingUserByEmail = userRepository.findByEmail(request.getEmail());
         if (existingUserByEmail.isPresent() && existingUserByEmail.get().getActivationCode() == null) {
+            log.warn("[BASE REGISTER] - Данный Email {} занят другим пользователем ", request.getEmail());
             throw new DuplicateResourceException("Пользователь с таким email уже существует и активирован.", "email_exists");
         }
         var existingUserByNickname = userRepository.findByNickname(request.getNickname());
         if (existingUserByNickname.isPresent() && existingUserByNickname.get().getActivationCode() == null) {
+            log.warn("[BASE REGISTER] - Пользователь с таким никнеймом уже существует и активирован nickname={}", request.getNickname());
             throw new DuplicateResourceException("Пользователь с таким никнеймом уже существует и активирован.", "nickname_exists");
         }
 
@@ -88,26 +92,32 @@ public class AuthenticationService {
 
             mailSender.send(user.getEmail(), "Ссылка активации CENTER.BEER", message);
         }
-        user = userRepository.save(user);
-        var jwt = jwtService.generateToken(user);
-        var refreshToken = refreshTokenService.createRefreshToken(user.getId());
+        try {
+            user = userRepository.save(user);
+            var jwt = jwtService.generateToken(user);
+            var refreshToken = refreshTokenService.createRefreshToken(user.getId());
 
-        var roles = user.getRole().getAuthorities()
-                .stream()
-                .map(SimpleGrantedAuthority::getAuthority)
-                .toList();
+            var roles = user.getRole().getAuthorities()
+                    .stream()
+                    .map(SimpleGrantedAuthority::getAuthority)
+                    .toList();
 
-        return AuthenticationResponse.builder()
-                .accessToken(jwt)
-                .email(user.getEmail())
-                .id(user.getId())
-                .refreshToken(refreshToken.getToken())
-                .roles(roles)
-                .tokenType(TokenType.BEARER.name())
-                .build();
+            return AuthenticationResponse.builder()
+                    .accessToken(jwt)
+                    .email(user.getEmail())
+                    .id(user.getId())
+                    .refreshToken(refreshToken.getToken())
+                    .roles(roles)
+                    .tokenType(TokenType.BEARER.name())
+                    .build();
+        } catch (Exception e) {
+            log.error("[BASE REGISTER] - Ошибка при сохранении пользователя {}", e.getMessage(), e);
+            throw new RuntimeException(e);
+        }
     }
 
     public void requestPasswordReset(String email) {
+        log.info("[RESET PASSWORD] - Процесс сброса пароля");
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException(
                         "Пользователь с email %s не найден".formatted(email)));
@@ -132,6 +142,7 @@ public class AuthenticationService {
                 """.formatted(user.getUsername(), resetCode);
 
         mailSender.send(user.getEmail(), "Код для смены пароля", message);
+        log.info("[RESET PASSWORD] - код сброшен и отправлен новый на {}", user.getEmail());
     }
     public ResponseEntity<Void> refreshTokenUsingCookie(HttpServletRequest request) {
         String refreshToken = refreshTokenService.getRefreshTokenFromCookies(request);
@@ -143,9 +154,10 @@ public class AuthenticationService {
                 .build();
     }
     public ResponseEntity<Object> resetPassword(ResetPasswordRequest req) {
-
+        log.info("[RESET PASSWORD] - процесс смены пароля");
         // 1. Совпадают ли пароли?
         if (!req.getNewPassword().equals(req.getNewPasswordRepeat())) {
+            log.warn("[RESET PASSWORD] - пароли не совпадают");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Пароли не совпадают");
         }
@@ -154,6 +166,7 @@ public class AuthenticationService {
         User user = userRepository.findByActivationCode(req.getCode())
                 .orElse(null);
         if (user == null) {
+            log.warn("[RESET PASSWORD] - Неверный или просроченный код");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Неверный или просроченный код");
         }
@@ -162,7 +175,7 @@ public class AuthenticationService {
         user.setPassword(passwordEncoder.encode(req.getNewPassword()));
         user.setActivationCode(null);          // обнуляем, чтобы 1 раз = 1 сброс
         userRepository.save(user);
-
+        log.info("[RESET PASSWORD] - пароль успешно изменен для пользователя id: {}", user.getId());
         return ResponseEntity.ok("Пароль успешно изменён");
     }
     public ResponseEntity<Void> logout(HttpServletRequest request) {
@@ -179,6 +192,7 @@ public class AuthenticationService {
     }
 
     public void  resendActivationCode(String email) throws ParseException {
+        log.info("[ACCOUNT ACTIVATION CODE] - отправка кода");
         Optional<User> userOptional = userRepository.findByEmail(email);
         User user = userOptional.get();
         String activationCode = UUID.randomUUID().toString();
@@ -194,6 +208,7 @@ public class AuthenticationService {
             mailSender.send(user.getEmail(), "Ссылка активации CENTER.BEER", message);
         }
         userRepository.save(user);
+        log.info("[ACCOUNT ACTIVATION CODE] - код сохранен и отправлен");
     }
 
     /**
@@ -203,13 +218,15 @@ public class AuthenticationService {
      * @return Ответ с данными пользователя и токенами.
      */
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
-        logger.debug("Step 1");
+        log.info("[AUTHENTICATION] - Аутентификация пользователя");
+        log.info("[AUTHENTICATION] - Получение аутентификации");
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-        logger.debug("Step 2");
+        log.info("[AUTHENTICATION] - Получение пользователя по email: {} ", request.getEmail());
         var user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new IllegalArgumentException("Invalid email or password."));
-        logger.debug("User authenticated: {}, Role: {}", user.getEmail(), user.getRole().name());
+        logger.debug("[AUTHENTICATION] - Пользователь аутентифицирован!: {}, Role: {}", user.getEmail(), user.getRole().name());
         if (user.getActivationCode() != null) {
+            log.warn("[AUTHENTICATION] - email не подтвержден");
             throw new IllegalStateException("EMAIL_NOT_CONFIRMED");
         }
         var roles = user.getRole().getAuthorities()
@@ -220,6 +237,7 @@ public class AuthenticationService {
         var refreshToken = refreshTokenService.createRefreshToken(user.getId());
         ResponseCookie jwtCookie = jwtService.generateJwtCookie(jwt);
         ResponseCookie refreshTokenCookie = refreshTokenService.generateRefreshTokenCookie(refreshToken.getToken());
+        log.info("[AUTHENTICATION] - успешная аутентификация для email:{}", user.getEmail());
 
         return AuthenticationResponse.builder()
                 .accessToken(jwt)

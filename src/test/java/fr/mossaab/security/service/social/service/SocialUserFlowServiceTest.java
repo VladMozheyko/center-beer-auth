@@ -106,7 +106,7 @@ class SocialUserFlowServiceTest {
             // then
             assertEquals(SocialAuthStatus.ERROR, result.getStatus());
             assertEquals(
-                    "Найдено несколько социальных аккаунтов с этим e-mail! Обратитесь в поддержку.",
+                    "Найдено несколько социальных аккаунтов с этим email! Запрещено создавать аккаунты с одинаковыми email",
                     result.getMessage()
             );
             assertNull(result.getBaseUserEmail());

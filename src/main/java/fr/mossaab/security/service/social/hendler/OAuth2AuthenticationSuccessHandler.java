@@ -8,6 +8,7 @@ import fr.mossaab.security.service.social.service.SocialUserFlowService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -23,6 +24,7 @@ import java.nio.charset.StandardCharsets;
  * Обработчик успешной OAuth2-аутентификации.
  * Перенаправляет на фронт с параметрами: статус, код, сообщение.
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccessHandler {
@@ -36,16 +38,18 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
             throws IOException {
-
+        log.info("[OAuth2 Handler] - Процесс обработки ответа аутентификации через соцсеть");
         if (!(authentication instanceof OAuth2AuthenticationToken token)) {
-            sendErrorRedirect(response, SocialAuthStatus.ERROR, "Invalid authentication type");
+            log.error("[OAuth2 Handler] - Ошибка типа аутентификации");
+            sendErrorRedirect(response, SocialAuthStatus.ERROR, "Тип недействительной аутентификации");
             return;
         }
 
         String registrationId = token.getAuthorizedClientRegistrationId();
         OAuthProvider provider = OAuthProvider.fromString(registrationId);
         if (provider == null) {
-            sendErrorRedirect(response, SocialAuthStatus.ERROR, "Unknown OAuth provider");
+            log.error("[OAuth2 Handler] - Не удалось определить провайдера аутентификации или неподдерживаемый тип");
+            sendErrorRedirect(response, SocialAuthStatus.ERROR, "Неизвестный провайдер OAuth");
             return;
         }
 
@@ -58,8 +62,8 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
                 "&auth_code=" + result.getAuthCode() +
                 "&message=" + encode(result.getMessage()) +
                 "&provider=" + provider;
-
         response.sendRedirect(redirectUrl);
+        log.info("[OAuth2 Handler] -  Успешная авторизация через {}", provider);
     }
 
     private void sendErrorRedirect(HttpServletResponse response, SocialAuthStatus status, String message) throws IOException {
