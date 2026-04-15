@@ -35,8 +35,10 @@ public class OneTimeAuthCodeService {
      * @return уникальный строковый код (UUID)
      */
     public String issueCode(SocialUserInfo socialUserInfo) {
+        log.info("[User Info] - Сохранение данных о пользователе email:{} во временное хранилище", socialUserInfo.getEmail());
         String code = UUID.randomUUID().toString();
         codeMap.put(code, new AuthCodeInfo(socialUserInfo, Instant.now().plusSeconds(180))); // 3 мин
+        log.info("[User Info] - Временные данные сохранены");
         return code;
     }
 
@@ -48,10 +50,13 @@ public class OneTimeAuthCodeService {
      * @return SocialUserInfo, если код валиден; иначе null
      */
     public SocialUserInfo consumeCode(String code) {
+        log.info("[User Info] - Получение данных о пользователе oAuth из временного хранилища по коду:{}", code);
         AuthCodeInfo info = codeMap.remove(code);
         if (info == null || Instant.now().isAfter(info.expires)) {
+            log.info("[User Info] - Данных по коду не найдено");
             return null;
         }
+        log.info("[User Info] - Данные успешно получены");
         return info.socialUserInfo;
     }
 

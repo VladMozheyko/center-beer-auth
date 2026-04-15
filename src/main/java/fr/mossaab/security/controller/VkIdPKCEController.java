@@ -166,11 +166,13 @@ public class VkIdPKCEController {
     )
     @PostMapping("/vk_pkce_token")
     public ResponseEntity<?> vkPkceToken(@RequestBody Map<String, String> req) {
+        log.info("Обработка кода авторизации полученный после запроса PKCE");
         String code = req.get("code");
         String codeVerifier = req.get("code_verifier");
         String deviceId = req.get("device_id");
 
         if (code == null || codeVerifier == null) {
+            log.error("[VK PKCE] - Отсутствует сервисный код авторизации (code) или код верификации от вк");
             return ResponseEntity.badRequest()
                     .body(Map.of("error", "Missing 'code' or 'code_verifier'"));
         }
@@ -182,7 +184,7 @@ public class VkIdPKCEController {
 
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            log.error("Ошибка при обработке PKCE-кода от VK", e);
+            log.error("[VK PKCE] - Ошибка при обработке PKCE-кода от VK", e);
             return ResponseEntity.status(500)
                     .body(Map.of("error", "Authentication failed: " + e.getMessage()));
         }
@@ -261,6 +263,7 @@ public class VkIdPKCEController {
             HttpServletResponse response
     ) throws IOException {
         try {
+            log.info("Перенаправление кода авторизации и других данных на фронтенд");
             String redirectUrl = vkTokenService.buildFrontendRedirectUrl(code, state, deviceId);
             response.sendRedirect(redirectUrl);
         } catch (IOException e) {

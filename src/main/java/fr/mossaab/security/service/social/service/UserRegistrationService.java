@@ -26,6 +26,7 @@ public class UserRegistrationService {
     private final SocialAccountLinkingService linkingService;
 
     public User registerNewUser(OAuthProvider provider, SocialUserInfo userInfo) {
+        log.info("[REGISTER USER] - Процесс регистрации нового пользователя через соцсеть:{} email:{}", provider, userInfo.getEmail());
         String email = userInfo.getEmail() != null ? userInfo.getEmail() : generateFakeEmail(provider, userInfo.getId());
         String nickname = generateUniqueNickname(userInfo);
 
@@ -41,7 +42,7 @@ public class UserRegistrationService {
                 .build();
 
         userRepository.save(user);
-        log.info("New user registered: {}", user.getEmail());
+        log.info("[REGISTER USER] - Зарегистрированный новый пользователь: {}", user.getEmail());
 
         // создаем аккакунт социальной сети и связываем пользователя с соцсетью
         linkingService.linkSocialAccount(user, userInfo, provider);

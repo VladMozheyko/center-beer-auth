@@ -8,6 +8,7 @@ import fr.mossaab.security.enums.SocialAuthStatus;
 import fr.mossaab.security.repository.UserRepository;
 import fr.mossaab.security.repository.UserSocialAccountRepository;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.Optional;
  * - нужно ли привязывать,
  * - занят ли email.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SocialUserFlowService {
@@ -35,25 +37,31 @@ public class SocialUserFlowService {
      * @return Результат анализа (статус, сообщение, email, одноразовый код)
      */
     public SocialAuthResult analyzeUser(SocialUserInfo userInfo, OAuthProvider provider) {
+        log.info("[ANALYZE USER] - Процесс анализа пользователя, email:{}", userInfo.getEmail());
+
         // 1. Поиск по socialId (уже ранее привязанная соцсеть)
+        log.info("[ANALYZE USER] - Поиск по socialId, socialId:{}", userInfo.getId());
         Optional<User> userBySocialId = userRepository.findBySocialId(userInfo.getId(), provider);
         if (userBySocialId.isPresent()) {
+            log.info("[ANALYZE USER] - Аккаунт данной соцсети уже связан с пользователем, email:{}, socialId:{}", userInfo.getEmail(), userInfo.getId());
             return buildResult(userInfo, SocialAuthStatus.SOCIAL_FOUND, "Аккаунт данной соцсети уже связан с пользователем.",
                     userBySocialId.get().getEmail());
         }
 
         // 2. Поиск среди социальных аккаунтов по email этой соцсети
+        log.info("[ANALYZE USER] - Поиск среди социальных аккаунтов по email:{} этой соцсети", userInfo.getEmail());
         List<UserSocialAccount> accountsBySocialEmail = socialAccountRepository.findBySocialEmail(userInfo.getEmail());
         if (accountsBySocialEmail != null && !accountsBySocialEmail.isEmpty()) {
             if (accountsBySocialEmail.size() > 1) {
-                // 2.1 Больше одной учётки с этим email — подозрительно, пусть вручную разбираются или специальное сообщение
+                log.error("[ANALYZE USER] - Больше одной учётки с этим email — подозрительно");
                 return buildResult(userInfo, SocialAuthStatus.ERROR,
-                        "Найдено несколько социальных аккаунтов с этим e-mail! Обратитесь в поддержку.",
+                        "Найдено несколько социальных аккаунтов с этим email! Запрещено создавать аккаунты с одинаковыми email",
                         null);
             } else {
                 // 2.2 Нашли ровно один social account с этим email
                 UserSocialAccount account = accountsBySocialEmail.get(0);
                 String userEmail = account.getUser().getEmail();
+                log.info("[ANALYZE USER] - Найден один аккаунт с таким email:{}, нужно привязывать аккаунт", userEmail);
                 return buildResult(
                         userInfo,
                         SocialAuthStatus.NEW_SOCIAL_USER,
@@ -64,9 +72,10 @@ public class SocialUserFlowService {
         }
 
         // 3. Поиск по основным э-мейлам в базе пользователей
+        log.info("[ANALYZE USER] - Поиск по основным email в базе пользователей");
         Optional<User> userByEmail = userRepository.findByEmail(userInfo.getEmail());
         if (userByEmail.isPresent()) {
-            // 3.1 Найден пользователь с таким e-mail
+            log.info("[ANALYZE USER] - Найден пользователь с таким e-mail");
             return buildResult(
                     userInfo,
                     SocialAuthStatus.EMAIL_LINKED,
@@ -76,6 +85,7 @@ public class SocialUserFlowService {
         }
 
         // 4. Абсолютно новый пользователь
+        log.info("[ANALYZE USER] - Пользователь новый, email:{}", userInfo.getEmail());
         return buildResult(
                 userInfo,
                 SocialAuthStatus.NEW_ACCOUNT,

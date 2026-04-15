@@ -6,6 +6,7 @@ import fr.mossaab.security.entities.User;
 import fr.mossaab.security.enums.OAuthProvider;
 import fr.mossaab.security.enums.OAuthRequestStatus;
 import fr.mossaab.security.exception.SocialAuthException;
+import fr.mossaab.security.logger.AuditLogger;
 import fr.mossaab.security.repository.UserRepository;
 import fr.mossaab.security.service.JwtService;
 import fr.mossaab.security.service.RefreshTokenService;
@@ -14,8 +15,10 @@ import fr.mossaab.security.service.social.service.SocialAccountLinkingService;
 import fr.mossaab.security.service.social.service.UserRegistrationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,11 +27,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Контроллер для завершения OAuth2-аутентификации:
  * вход, регистрация или привязка социального аккаунта.
  */
+@Slf4j
 @RestController
 @RequestMapping("/oauth2/social")
 @RequiredArgsConstructor
@@ -41,6 +46,7 @@ public class OAuth2Controller {
     private final RefreshTokenService refreshTokenService;
     private final UserRegistrationService registration;
     private final SocialAccountLinkingService linkingService;
+    private final AuditLogger logger;
 
     @Operation(summary = "\uD83D\uDD27 Пошаговое руководство: регистрация, авторизация и привязка соцсетей (Google, Yandex)",
             description = """
@@ -403,7 +409,9 @@ public class OAuth2Controller {
             description = "Использует одноразовый код для входа существующего пользователя"
     )
     @PostMapping("/login")
-    public ResponseEntity<?> socialLogin(@Valid @RequestBody SocialExchangeRequest req) {
+    public ResponseEntity<?> socialLogin(@Valid @RequestBody SocialExchangeRequest req, HttpServletRequest request) {
+        String ip = request.getRemoteAddr();
+        logger.logActionWithIP(AuditLogger.ActionType.LOGIN_ATTEMPT, req.getProvider().name(), null, ip, "Попытка входа через соцсеть");
         return handleSocialAction(req, null, OAuthRequestStatus.LOGIN);
     }
 
@@ -412,7 +420,9 @@ public class OAuth2Controller {
             description = "Создаёт нового пользователя по данным из соцсети"
     )
     @PostMapping("/register")
-    public ResponseEntity<?> socialRegister(@Valid @RequestBody SocialExchangeRequest req) {
+    public ResponseEntity<?> socialRegister(@Valid @RequestBody SocialExchangeRequest req, HttpServletRequest request) {
+        String ip = request.getRemoteAddr();
+        logger.logActionWithIP(AuditLogger.ActionType.REGISTER_ATTEMPT, req.getProvider().name(), null, ip, "Попытка регистрации через соцсеть");
         return handleSocialAction(req, null, OAuthRequestStatus.REGISTER);
     }
 
@@ -423,7 +433,10 @@ public class OAuth2Controller {
     @PostMapping("/link")
     public ResponseEntity<?> socialLink(
             @RequestBody @Valid SocialExchangeRequest req,
-            @AuthenticationPrincipal UserDetails currentUser) {
+            @AuthenticationPrincipal UserDetails currentUser,
+            HttpServletRequest request) {
+        String ip = request.getRemoteAddr();
+        logger.logActionWithIP(AuditLogger.ActionType.LINK_ATTEMPT, req.getProvider().name(), currentUser.getUsername(), ip, "Попытка привязки социальной сети");
         return handleSocialAction(req, currentUser, OAuthRequestStatus.LINK);
     }
 
@@ -433,29 +446,48 @@ public class OAuth2Controller {
         OAuthProvider provider = req.getProvider();
 
         SocialUserInfo info = oneTimeAuthCodeService.consumeCode(authCode);
+        String validCurrentUser = currentUser != null ? currentUser.getUsername() : "";
         if (info == null) {
+            logger.logError("Код auth устарел или не верен", req.getProvider().name(), validCurrentUser);
             throw new SocialAuthException("Код устарел или неверен", 400);
         }
 
-        User user;
+        Optional<User> user;
         switch (action) {
             case LOGIN:
-                user = userRepository.findBySocialId(info.getId(), provider)
-                        .orElseThrow(() -> new SocialAuthException("Пользователь не найден", 404));
-                return buildTokenResponse(user, "Успешный вход");
+                user = userRepository.findBySocialId(info.getId(), provider);
+                if (user.isPresent()) {
+                    logger.logAction(AuditLogger.ActionType.LOGIN_SUCCESS, req.getProvider().name(), validCurrentUser, "Пользователь успешно найден email:" + info.getEmail());
+                    return buildTokenResponse(user.get(), "Успешный вход");
+                }
+                logger.logError("Пользователь не найден", req.getProvider().name(), validCurrentUser);
+                throw new SocialAuthException("Пользователь не найден", 404);
             case REGISTER:
-                if (userRepository.findByEmail(info.getEmail()).isPresent()) {
+                user = userRepository.findByEmail(info.getEmail());
+                if (user.isPresent()) {
+                    logger.logError("Email уже существует email:" + info.getEmail(), req.getProvider().name(), validCurrentUser);
                     throw new SocialAuthException("Email уже используется", 409);
                 }
-                user = registration.registerNewUser(provider, info);
-                return buildTokenResponse(user, "Регистрация успешна");
+                User newUser = registration.registerNewUser(provider, info);
+                logger.logAction(AuditLogger.ActionType.REGISTER_SUCCESS, req.getProvider().name(), validCurrentUser, "Успешная регистрация");
+                return buildTokenResponse(newUser, "Регистрация успешна");
             case LINK:
-                if (currentUser == null) throw new SocialAuthException("Требуется авторизация", 401);
-                user = userRepository.findByEmail(currentUser.getUsername()).orElse(null);
-                if (user == null) throw new SocialAuthException("Пользователь не найден", 403);
-                linkingService.linkSocialAccount(user, info, provider);
-                return buildTokenResponse(user, "Соцсеть привязана");
+                if (currentUser == null) {
+                    logger.logError("Привязка аккаунта, пользователь не авторизован", req.getProvider().name(), validCurrentUser);
+                    throw new SocialAuthException("Требуется авторизация", 401);
+                }
+                user = userRepository.findByEmail(currentUser.getUsername());
+                if (user.isEmpty()) {
+                    logger.logError("Привязка аккаунта, пользователь не найден", req.getProvider().name(), validCurrentUser);
+                    throw new SocialAuthException("Пользователь не найден", 403);
+                }
+                linkingService.linkSocialAccount(user.get(), info, provider);
+                logger.logAction(AuditLogger.ActionType.LINK_SUCCESS, req.getProvider().name(), validCurrentUser, "Социальная сеть успешно привязана");
+                log.info("Социальная сеть {} успешно привязана к пользователю с ID: {}", provider, user.get().getId());
+                return buildTokenResponse(user.get(), "Соцсеть привязана");
             default:
+                log.debug("Неизвестное действие в запросе");
+                logger.logError("Неизвестное действие", req.getProvider().name(), validCurrentUser);
                 throw new SocialAuthException("Неизвестное действие", 400);
         }
     }

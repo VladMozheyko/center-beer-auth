@@ -1,5 +1,6 @@
 package fr.mossaab.security.controller;
 
+import fr.mossaab.security.logger.AuditLogger;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -9,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
  * Контроллер для получения конфигурации VK ID OAuth2.
  * Используется фронтендом для инициализации входа через VK (например, OneTap).
  */
+@Slf4j
 @RestController
 @RequestMapping("/oauth2/vk_id-config")
 @RequiredArgsConstructor
@@ -33,6 +36,8 @@ public class VkIdConfigController {
 
     @Value("${app.server.base-url}")
     private String authBackendUrl;
+
+    private final AuditLogger logger;
 
     /**
      * Возвращает базовые настройки для OAuth2-авторизации через VK.
@@ -64,6 +69,7 @@ public class VkIdConfigController {
     )
     @GetMapping
     public VkIdConfigResponse getVkIdConfig() {
+        log.info("Получение конфигурационных данных для формирования запроса PKCE в VK ID");
         String scopeString = scope.replace(",", " ");
         return new VkIdConfigResponse(vkClientId, scopeString, redirectUri, authBackendUrl);
     }

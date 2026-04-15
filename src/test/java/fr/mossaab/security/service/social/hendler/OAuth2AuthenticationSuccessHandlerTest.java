@@ -5,10 +5,12 @@ import fr.mossaab.security.enums.OAuthProvider;
 import fr.mossaab.security.enums.SocialAuthStatus;
 import fr.mossaab.security.service.social.service.OAuthUserInfoService;
 import fr.mossaab.security.service.social.service.SocialUserFlowService;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -21,11 +23,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -110,7 +114,14 @@ class OAuth2AuthenticationSuccessHandlerTest {
 
         successHandler.onAuthenticationSuccess(request, response, authentication);
 
-        verify(response).sendRedirect(contains("auth_status=error&message=Unknown+OAuth+provider"));
+        ArgumentCaptor<String> redirectUrlCaptor = ArgumentCaptor.forClass(String.class);
+        verify(response).sendRedirect(redirectUrlCaptor.capture());
+
+        String actualUrl = redirectUrlCaptor.getValue();
+        String decodedUrl = URLDecoder.decode(actualUrl, StandardCharsets.UTF_8);
+
+        Assertions.assertTrue(decodedUrl.contains("auth_status=error"));
+        Assertions.assertTrue(decodedUrl.contains("message=Неизвестный провайдер OAuth"));
     }
 
     @Test

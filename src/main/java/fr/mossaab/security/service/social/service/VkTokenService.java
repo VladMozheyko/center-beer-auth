@@ -42,7 +42,7 @@ public class VkTokenService {
      * @return access token
      */
     public String exchangeCodeForToken(String code, String codeVerifier, String deviceId) {
-        log.info("Обмен кода на токен в VK для device_id={}", deviceId);
+        log.info("[VK EXCHANGE CODE] - Обмен кода на токен в VK для device_id={}", deviceId);
 
         // URL для запроса токена
         String url = "https://id.vk.ru/oauth2/auth";
@@ -70,20 +70,20 @@ public class VkTokenService {
             Map<String, Object> body = response.getBody();
 
             if (body == null) {
-                log.warn("Пустой ответ от VK при обмене кода на токен");
+                log.warn("[VK EXCHANGE CODE] - Пустой ответ от VK при обмене кода на токен");
                 throw new RuntimeException("VK вернул пустой ответ");
             }
 
             if (!body.containsKey("access_token")) {
-                log.warn("VK не вернул access_token: {}", body);
+                log.warn("[VK EXCHANGE CODE] - VK не вернул access_token: {}", body);
                 throw new RuntimeException("VK не вернул access_token. Ответ: " + body);
             }
 
-            log.debug("Получен access_token от VK");
+            log.info("[VK EXCHANGE CODE] - Получен access_token от VK");
             return (String) body.get("access_token");
 
         } catch (Exception e) {
-            log.error("Ошибка при обмене кода на токен с VK", e);
+            log.error("[VK EXCHANGE CODE] - Ошибка при обмене кода на токен с VK", e);
             throw new RuntimeException("Не удалось получить access_token от VK: " + e.getMessage(), e);
         }
     }

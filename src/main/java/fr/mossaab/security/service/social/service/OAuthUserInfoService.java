@@ -28,12 +28,12 @@ public class OAuthUserInfoService {
      * @return SocialUserInfo
      */
     public SocialUserInfo getUserInfo(OAuth2User oAuth2User, String accessToken, OAuthProvider provider) {
-        log.info("Fetching user info for provider: {}", provider);
+        log.info("[User Info] - Получение пользовательской информации для провайдера: {}", provider);
 
         UserInfoExtractor extractor = extractorFactory.getExtractor(provider);
         SocialUserInfo userInfo = extractor.extract(oAuth2User, accessToken);
 
-        log.info("User info retrieved successfully: id={}, email={}", userInfo.getId(), userInfo.getEmail());
+        log.info("[User Info] - Пользовательская информация успешно извлечена: id={}, email={}", userInfo.getId(), userInfo.getEmail());
         return userInfo;
     }
 }
