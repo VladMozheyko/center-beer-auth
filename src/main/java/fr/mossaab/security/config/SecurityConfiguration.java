@@ -47,41 +47,58 @@ public class SecurityConfiguration {
      * Единственный bean CorsConfigurationSource — помечен @Primary,
      * так что Spring не будет путаться между несколькими реализациями.
      */
-    @Bean
-    @Primary
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration cfg = new CorsConfiguration();
-        cfg.setAllowCredentials(true);
-        cfg.setAllowedOrigins(Arrays.asList(
-                "https://new.center.beer/",
-                "http://localhost:5173",
-                "https://api.center.beer",
-//только для локали
-                "http://localhost:8081",
-                "http://localhost",
-                "https://center.beer",
-                "https://id.vk.ru"
-        ));
-        cfg.setAllowedHeaders(Arrays.asList(
-                HttpHeaders.AUTHORIZATION,
-                HttpHeaders.CONTENT_TYPE,
-                HttpHeaders.ACCEPT
-        ));
-        cfg.setAllowedMethods(Arrays.asList(
-                HttpMethod.GET.name(),
-                HttpMethod.POST.name(),
-                HttpMethod.PUT.name(),
-                HttpMethod.DELETE.name(),
-                HttpMethod.OPTIONS.name(),
-                HttpMethod.PATCH.name()
-        ));
-        cfg.setMaxAge(3600L);
+@Bean
+@Primary
+public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration cfg = new CorsConfiguration();
+    cfg.setAllowCredentials(true);
+    cfg.setAllowedOrigins(Arrays.asList(
+            "https://new.center.beer",
+            "http://localhost:5173",
+            "https://api.center.beer",
+            "http://localhost:8081",
+            "http://localhost",
+            "https://center.beer",
+            "https://id.vk.ru"
+    ));
+    cfg.setAllowedHeaders(Arrays.asList(
+            HttpHeaders.AUTHORIZATION,
+            HttpHeaders.CONTENT_TYPE,
+            HttpHeaders.ACCEPT
+    ));
+    cfg.setAllowedMethods(Arrays.asList(
+            HttpMethod.GET.name(),
+            HttpMethod.POST.name(),
+            HttpMethod.PUT.name(),
+            HttpMethod.DELETE.name(),
+            HttpMethod.OPTIONS.name(),
+            HttpMethod.PATCH.name()
+    ));
+    cfg.setMaxAge(3600L);
 
-        UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
-        src.registerCorsConfiguration("/**", cfg);
-        src.registerCorsConfiguration("/oauth2/**", cfg);
-        return src;
-    }
+    // --- отдельный конфиг с "*" для /oauth2/social
+    CorsConfiguration anyOriginConfig = new CorsConfiguration();
+    anyOriginConfig.setAllowCredentials(true);
+    anyOriginConfig.addAllowedOriginPattern("*"); // Spring Boot 2.4+ - для всех Origin
+    anyOriginConfig.setAllowedHeaders(cfg.getAllowedHeaders());
+    anyOriginConfig.setAllowedMethods(cfg.getAllowedMethods());
+    anyOriginConfig.setMaxAge(cfg.getMaxAge());
+
+    UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
+    src.registerCorsConfiguration("/**", cfg); // общий для всех
+    src.registerCorsConfiguration("/oauth2/social/**", anyOriginConfig); // только для social - любые origin
+
+    return src;
+}
+
+
+
+
+
+
+
+
+
 
     /**
      * Основная цепочка фильтров безопасности:
@@ -100,7 +117,6 @@ public class SecurityConfiguration {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/oauth2/authorization/vk")
                         .successHandler(authenticationSuccessHandler)
                 )
                 .authorizeHttpRequests(auth -> auth
