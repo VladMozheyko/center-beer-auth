@@ -1,7 +1,6 @@
 package fr.mossaab.security.config;
 
 import fr.mossaab.security.service.social.hendler.OAuth2AuthenticationSuccessHandler;
-import fr.mossaab.security.config.OAuth2StateFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -79,11 +78,20 @@ public class SecurityConfiguration {
         ));
         cfg.setMaxAge(3600L);
 
-        UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
-        src.registerCorsConfiguration("/**", cfg);
-//        src.registerCorsConfiguration("/oauth2/**", cfg);  выше уже применено ко всем, этот уже не будет использоватся
-        return src;
-    }
+    // --- отдельный конфиг с "*" для /oauth2/social
+    CorsConfiguration anyOriginConfig = new CorsConfiguration();
+    anyOriginConfig.setAllowCredentials(true);
+    anyOriginConfig.addAllowedOriginPattern("*"); // Spring Boot 2.4+ - для всех Origin
+    anyOriginConfig.setAllowedHeaders(cfg.getAllowedHeaders());
+    anyOriginConfig.setAllowedMethods(cfg.getAllowedMethods());
+    anyOriginConfig.setMaxAge(cfg.getMaxAge());
+
+    UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
+    src.registerCorsConfiguration("/**", cfg); // общий для всех
+    src.registerCorsConfiguration("/oauth2/social/**", anyOriginConfig); // только для social - любые origin
+
+    return src;
+}
 
     /**
      * Основная цепочка фильтров безопасности:
@@ -102,7 +110,6 @@ public class SecurityConfiguration {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .addFilterBefore(oAuth2StateFilter, UsernamePasswordAuthenticationFilter.class)
                 .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/oauth2/authorization/vk")
                         .successHandler(authenticationSuccessHandler)
                 )
                 .authorizeHttpRequests(auth -> auth
