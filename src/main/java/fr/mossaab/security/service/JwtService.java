@@ -1,7 +1,5 @@
 package fr.mossaab.security.service;
 
-import fr.mossaab.security.controller.AdminController;
-import fr.mossaab.security.exception.TokenException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -212,12 +210,13 @@ public class JwtService {
         logger.debug("Extracted role: {}");
         return extractClaim(token, claims -> claims.get("role", String.class));
     }
+
     /**
      * Получает ключ для подписи JWT токена на основе секретного ключа.
      *
      * @return Ключ для подписи JWT токена
      */
-    Key getSigningKey() {
+    public Key getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
