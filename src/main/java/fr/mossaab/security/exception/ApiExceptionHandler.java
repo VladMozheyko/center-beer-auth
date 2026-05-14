@@ -108,6 +108,19 @@ public class ApiExceptionHandler {
     }
 
     /**
+     * Ошибки @Validated на @PathVariable / @RequestParam
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<Map<String, Object>> handleConstraintViolation(ConstraintViolationException ex) {
+        log.warn("[ERROR] - ConstraintViolationException: {}", ex.getMessage());
+        Map<String, Object> body = new HashMap<>();
+        body.put("message", "Параметры запроса не прошли валидацию");
+        body.put("errors", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    /**
      * Обработка исключения "Пользователь не найден" (RuntimeException).
      */
     @ExceptionHandler(RuntimeException.class)
@@ -178,19 +191,6 @@ public class ApiExceptionHandler {
         body.put("message", "Данные не прошли валидацию");
         body.put("errors", fieldErrors);
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
-    }
-
-    /**
-     * Ошибки @Validated на @PathVariable / @RequestParam
-     */
-    @ExceptionHandler(ConstraintViolationException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<Map<String, Object>> handleConstraintViolation(ConstraintViolationException ex) {
-        log.warn("[ERROR] - ConstraintViolationException: {}", ex.getMessage());
-        Map<String, Object> body = new HashMap<>();
-        body.put("message", "Параметры запроса не прошли валидацию");
-        body.put("errors", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 }

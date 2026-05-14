@@ -3,7 +3,6 @@ package fr.mossaab.security.unit.controller;
 import fr.mossaab.security.controller.AdminController;
 import fr.mossaab.security.dto.user.GetAllUsersResponse;
 import fr.mossaab.security.service.AdminService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

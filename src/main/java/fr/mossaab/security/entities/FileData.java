@@ -10,10 +10,11 @@ import org.hibernate.annotations.OnDeleteAction;
  * Сущность для хранения данных файла.
  */
 @Entity
-@Table(name = "FILE_DATA")
+@Table(name = "FILE_DATA", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"name", "type"})
+})
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@ToString(exclude = "advertisement")
 public class FileData {
 
     @Id

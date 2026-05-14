@@ -19,6 +19,7 @@ import lombok.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/user")
 @SecurityRequirements()
 @RequiredArgsConstructor
+@Validated
 public class UserController {
     private final UserRepository userRepository;
     private final MailSender mailSender;

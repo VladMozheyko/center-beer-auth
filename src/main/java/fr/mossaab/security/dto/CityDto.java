@@ -4,9 +4,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.mossaab.security.validation.annotation.ValidId;
 import fr.mossaab.security.validation.annotation.ValidLocationName;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Schema(description = "DTO для представления города в системе")
 public class CityDto {
     @Schema(description = "Уникальный идентификатор города в системе (может быть пустым)")

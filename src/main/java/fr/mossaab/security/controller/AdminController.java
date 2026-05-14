@@ -11,6 +11,7 @@ import jakarta.validation.constraints.Min;
 import lombok.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Администратор", description = "Контроллер предоставляет базовые методы доступные пользователю с ролью администратор")
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/admin")
 @SecurityRequirements()
 @RequiredArgsConstructor
+@Validated
 public class AdminController {
     private final AdminService adminService;
     @Operation(summary = "Получить всех пользователей", description = "Этот endpoint возвращает список всех пользователей с пагинацией.")
@@ -35,5 +37,4 @@ public class AdminController {
     ) {
         return ResponseEntity.ok(adminService.getAllUsers(page, size));
     }
-
 }

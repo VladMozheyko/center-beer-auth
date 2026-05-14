@@ -7,11 +7,15 @@ import fr.mossaab.security.validation.annotation.ValidRuEnNicknameLengthMin4Max5
 import fr.mossaab.security.validation.annotation.ValidRussianPhone;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class PhoneRegisterRequest {
 
     @Schema(description = "Никнейм пользователя", example = "АмурскийТигр1995")
