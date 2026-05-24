@@ -34,6 +34,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -91,12 +93,12 @@ class AuthenticationServiceTest {
         when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.empty());
         when(userRepository.findByNickname(request.getNickname())).thenReturn(Optional.empty());
         when(passwordEncoder.encode(request.getPassword())).thenReturn("encodedPassword");
-        when(jwtService.generateToken(any(User.class))).thenReturn("jwtToken");
+        when(jwtService.generateToken(any(User.class), anyString())).thenReturn("jwtToken");
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
-        when(refreshTokenService.createRefreshToken(savedUser.getId())).thenReturn(mockRefreshToken);
+        when(refreshTokenService.createOrReuseRefreshToken(anyLong(), anyString(), anyString())).thenReturn(mockRefreshToken);
 
         // Вызов метода
-        AuthenticationResponse response = authenticationService.register(request);
+        AuthenticationResponse response = authenticationService.register(request, "AndroidX");
 
         // Проверка результата
         verify(mailSender, times(1)).send(eq(request.getEmail()), eq("Ссылка активации CENTER.BEER"), anyString());
@@ -114,7 +116,7 @@ class AuthenticationServiceTest {
         when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(existingUser));
 
         DuplicateResourceException exception = assertThrows(DuplicateResourceException.class,
-                () -> authenticationService.register(request));
+                () -> authenticationService.register(request, "AndroidX"));
 
         assertEquals("Пользователь с таким email уже существует и активирован.", exception.getMessage());
     }
@@ -147,7 +149,7 @@ class AuthenticationServiceTest {
     @Test
     @DisplayName("Аутентификация: успешная авторизация")
     void authenticate_Success() {
-        AuthenticationRequest request = new AuthenticationRequest("test@example.com", "password");
+        AuthenticationRequest request = new AuthenticationRequest("test@example.com", "password", "ABCD-DCBA-1234");
 
         User user = User.builder()
                 .email(request.getEmail())
@@ -156,7 +158,10 @@ class AuthenticationServiceTest {
                 .build();
 
         RefreshToken refreshToken = new RefreshToken(1L, user, "refreshToken",
-                Instant.now().plusSeconds(60 * 60 * 24), true);
+                Instant.now().plusSeconds(60 * 60 * 24),true,
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+                "AndroidX", "ABCD-DCBA-1234");
 
         // Mock response cookies
         ResponseCookie jwtCookieMock = ResponseCookie.from("jwt", "jwtValue").build();
@@ -167,15 +172,15 @@ class AuthenticationServiceTest {
 
         // Настройка моков
         when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(user));
-        when(jwtService.generateToken(user)).thenReturn("jwtToken");
-        when(refreshTokenService.createRefreshToken(user.getId())).thenReturn(refreshToken);
+        when(jwtService.generateToken(user, "ABCD-DCBA-1234")).thenReturn("jwtToken");
+        when(refreshTokenService.createOrReuseRefreshToken(user.getId(), "ABCD-DCBA-1234", "AndroidX")).thenReturn(refreshToken);
 
         // Создаем mock для возвращаемого объекта аутентификации
         Authentication auth = Mockito.mock(Authentication.class);
         when(authenticationManager.authenticate(any())).thenReturn(auth);
 
         // Выполнение тестируемого метода
-        AuthenticationResponse response = authenticationService.authenticate(request);
+        AuthenticationResponse response = authenticationService.authenticate(request, "AndroidX");
 
         // Проверка ответа
         assertNotNull(response);
@@ -185,8 +190,8 @@ class AuthenticationServiceTest {
         // Проверка вызовов
         verify(authenticationManager, times(1)).authenticate(any());
         verify(userRepository, times(1)).findByEmail(request.getEmail());
-        verify(jwtService, times(1)).generateToken(user);
-        verify(refreshTokenService, times(1)).createRefreshToken(user.getId());
+        verify(jwtService, times(1)).generateToken(user, "ABCD-DCBA-1234");
+        verify(refreshTokenService, times(1)).createOrReuseRefreshToken(user.getId(), "ABCD-DCBA-1234", "AndroidX");
 
         // Проверка вернувшихся кук
         assertEquals(jwtCookieMock.toString(), response.getJwtCookie());
@@ -296,7 +301,7 @@ class AuthenticationServiceTest {
         // Проверка
         assertEquals(HttpStatus.OK, entity.getStatusCode());
         verify(refreshTokenService, times(1)).deleteByToken(refreshTokenValue);
-        assertTrue(entity.getHeaders().get(HttpHeaders.SET_COOKIE).contains(jwtCookieMock.toString()));
-        assertTrue(entity.getHeaders().get(HttpHeaders.SET_COOKIE).contains(refreshTokenCookieMock.toString()));
+        assertTrue(Objects.requireNonNull(entity.getHeaders().get(HttpHeaders.SET_COOKIE)).contains(jwtCookieMock.toString()));
+        assertTrue(Objects.requireNonNull(entity.getHeaders().get(HttpHeaders.SET_COOKIE)).contains(refreshTokenCookieMock.toString()));
     }
 }

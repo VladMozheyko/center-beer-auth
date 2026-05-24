@@ -35,9 +35,6 @@ class JwtServiceTest {
     private JwtService jwtService;
 
     @Mock
-    private UserDetails userDetails;
-
-    @Mock
     private HttpServletRequest httpServletRequest;
 
     private static final String JWT_COOKIE_NAME = "jwt-cookie";
@@ -84,9 +81,7 @@ class JwtServiceTest {
             UserDetails expiredUserDetails = User.builder().username("testUser").roles("USER").password("password12345").build();
             String expiredToken = generateExpiredToken();
 
-            Exception exception = assertThrows(RuntimeException.class, () -> {
-                jwtService.isTokenValid(expiredToken, expiredUserDetails);
-            });
+            Exception exception = assertThrows(RuntimeException.class, () -> jwtService.isTokenValid(expiredToken, expiredUserDetails));
 
             assertEquals("Invalid or expired token", exception.getMessage(), "Токен должен быть просрочен и вызвать исключение.");
         }
@@ -97,7 +92,7 @@ class JwtServiceTest {
     void generateToken_Success() {
         UserDetails userDetails1 = User.builder().username("testUser").roles("USER").password("password12345").build();
 
-        String token = jwtService.generateToken(userDetails1);
+        String token = jwtService.generateToken(userDetails1, "ABCD-DCBA-1234");
 
         assertNotNull(token);
     }

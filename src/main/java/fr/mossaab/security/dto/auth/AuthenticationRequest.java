@@ -14,17 +14,20 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AuthenticationRequest {
 
-    /**
-     * Электронная почта пользователя.
-     */
-    @Schema(example = "Vlad72229@yandex.ru", description = "Электронная почта")
+    @Schema(description = "Электронная почта пользователя", example = "Vlad72229@yandex.ru")
     @ValidEmail
     private String email;
 
-    /**
-     * Пароль пользователя.
-     */
-    @Schema(example = "Vlad!123", description = "Пароль")
+    @Schema(description = "Пароль пользователя", example = "Vlad!123")
     @ValidPassword
     private String password;
+
+    @Schema(
+            example = "9e0f1139-52e1-4e6d-81fc-1999d7c27bf6",
+            description = """
+                    ID устройства для его идентификации в последующих запросах.
+                    При первом запросе может быть пустым — сервис сгенерирует ID и вернёт в ответе."""
+    )
+    private String deviceId;
+
 }

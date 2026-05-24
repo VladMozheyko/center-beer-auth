@@ -26,6 +26,7 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Optional;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -39,12 +40,6 @@ class RefreshTokenServiceTest {
     @Mock
     private RefreshTokenRepository refreshTokenRepository;
 
-    @Mock
-    private UserRepository userRepository;
-
-    @Mock
-    private JwtService jwtService;
-
     @BeforeEach
     void setUp() {
         ReflectionTestUtils.setField(refreshTokenService, "refreshExpiration", 1000000L);
@@ -57,16 +52,17 @@ class RefreshTokenServiceTest {
         Long userId = 1L;
         User user = User.builder().id(userId).build();
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(refreshTokenRepository.save(any(RefreshToken.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userId);
+        RefreshToken refreshToken = refreshTokenService.createOrReuseRefreshToken(userId, "ABCD-DCBA-1234", "AndroidX");
 
         assertNotNull(refreshToken);
-        assertEquals(user, refreshToken.getUser());
+        assertEquals(user.getId(), refreshToken.getUser().getId());
         assertFalse(refreshToken.isRevoked());
         assertEquals(36, new String(Base64.getDecoder().decode(refreshToken.getToken())).length());
         assertTrue(refreshToken.getExpiryDate().isAfter(Instant.now()));
+        assertThat(refreshToken.getDeviceInfo()).isEqualTo("AndroidX");
+        assertThat(refreshToken.getDeviceId()).isNotNull();
     }
 
     @Test
@@ -102,7 +98,7 @@ class RefreshTokenServiceTest {
         HttpServletRequest request = mock(HttpServletRequest.class);
         Cookie expectedCookie = new Cookie("refreshToken", "testRefreshToken");
 
-        try (MockedStatic<WebUtils> webUtilsMockedStatic = mockStatic(WebUtils.class);) {
+        try (MockedStatic<WebUtils> webUtilsMockedStatic = mockStatic(WebUtils.class)) {
             webUtilsMockedStatic.when(() -> WebUtils.getCookie(request, "refreshToken"))
                     .thenReturn(expectedCookie);
 
@@ -116,13 +112,10 @@ class RefreshTokenServiceTest {
     @DisplayName("Удаление Refresh токена по значению")
     void deleteByToken_Success() {
         String tokenValue = "test-token";
-        RefreshToken refreshToken = RefreshToken.builder().token(tokenValue).build();
-
-        when(refreshTokenRepository.findByToken(tokenValue)).thenReturn(Optional.of(refreshToken));
 
         refreshTokenService.deleteByToken(tokenValue);
 
-        verify(refreshTokenRepository, times(1)).delete(refreshToken);
+        verify(refreshTokenRepository, times(1)).deleteByToken(tokenValue);
     }
 
     @Test

@@ -14,8 +14,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import org.springframework.http.*;
 import org.springframework.validation.annotation.Validated;
@@ -23,8 +21,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.HashMap;
-import java.util.Map;
 
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.repository.UserRepository;
@@ -92,8 +88,9 @@ public class AuthController {
 
     @Operation(summary = "Регистрация пользователя", description = "Позволяет новому пользователю зарегистрироваться в системе.")
     @PostMapping(value = "/register")
-    public ResponseEntity<Object> register(@Valid @RequestBody RegisterRequest request) throws IOException {
-        authenticationService.register(request);
+    public ResponseEntity<Object> register(@Valid @RequestBody RegisterRequest request, HttpServletRequest httpServletRequest) {
+        String deviceInfo = httpServletRequest.getHeader("User-Agent");
+        authenticationService.register(request, deviceInfo);
         return ResponseEntity.ok().body("Код активации для активации аккаунта успешно отправлен на почтовый адрес");
     }
 
@@ -107,22 +104,25 @@ public class AuthController {
         return new ResponseEntity<>("Пользователь успешно зарегистрирован", HttpStatus.OK);
     }
 
-    @Operation(summary = "Вход пользователя", description = "Этот endpoint позволяет пользователю войти в систему.")
+    @Operation(summary = "Вход пользователя 🚨(modify)", description = "Этот endpoint позволяет пользователю войти в систему.")
     @PostMapping("/login")
-    public ResponseEntity<Object> authenticate(@Valid @RequestBody AuthenticationRequest request) {
-        AuthenticationResponse authenticationResponse = authenticationService.authenticate(request);
+    public ResponseEntity<Object> authenticate(@Valid @RequestBody AuthenticationRequest request, HttpServletRequest httpServletRequest) {
+        String deviceInfo = httpServletRequest.getHeader("User-Agent");
+        AuthenticationResponse authenticationResponse = authenticationService.authenticate(request, deviceInfo);
 
         // Создание тела ответа с токенами
-        Map<String, String> responseBody = new HashMap<>();
-        responseBody.put("accessToken", authenticationResponse.getAccessToken());
-        responseBody.put("refreshToken", authenticationResponse.getRefreshToken());
-        responseBody.put("message", "Вход в систему пользователя успешно совершен");
-        responseBody.put("status", String.valueOf(HttpStatus.OK.value()));
+        AuthenticationResponseDto dto = AuthenticationResponseDto.builder()
+                .accessToken(authenticationResponse.getAccessToken())
+                .refreshToken(authenticationResponse.getRefreshToken())
+                .message("Вход в систему пользователя успешно совершен")
+                .deviceId(authenticationResponse.getDeviceId())
+                .status(String.valueOf(HttpStatus.OK.value()))
+                .build();
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, authenticationResponse.getJwtCookie())
                 .header(HttpHeaders.SET_COOKIE, authenticationResponse.getRefreshTokenCookie())
-                .body(responseBody);
+                .body(dto);
     }
 
 
@@ -149,7 +149,7 @@ public class AuthController {
     }
 
 
-    @Operation(summary = "Выход из системы", description = "Этот endpoint позволяет пользователю выйти из системы.")
+    @Operation(summary = "Выход из системы 🚨(deprecated)", description = "УСТАРЕЛ! Этот endpoint позволяет пользователю выйти из системы.")
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request) {
         return authenticationService.logout(request);

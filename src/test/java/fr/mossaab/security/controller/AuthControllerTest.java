@@ -15,13 +15,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -111,13 +111,14 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("Регистрация пользователя - успешная")
-    void register_Success() throws IOException {
+    void register_Success() {
         RegisterRequest request = new RegisterRequest("email@example.com", "password", "nickname");
-
-        ResponseEntity<Object> response = authController.register(request);
+        HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
+        when(httpServletRequest.getHeader("User-Agent")).thenReturn("AndroidX");
+        ResponseEntity<Object> response = authController.register(request, httpServletRequest);
 
         assertEquals(200, response.getStatusCode().value());
-        verify(authenticationService, times(1)).register(request);
+        verify(authenticationService, times(1)).register(request, "AndroidX");
     }
 
     @Test
@@ -132,7 +133,9 @@ class AuthControllerTest {
     @Test
     @DisplayName("Вход пользователя - успешный")
     void authenticate_Success() {
-        AuthenticationRequest authRequest = new AuthenticationRequest("email@example.com", "password");
+        AuthenticationRequest authRequest =
+                new AuthenticationRequest("email@example.com", "password", "");
+
         AuthenticationResponse authResponse = AuthenticationResponse.builder()
                 .accessToken("accessToken")
                 .email("email@example.com")
@@ -142,12 +145,19 @@ class AuthControllerTest {
                 .roles(List.of("ROLE_USER"))
                 .build();
 
-        when(authenticationService.authenticate(authRequest)).thenReturn(authResponse);
+        HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
+        when(httpServletRequest.getHeader("User-Agent")).thenReturn("AndroidX");
 
-        ResponseEntity<Object> response = authController.authenticate(authRequest);
+        when(authenticationService.authenticate(eq(authRequest), anyString()))
+                .thenReturn(authResponse);
+
+        ResponseEntity<Object> response =
+                authController.authenticate(authRequest, httpServletRequest);
 
         assertEquals(200, response.getStatusCode().value());
-        verify(authenticationService, times(1)).authenticate(authRequest);
+
+        verify(authenticationService, times(1))
+                .authenticate(eq(authRequest), eq("AndroidX"));
     }
 
     @Test
@@ -179,7 +189,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("Обновление токена через куки - успешное")
     void refreshTokenCookie_Success() {
-        ResponseEntity<Void> response = authController.refreshTokenCookie(request);
+        authController.refreshTokenCookie(request);
 
         verify(authenticationService, times(1)).refreshTokenUsingCookie(request);
     }
@@ -187,7 +197,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("Выход из системы - успешный")
     void logout_Success() {
-        ResponseEntity<Void> response = authController.logout(request);
+        authController.logout(request);
 
         verify(authenticationService, times(1)).logout(request);
     }
@@ -208,8 +218,7 @@ class AuthControllerTest {
     @DisplayName("Смена пароля по коду - успешная")
     void resetPassword_Success() {
         ResetPasswordRequest request = new ResetPasswordRequest("code", "newPassword", "newPassword");
-
-        ResponseEntity<Object> response = authController.resetPassword(request);
+        authController.resetPassword(request);
 
         verify(authenticationService, times(1)).resetPassword(request);
     }
