@@ -1,6 +1,7 @@
 package fr.mossaab.security.controller;
 
 
+import fr.mossaab.security.dto.SessionInfoResponse;
 import fr.mossaab.security.service.AuthenticationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
