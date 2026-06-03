@@ -22,4 +22,7 @@ public class SocialExchangeRequest {
     @Schema(description = "Провайдер: GOOGLE/YANDEX/VK")
     @NotNull(message = "Провайдер авторизации обязателен для заполнения")
     private OAuthProvider provider;
+
+    @Schema(description = "ID устройства полученный в ответе ранее с jwt (может быть пустым)")
+    private String deviceId;
 }

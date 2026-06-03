@@ -53,61 +53,15 @@ public class UserRegistrationService {
         return getRandomNickname(info.getFirstName(), info.getLastName(), info.getEmail());
     }
 
-//    private String getRandomNickname(String firstName, String lastName, String email) {
-//        // 1. Создаём базовую часть из имени и фамилии (транслит)
-//        StringBuilder base = new StringBuilder();
-//        if (firstName != null && !firstName.trim().isEmpty()) {
-//            base.append(transliterateCyrillic(firstName.trim())).append("_");
-//        }
-//        if (lastName != null && !lastName.trim().isEmpty()) {
-//            base.append(transliterateCyrillic(lastName.trim()));
-//        }
-//
-//        String baseName = base.toString().replaceAll("_+$", ""); // убираем последнее подчёркивание
-//
-//        // 2. Если имя и фамилия пусты — пробуем взять часть от email
-//        if (baseName.isEmpty() && email != null && !email.isBlank()) {
-//            String localPart = email.split("@", 2)[0];
-//            baseName = transliterateCyrillic(localPart).replaceAll("[^a-zA-Z0-9]", "_");
-//        }
-//
-//        // 3. Если всё равно пусто — используем "user"
-//        if (baseName.isEmpty()) {
-//            baseName = "user";
-//        }
-//
-//        // 4. Ограничиваем длину базы, чтобы с суффиксом не выйти за 50
-//        int maxBaseLength = 40;
-//        if (baseName.length() > maxBaseLength) {
-//            baseName = baseName.substring(0, maxBaseLength);
-//        }
-//
-//        // 5. Генерируем уникальный ник с числовым суффиксом
-//        String nickname = baseName;
-//        int suffix = 1;
-//        while (userRepository.existsByNickname(nickname)) {
-//            nickname = baseName + "_" + (suffix++);
-//            if (nickname.length() > 50) {
-//                // Если слишком длинный — обрезаем базу и пробуем снова
-//                int allowedLength = 50 - (String.valueOf(suffix)).length() - 1;
-//                baseName = baseName.substring(0, allowedLength);
-//                nickname = baseName + "_" + (suffix++);
-//            }
-//        }
-//
-//        return nickname;
-//    }
-
     private String getRandomNickname(String firstName, String lastName, String email) {
         // 0. Если есть email — сначала пытаемся использовать его целиком как ник
         if (email != null && !email.isBlank()) {
             String emailTrimmed = email.trim();
             // Можно добавить лёгкую нормализацию, если нужно
-            String emailNickname = emailTrimmed;
 
             // Проверяем, не занят ли такой ник
-            if (!userRepository.existsByNickname(emailNickname)) {
-                return emailNickname;
+            if (!userRepository.existsByNickname(emailTrimmed)) {
+                return emailTrimmed;
             }
         }
 
@@ -146,10 +100,6 @@ public class UserRegistrationService {
             nickname = baseName + "_" + (suffix++);
             if (nickname.length() > 50) {
                 int allowedLength = 50 - (String.valueOf(suffix).length()) - 1;
-                if (allowedLength <= 0) {
-                    baseName = "user";
-                    allowedLength = 50 - (String.valueOf(suffix).length()) - 1;
-                }
                 baseName = baseName.substring(0, Math.min(baseName.length(), allowedLength));
                 nickname = baseName + "_" + (suffix++);
             }

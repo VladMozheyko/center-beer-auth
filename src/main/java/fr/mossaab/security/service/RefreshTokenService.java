@@ -9,6 +9,7 @@ import fr.mossaab.security.repository.UserRepository;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,9 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.WebUtils;
 
 import java.time.Instant;
-import java.util.Base64;
-import java.util.Optional;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
 
 /**
  * Реализация интерфейса RefreshTokenService, обеспечивающая создание, проверку и обновление Refresh токенов.
@@ -29,7 +29,6 @@ import java.util.UUID;
 @Slf4j
 public class RefreshTokenService {
 
-    private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtService jwtService;
 
@@ -38,20 +37,79 @@ public class RefreshTokenService {
     @Value("${application.security.jwt.refresh-token.cookie-name}")
     private String refreshTokenName;
 
+    // Максимум одновременных устройств
+    private static final int MAX_SESSIONS_PER_USER = 3;
+
     /**
-     * Создает Refresh токен для указанного пользователя.
-     *
-     * @param userId ID пользователя
-     * @return Созданный Refresh токен
+     * Создать новый refresh-токен или переиспользовать существующий для этого устройства.
+     * Если deviceId == null/пустой – будет сгенерирован новый.
      */
-    public RefreshToken createRefreshToken(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+    @Transactional
+    public RefreshToken createOrReuseRefreshToken(Long userId, String deviceId, String deviceInfo) {
+        Instant now = Instant.now();
+
+        //Пытаемся реюзить только если deviceId прислан
+        if (deviceId != null && !deviceId.isBlank()) {
+
+            Optional<RefreshToken> existingOpt =
+                    refreshTokenRepository.findByUserIdAndDeviceIdAndExpiryDateAfter(userId, deviceId, now);
+
+            if (existingOpt.isPresent()) {
+                RefreshToken existing = existingOpt.get();
+
+                // проверяем истечение
+                existing = verifyExpiration(existing); // допустим, возвращает null, если истек и удален/отозван
+                if (existing != null && !existing.isRevoked()) {
+                    existing.setLastUsedAt(Instant.now());
+                    if (deviceInfo != null) {
+                        existing.setDeviceInfo(deviceInfo);
+                    }
+                    return refreshTokenRepository.save(existing);
+                }
+                // если истек / отозван → падаем ниже и будем создавать НОВУЮ цепочку с НОВЫМ deviceId
+            }
+            // если existingOpt пустой или existing невалиден, НЕЛЬЗЯ дальше использовать
+            // старый deviceId. Считаем его мертвым и ОБНУЛЯЕМ:
+            deviceId = null;
+        }
+
+        // Если deviceId отсутствует или был признан мертвым — создаем НОВЫЙ
+        if (deviceId == null || deviceId.isBlank()) {
+            deviceId = UUID.randomUUID().toString();
+        }
+
+        // Проверка лимита сессий
+        List<RefreshToken> activeTokens =
+                refreshTokenRepository.findByUserIdAndExpiryDateAfter(userId, now)
+                        .stream()
+                        .filter(rt -> !rt.isRevoked())
+                        .toList();
+
+        if (activeTokens.size() >= MAX_SESSIONS_PER_USER) {
+            activeTokens.stream()
+                    .min(Comparator.comparing(rt ->
+                            rt.getCreatedAt() != null ? rt.getCreatedAt() : Instant.now())
+                    ).ifPresent(oldest -> {
+                        oldest.setRevoked(true);
+                        refreshTokenRepository.save(oldest);
+                    });
+        }
+
+        // Создаем НОВЫЙ refresh-токен (deviceId уже либо клиентский валидный, либо новый)
+        String token = Base64.getEncoder().encodeToString(UUID.randomUUID().toString().getBytes());
+        Instant expiryDate = now.plusMillis(refreshExpiration);
+
         RefreshToken refreshToken = RefreshToken.builder()
+                .token(token)
+                .user(User.builder().id(userId).build())
+                .expiryDate(expiryDate)
                 .revoked(false)
-                .user(user)
-                .token(Base64.getEncoder().encodeToString(UUID.randomUUID().toString().getBytes()))
-                .expiryDate(Instant.now().plusMillis(refreshExpiration))
+                .createdAt(Instant.now())
+                .lastUsedAt(Instant.now())
+                .deviceId(deviceId)
+                .deviceInfo(deviceInfo)
                 .build();
+
         return refreshTokenRepository.save(refreshToken);
     }
 
@@ -89,16 +147,31 @@ public class RefreshTokenService {
      * @param request Запрос на обновление токена
      * @return Ответ с новым JWT токеном и Refresh токеном
      */
-    public AuthenticationService.RefreshTokenResponse generateNewToken(AuthenticationService.RefreshTokenRequest request) {
-        User user = refreshTokenRepository.findByToken(request.getRefreshToken())
-                .map(this::verifyExpiration)
-                .map(RefreshToken::getUser)
-                .orElseThrow(() -> new TokenException(request.getRefreshToken(),"Refresh token does not exist"));
+    @Transactional
+    public AuthenticationService.RefreshTokenResponse generateNewToken(
+            AuthenticationService.RefreshTokenRequest request
+    ) {
+        String requestToken = request.getRefreshToken();
 
-        String token = jwtService.generateToken(user);
+        RefreshToken refreshToken = refreshTokenRepository.findByToken(requestToken)
+                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+
+        if (refreshToken.isRevoked() || refreshToken.getExpiryDate().isBefore(Instant.now())) {
+            refreshTokenRepository.delete(refreshToken);
+            throw new RuntimeException("Refresh token expired or revoked");
+        }
+
+        // обновляем время последнего использования
+        refreshToken.setLastUsedAt(Instant.now());
+        refreshTokenRepository.save(refreshToken);
+        String deviceId = refreshTokenRepository.findDeviceIdByToken(requestToken);
+
+        User user = refreshToken.getUser();
+        String newAccessToken = jwtService.generateToken(user, deviceId);
+
         return AuthenticationService.RefreshTokenResponse.builder()
-                .accessToken(token)
-                .refreshToken(request.getRefreshToken())
+                .accessToken(newAccessToken)
+                .refreshToken(refreshToken.getToken())
                 .tokenType(TokenType.BEARER.name())
                 .build();
     }
@@ -113,9 +186,6 @@ public class RefreshTokenService {
         return ResponseCookie.from(refreshTokenName, token)
                 .path("/")
                 .maxAge(refreshExpiration/1000 * 20) // 15 дней в секундах
-//                .httpOnly(false)
-//                .secure(false)
-//                .sameSite("Strict")
                 .httpOnly(true) // Убедитесь, что куки доступны только на сервере
                 .secure(true) // Для HTTPS
                 .sameSite("None") // Для кросс-доменных запросов
@@ -142,8 +212,9 @@ public class RefreshTokenService {
      *
      * @param token Значение Refresh токена
      */
+    @Transactional
     public void deleteByToken(String token) {
-        refreshTokenRepository.findByToken(token).ifPresent(refreshTokenRepository::delete);
+        refreshTokenRepository.deleteByToken(token);
     }
 
     /**
@@ -157,5 +228,20 @@ public class RefreshTokenService {
                 .httpOnly(true)
                 .maxAge(0)
                 .build();
+    }
+
+    @Transactional
+    public void deleteAllByUserId(Long userId) {
+        refreshTokenRepository.deleteByUserId(userId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<RefreshToken> getAllByUserId(Long userId) {
+        return refreshTokenRepository.findByUserId(userId);
+    }
+
+    @Transactional
+    public void deleteEverythingExceptTheCurrentDevice(String refreshToken, Long userId) {
+        refreshTokenRepository.deleteByUserIdWhereNotThisToken(userId, refreshToken);
     }
 }

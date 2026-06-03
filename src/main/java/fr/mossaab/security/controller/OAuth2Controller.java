@@ -1,7 +1,9 @@
 package fr.mossaab.security.controller;
 
+import fr.mossaab.security.dto.auth.AuthenticationResponseDto;
 import fr.mossaab.security.dto.social.SocialExchangeRequest;
 import fr.mossaab.security.dto.social.SocialUserInfo;
+import fr.mossaab.security.entities.RefreshToken;
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.enums.OAuthProvider;
 import fr.mossaab.security.enums.OAuthRequestStatus;
@@ -14,20 +16,21 @@ import fr.mossaab.security.service.social.service.OneTimeAuthCodeService;
 import fr.mossaab.security.service.social.service.SocialAccountLinkingService;
 import fr.mossaab.security.service.social.service.UserRegistrationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Контроллер для завершения OAuth2-аутентификации:
@@ -291,7 +294,7 @@ public class OAuth2Controller {
                                 "device_id":"xxxxxxxxxx"
                         }
                     ```
-                    5. Backend 
+                    5. Backend
                     
                     **Бэкенд выполняет:**
                     * принимает код авторизации от VK;
@@ -397,7 +400,7 @@ public class OAuth2Controller {
                     
                     ## Пример реализации кода авторизации/привязывания/регистарции
                     
-                    > Полный пример реализации доступен в 
+                    > Полный пример реализации доступен в
                     > <a href="/vk-auth-example.html" target="_blank">vk-auth-example.html</a>
                     """)
     @GetMapping(value = "/vk/guide")
@@ -405,14 +408,21 @@ public class OAuth2Controller {
 
 
     @Operation(
-            summary = "Вход через соцсеть",
+            summary = "Вход через соцсеть 🚨(modify)",
             description = "Использует одноразовый код для входа существующего пользователя"
     )
     @PostMapping("/login")
-    public ResponseEntity<?> socialLogin(@Valid @RequestBody SocialExchangeRequest req, HttpServletRequest request) {
+    public ResponseEntity<?> socialLogin(
+            @Valid
+            @RequestBody
+            @Schema(description = "Заполнить поле authCode",
+                    example ="{\"authCode\":\"abcdefgh\",\"provider\":\"google\", \"deviceId\":\"ABCDEF12-3456-7890-abcd-ef1234567890\"}")
+            SocialExchangeRequest req,
+            HttpServletRequest request
+    ) {
         String ip = request.getRemoteAddr();
         logger.logActionWithIP(AuditLogger.ActionType.LOGIN_ATTEMPT, req.getProvider().name(), null, ip, "Попытка входа через соцсеть");
-        return handleSocialAction(req, null, OAuthRequestStatus.LOGIN);
+        return handleSocialAction(req, null, OAuthRequestStatus.LOGIN, request);
     }
 
     @Operation(
@@ -420,28 +430,42 @@ public class OAuth2Controller {
             description = "Создаёт нового пользователя по данным из соцсети"
     )
     @PostMapping("/register")
-    public ResponseEntity<?> socialRegister(@Valid @RequestBody SocialExchangeRequest req, HttpServletRequest request) {
+    public ResponseEntity<?> socialRegister(
+            @Valid
+            @RequestBody
+            @Schema(
+                    description = "Запрос на регистрацию через социальную сеть",
+                    requiredProperties = {"authCode", "provider"},
+                    example = "{\"authCode\": \"ABCDEF12-3456-7890-abcd-ef1234567890\", \"provider\": \"VK\"}")
+            SocialExchangeRequest req,
+            HttpServletRequest request
+    ) {
         String ip = request.getRemoteAddr();
         logger.logActionWithIP(AuditLogger.ActionType.REGISTER_ATTEMPT, req.getProvider().name(), null, ip, "Попытка регистрации через соцсеть");
-        return handleSocialAction(req, null, OAuthRequestStatus.REGISTER);
+        return handleSocialAction(req, null, OAuthRequestStatus.REGISTER, request);
     }
 
     @Operation(
-            summary = "Привязка соцсети к аккаунту",
+            summary = "Привязка соцсети к аккаунту 🚨(modify)",
             description = "Привязывает соцсеть к уже авторизованному пользователю"
     )
     @PostMapping("/link")
     public ResponseEntity<?> socialLink(
-            @RequestBody @Valid SocialExchangeRequest req,
+            @Valid
+            @RequestBody
+            @Schema(
+                    description = "Заполнить поле authCode",
+                    example ="{\"authCode\":\"abcdefgh\",\"provider\":\"google\", \"deviceId\":\"ABCDEF12-3456-7890-abcd-ef1234567890\"}")
+            SocialExchangeRequest req,
             @AuthenticationPrincipal UserDetails currentUser,
             HttpServletRequest request) {
         String ip = request.getRemoteAddr();
         logger.logActionWithIP(AuditLogger.ActionType.LINK_ATTEMPT, req.getProvider().name(), currentUser.getUsername(), ip, "Попытка привязки социальной сети");
-        return handleSocialAction(req, currentUser, OAuthRequestStatus.LINK);
+        return handleSocialAction(req, currentUser, OAuthRequestStatus.LINK, request);
     }
 
     // Вспомогательный метод
-    private ResponseEntity<?> handleSocialAction(SocialExchangeRequest req, UserDetails currentUser, OAuthRequestStatus action) {
+    private ResponseEntity<?> handleSocialAction(SocialExchangeRequest req, UserDetails currentUser, OAuthRequestStatus action, HttpServletRequest httpRequest) {
         String authCode = req.getAuthCode();
         OAuthProvider provider = req.getProvider();
 
@@ -452,13 +476,16 @@ public class OAuth2Controller {
             throw new SocialAuthException("Код устарел или неверен", 400);
         }
 
+        String userAgent = httpRequest.getHeader("User-Agent");
+        String deviceId = req.getDeviceId();
+
         Optional<User> user;
         switch (action) {
             case LOGIN:
                 user = userRepository.findBySocialId(info.getId(), provider);
                 if (user.isPresent()) {
                     logger.logAction(AuditLogger.ActionType.LOGIN_SUCCESS, req.getProvider().name(), validCurrentUser, "Пользователь успешно найден email:" + info.getEmail());
-                    return buildTokenResponse(user.get(), "Успешный вход");
+                    return buildTokenResponse(user.get(), "Успешный вход", deviceId, userAgent);
                 }
                 logger.logError("Пользователь не найден", req.getProvider().name(), validCurrentUser);
                 throw new SocialAuthException("Пользователь не найден", 404);
@@ -470,7 +497,7 @@ public class OAuth2Controller {
                 }
                 User newUser = registration.registerNewUser(provider, info);
                 logger.logAction(AuditLogger.ActionType.REGISTER_SUCCESS, req.getProvider().name(), validCurrentUser, "Успешная регистрация");
-                return buildTokenResponse(newUser, "Регистрация успешна");
+                return buildTokenResponse(newUser, "Регистрация успешна", deviceId, userAgent);
             case LINK:
                 if (currentUser == null) {
                     logger.logError("Привязка аккаунта, пользователь не авторизован", req.getProvider().name(), validCurrentUser);
@@ -484,7 +511,7 @@ public class OAuth2Controller {
                 linkingService.linkSocialAccount(user.get(), info, provider);
                 logger.logAction(AuditLogger.ActionType.LINK_SUCCESS, req.getProvider().name(), validCurrentUser, "Социальная сеть успешно привязана");
                 log.info("Социальная сеть {} успешно привязана к пользователю с ID: {}", provider, user.get().getId());
-                return buildTokenResponse(user.get(), "Соцсеть привязана");
+                return buildTokenResponse(user.get(), "Соцсеть привязана", deviceId, userAgent);
             default:
                 log.debug("Неизвестное действие в запросе");
                 logger.logError("Неизвестное действие", req.getProvider().name(), validCurrentUser);
@@ -492,19 +519,27 @@ public class OAuth2Controller {
         }
     }
 
-    private ResponseEntity<?> buildTokenResponse(User user, String message) {
-        String jwt = jwtService.generateToken(user);
-        String refresh = refreshTokenService.createRefreshToken(user.getId()).getToken();
+    private ResponseEntity<?> buildTokenResponse(User user, String message, String deviceId, String deviceInfo) {
+        if (deviceId == null || deviceId.isBlank()) {
+            deviceId = UUID.randomUUID().toString();
+        }
 
-        Map<String, String> body = new HashMap<>();
-        body.put("accessToken", jwt);
-        body.put("refreshToken", refresh);
-        body.put("email", user.getEmail());
-        body.put("message", message);
+        RefreshToken refresh = refreshTokenService.createOrReuseRefreshToken(user.getId(), deviceId, deviceInfo);
+        String jwt = jwtService.generateToken(user, refresh.getDeviceId());
+
+        // Создание тела ответа с токенами
+        AuthenticationResponseDto dto = AuthenticationResponseDto.builder()
+                .accessToken(jwt)
+                .refreshToken(refresh.getToken())
+                .message(message)
+                .deviceId(refresh.getDeviceId())
+                .status(String.valueOf(HttpStatus.OK.value()))
+                .email(user.getEmail())
+                .build();
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, jwtService.generateJwtCookie(jwt).toString())
-                .header(HttpHeaders.SET_COOKIE, refreshTokenService.generateRefreshTokenCookie(refresh).toString())
-                .body(body);
+                .header(HttpHeaders.SET_COOKIE, refreshTokenService.generateRefreshTokenCookie(refresh.getToken()).toString())
+                .body(dto);
     }
 }
