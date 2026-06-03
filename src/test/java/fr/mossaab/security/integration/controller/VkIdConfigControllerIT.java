@@ -2,6 +2,7 @@ package fr.mossaab.security.integration.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.mossaab.security.controller.VkIdConfigController.VkIdConfigResponse;
+import fr.mossaab.security.integration.AbstractIntegrationTest;
 import fr.mossaab.security.logger.AuditLogger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -18,14 +20,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Интеграционные тесты для VkIdConfigController.
- *
+ * Интеграционные тесты для VkIdConfigController.<p>
  * Поднимается почти полный контекст Spring Boot, дергается реальный контроллер,
  * значения @Value берутся из src/test/resources/application.yml.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-class VkIdConfigControllerIT extends AbstractIntegrationTest{
+@Transactional
+class VkIdConfigControllerIT extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -53,12 +55,12 @@ class VkIdConfigControllerIT extends AbstractIntegrationTest{
 
         VkIdConfigResponse response = objectMapper.readValue(responseJson, VkIdConfigResponse.class);
 
-        assertThat(response.getClientId()).isEqualTo("54378011");
+        assertThat(response.getClientId()).isEqualTo("test-vk-client-id");
 
         assertThat(response.getScope()).isEqualTo("openid profile email");
 
-        assertThat(response.getRedirectUri()).isEqualTo("http://localhost:8080/login/oauth2/code/vk");
-        assertThat(response.getAuthBackendUrl()).isEqualTo("http://localhost:8080");
+        assertThat(response.getRedirectUri()).isEqualTo("http://localhost/oauth2/code/vk");
+        assertThat(response.getAuthBackendUrl()).isEqualTo("http://localhost:80");
 
         verifyNoMoreInteractions(auditLogger);
     }

@@ -5,6 +5,7 @@ import fr.mossaab.security.dto.user.LocationDto;
 import fr.mossaab.security.dto.user.UserProfileResponse;
 import fr.mossaab.security.entities.Location;
 import fr.mossaab.security.entities.User;
+import fr.mossaab.security.integration.AbstractIntegrationTest;
 import fr.mossaab.security.repository.LocationRepository;
 import fr.mossaab.security.repository.UserRepository;
 import fr.mossaab.security.service.MailSender;
@@ -41,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-class UserControllerIT extends AbstractIntegrationTest{
+class UserControllerIT extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -84,7 +85,7 @@ class UserControllerIT extends AbstractIntegrationTest{
     class GetProfileTests {
 
         @Test
-        @WithMockUser(username = "user@example.com", roles = {"USER"})
+        @WithMockUser(username = "user@example.com")
         @DisplayName("возвращает профиль текущего пользователя без локации")
         void getProfile_noLocation() throws Exception {
             mockMvc.perform(get("/user/profile"))
@@ -100,7 +101,7 @@ class UserControllerIT extends AbstractIntegrationTest{
         }
 
         @Test
-        @WithMockUser(username = "user@example.com", roles = {"USER"})
+        @WithMockUser(username = "user@example.com")
         @DisplayName("возвращает профиль с локацией, если она есть")
         void getProfile_withLocation() throws Exception {
             Location location = Location.builder()
@@ -109,7 +110,7 @@ class UserControllerIT extends AbstractIntegrationTest{
                     .latitude(55.7558)
                     .longitude(37.6173)
                     .build();
-            User user = userRepository.findByEmail(existingUser.getEmail()).get();
+            User user = userRepository.findByEmail(existingUser.getEmail()).orElseThrow(()->new RuntimeException("Ошибка при получении пользователя"));
             user.setLocation(location);
             userRepository.save(user);
 
@@ -130,7 +131,7 @@ class UserControllerIT extends AbstractIntegrationTest{
         }
 
         @Test
-        @WithMockUser(username = "unknown@example.com", roles = {"USER"})
+        @WithMockUser(username = "unknown@example.com")
         @DisplayName("если пользователь не найден по email → 404 NotFound")
         void getProfile_userNotFound() throws Exception {
             mockMvc.perform(get("/user/profile"))
@@ -147,7 +148,7 @@ class UserControllerIT extends AbstractIntegrationTest{
     class UpdateNicknameTests {
 
         @Test
-        @WithMockUser(username = "user@example.com", roles = {"USER"})
+        @WithMockUser(username = "user@example.com")
         @DisplayName("успешно изменяет никнейм, если он свободен")
         void updateNickname_success() throws Exception {
             String newNickname = "newNickName";
@@ -162,7 +163,7 @@ class UserControllerIT extends AbstractIntegrationTest{
         }
 
         @Test
-        @WithMockUser(username = "user@example.com", roles = {"USER"})
+        @WithMockUser(username = "user@example.com")
         @DisplayName("если ник уже занят другим активным пользователем → DuplicateResourceException → 409 (если не перехватывается глобально)")
         void updateNickname_duplicateNickname() throws Exception {
             User another = User.builder()
@@ -181,7 +182,7 @@ class UserControllerIT extends AbstractIntegrationTest{
         }
 
         @Test
-        @WithMockUser(username = "user@example.com", roles = {"USER"})
+        @WithMockUser(username = "user@example.com")
         @DisplayName("если новый ник не проходит валидацию по аннотации → 400 BadRequest")
         void updateNickname_validationError() throws Exception {
             // предполагаем, что аннотация @ValidRuEnNicknameLengthMin4Max50
@@ -201,7 +202,7 @@ class UserControllerIT extends AbstractIntegrationTest{
     class RequestEmailChangeTests {
 
         @Test
-        @WithMockUser(username = "user@example.com", roles = {"USER"})
+        @WithMockUser(username = "user@example.com")
         @DisplayName("успешный запрос на смену email → 200 и activationCode/tempEmail сохранены")
         void requestEmailChange_success() throws Exception {
             String newEmail = "new-email@example.com";
@@ -219,7 +220,7 @@ class UserControllerIT extends AbstractIntegrationTest{
         }
 
         @Test
-        @WithMockUser(username = "user@example.com", roles = {"USER"})
+        @WithMockUser(username = "user@example.com")
         @DisplayName("валидация email (аннотация @ValidEmail) → 400 при некорректном адресе")
         void requestEmailChange_invalidEmail() throws Exception {
             mockMvc.perform(post("/user/request-email-change")
@@ -230,7 +231,7 @@ class UserControllerIT extends AbstractIntegrationTest{
         }
 
         @Test
-        @WithMockUser(username = "unknown@example.com", roles = {"USER"})
+        @WithMockUser(username = "unknown@example.com")
         @DisplayName("если пользователь не найден по email → 404")
         void requestEmailChange_userNotFound() throws Exception {
             mockMvc.perform(post("/user/request-email-change")
@@ -248,7 +249,7 @@ class UserControllerIT extends AbstractIntegrationTest{
     class ConfirmEmailChangeTests {
 
         @Test
-        @WithMockUser(username = "user@example.com", roles = {"USER"})
+        @WithMockUser(username = "user@example.com")
         @DisplayName("успешное подтверждение смены email → 200 и email изменяется")
         void confirmEmailChange_success() throws Exception {
             String activationCode = "1234"; // ВАЖНО: 4 цифры, проходит @ValidSmsCode
@@ -273,7 +274,7 @@ class UserControllerIT extends AbstractIntegrationTest{
         }
 
         @Test
-        @WithMockUser(username = "user@example.com", roles = {"USER"})
+        @WithMockUser(username = "user@example.com")
         @DisplayName("неверный код → 400 и сообщение из IllegalArgumentException")
         void confirmEmailChange_invalidCode() throws Exception {
             mockMvc.perform(get("/user/confirm-email-change")
@@ -287,7 +288,7 @@ class UserControllerIT extends AbstractIntegrationTest{
         }
 
         @Test
-        @WithMockUser(username = "user@example.com", roles = {"USER"})
+        @WithMockUser(username = "user@example.com")
         @DisplayName("отсутствует tempEmail → 400 и сообщение из IllegalStateException")
         void confirmEmailChange_noTempEmail() throws Exception {
             String activationCode = "1234"; // ВАЖНО: 4 цифры, проходит @ValidSmsCode
@@ -304,7 +305,7 @@ class UserControllerIT extends AbstractIntegrationTest{
         }
 
         @Test
-        @WithMockUser(username = "user@example.com", roles = {"USER"})
+        @WithMockUser(username = "user@example.com")
         @DisplayName("новый email уже занят другим пользователем → 400 с сообщением DuplicateResourceException")
         void confirmEmailChange_emailAlreadyUsed() throws Exception {
             // другой пользователь с email, который станет tempEmail
@@ -331,7 +332,7 @@ class UserControllerIT extends AbstractIntegrationTest{
         }
 
         @Test
-        @WithMockUser(username = "user@example.com", roles = {"USER"})
+        @WithMockUser(username = "user@example.com")
         @DisplayName("валидация кода по @ValidSmsCode → 400 при неверном формате")
         void confirmEmailChange_invalidCodeFormat() throws Exception {
             // зависит от реализации @ValidSmsCode, предположим, что пустая строка невалидна
@@ -350,7 +351,7 @@ class UserControllerIT extends AbstractIntegrationTest{
     class DeleteAccountTests {
 
         @Test
-        @WithMockUser(username = "user@example.com", roles = {"USER"})
+        @WithMockUser(username = "user@example.com")
         @DisplayName("успешное удаление аккаунта текущего пользователя")
         void deleteAccount_success() throws Exception {
             mockMvc.perform(delete("/user/delete"))
@@ -361,7 +362,7 @@ class UserControllerIT extends AbstractIntegrationTest{
         }
 
         @Test
-        @WithMockUser(username = "unknown@example.com", roles = {"USER"})
+        @WithMockUser(username = "unknown@example.com")
         @DisplayName("если пользователь не найден по email → 404")
         void deleteAccount_userNotFound() throws Exception {
             mockMvc.perform(delete("/user/delete"))
@@ -378,7 +379,7 @@ class UserControllerIT extends AbstractIntegrationTest{
     class UpdateLocationTests {
 
         @Test
-        @WithMockUser(username = "user@example.com", roles = {"USER"})
+        @WithMockUser(username = "user@example.com")
         @DisplayName("создаёт новую локацию, если её не было")
         void updateLocation_createNew() throws Exception {
             LocationDto dto = new LocationDto();
@@ -400,7 +401,7 @@ class UserControllerIT extends AbstractIntegrationTest{
         }
 
         @Test
-        @WithMockUser(username = "user@example.com", roles = {"USER"})
+        @WithMockUser(username = "user@example.com")
         @DisplayName("заменяет существующую локацию новой и удаляет старую")
         void updateLocation_replaceExisting() throws Exception {
             Location oldLocation = Location.builder()
@@ -438,7 +439,7 @@ class UserControllerIT extends AbstractIntegrationTest{
         }
 
         @Test
-        @WithMockUser(username = "user@example.com", roles = {"USER"})
+        @WithMockUser(username = "user@example.com")
         @DisplayName("валидация LocationDto через @Valid → 400 при некорректных данных")
         void updateLocation_validationError() throws Exception {
             LocationDto dto = new LocationDto();
@@ -450,7 +451,7 @@ class UserControllerIT extends AbstractIntegrationTest{
         }
 
         @Test
-        @WithMockUser(username = "unknown@example.com", roles = {"USER"})
+        @WithMockUser(username = "unknown@example.com")
         @DisplayName("если пользователь не найден по email → 404")
         void updateLocation_userNotFound() throws Exception {
             LocationDto dto = new LocationDto();

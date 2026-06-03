@@ -10,6 +10,7 @@ import fr.mossaab.security.enums.OAuthRequestStatus;
 import fr.mossaab.security.exception.SocialAuthException;
 import fr.mossaab.security.logger.AuditLogger;
 import fr.mossaab.security.repository.UserRepository;
+import fr.mossaab.security.repository.UserSocialAccountRepository;
 import fr.mossaab.security.service.JwtService;
 import fr.mossaab.security.service.RefreshTokenService;
 import fr.mossaab.security.service.social.service.OneTimeAuthCodeService;
@@ -460,7 +461,8 @@ public class OAuth2Controller {
             @AuthenticationPrincipal UserDetails currentUser,
             HttpServletRequest request) {
         String ip = request.getRemoteAddr();
-        logger.logActionWithIP(AuditLogger.ActionType.LINK_ATTEMPT, req.getProvider().name(), currentUser.getUsername(), ip, "Попытка привязки социальной сети");
+        String userName = currentUser != null ? currentUser.getUsername() : "unauthorize";
+        logger.logActionWithIP(AuditLogger.ActionType.LINK_ATTEMPT, req.getProvider().name(), userName, ip, "Попытка привязки социальной сети");
         return handleSocialAction(req, currentUser, OAuthRequestStatus.LINK, request);
     }
 

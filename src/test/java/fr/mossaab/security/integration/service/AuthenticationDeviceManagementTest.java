@@ -5,13 +5,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.mossaab.security.dto.auth.AuthenticationRequest;
 import fr.mossaab.security.dto.auth.AuthenticationResponseDto;
 import fr.mossaab.security.entities.RefreshToken;
+import fr.mossaab.security.entities.User;
+import fr.mossaab.security.integration.AbstractIntegrationTest;
 import fr.mossaab.security.repository.RefreshTokenRepository;
+import fr.mossaab.security.repository.UserRepository;
+import fr.mossaab.security.service.UserCreateService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -42,8 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class AuthenticationDeviceManagementTest {
+public class AuthenticationDeviceManagementTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -54,6 +57,15 @@ public class AuthenticationDeviceManagementTest {
     private RefreshTokenRepository refreshTokenRepository;
 
     Random rnd = new Random(3);
+
+    User firstUser;
+
+    @BeforeEach
+    public void setUp(@Autowired UserRepository repository, @Autowired UserCreateService service){
+        repository.deleteAll();
+        service.createUsers();
+        firstUser = repository.findAll().get(0);
+    }
 
     /**
      * Тест проверяет сценарий управления deviceId при последовательных входах:
@@ -80,7 +92,7 @@ public class AuthenticationDeviceManagementTest {
         AuthenticationResponseDto secondLogin = request(loginRequest);
         assertThat(secondLogin.getDeviceId()).isNotNull();
         assertThat(secondLogin.getDeviceId()).isNotEqualTo(firstLogin.getDeviceId()); // Должен быть новый deviceId
-        checkTokens(1L, 2); // Ожидаем 2 refresh‑токена
+        checkTokens(firstUser.getId(), 2); // Ожидаем 2 refresh‑токена
         System.out.println("Step 2 Success - New deviceId: " + secondLogin.getDeviceId());
 
         // Шаг 3: Вход с ранее полученным deviceId — используем первый deviceId
@@ -88,7 +100,7 @@ public class AuthenticationDeviceManagementTest {
         loginRequest.setDeviceId(firstLogin.getDeviceId());
         AuthenticationResponseDto thirdLogin = request(loginRequest);
         assertThat(thirdLogin.getDeviceId()).isEqualTo(firstLogin.getDeviceId()); // Должен вернуться тот же deviceId
-        checkTokens(1L, 2); // Количество токенов не должно увеличиться
+        checkTokens(firstUser.getId(), 2); // Количество токенов не должно увеличиться
         System.out.println("Step 3 Success - Reused deviceId: " + thirdLogin.getDeviceId());
 
         // Шаг 4: Вход без deviceId после использования существующего — ожидается новый deviceId
@@ -99,14 +111,14 @@ public class AuthenticationDeviceManagementTest {
         assertThat(fourthLogin.getDeviceId())
                 .isNotEqualTo(firstLogin.getDeviceId())
                 .isNotEqualTo(secondLogin.getDeviceId());
-        checkTokens(1L, 3); // Ожидаем 3 refresh‑токена (лимит достигнут)
+        checkTokens(firstUser.getId(), 3); // Ожидаем 3 refresh‑токена (лимит достигнут)
         System.out.println("Step 4 Success - Another new deviceId: " + fourthLogin.getDeviceId());
 
         // Шаг 5: Ещё один вход без deviceId — проверяем, что лимит токенов не превышен
         System.out.println("Step 5: Final login without deviceId — token limit check");
         AuthenticationResponseDto fifthLogin = request(loginRequest);
         assertThat(fifthLogin.getDeviceId()).isNotNull();
-        checkTokens(1L, 3); // Количество токенов должно остаться 3
+        checkTokens(firstUser.getId(), 3); // Количество токенов должно остаться 3
         System.out.println("Step 5 Success - Token limit maintained: 3 tokens");
 
         // Шаг 6: Используем deviceId который уже отозван - должен создать новый но отозвать последний вход
@@ -115,13 +127,13 @@ public class AuthenticationDeviceManagementTest {
         AuthenticationResponseDto sixLogin = request(loginRequest);
         assertThat(sixLogin.getDeviceId()).isNotNull();
         assertThat(sixLogin.getDeviceId()).isNotEqualTo(fifthLogin.getDeviceId());
-        checkTokens(1L, 3);
+        checkTokens(firstUser.getId(), 3);
         System.out.println("Step 6 Success - Token limit maintained: 3 tokens");
 
         System.out.println("All steps completed successfully — Device ID management test passed!");
 
         // В итоге в базе должно быть 5 токенов, 2 из которых отозваны
-        List<RefreshToken> byUserId = refreshTokenRepository.findByUserId(1L);
+        List<RefreshToken> byUserId = refreshTokenRepository.findByUserId(firstUser.getId());
         assertThat(byUserId.size()).isEqualTo(5);
         List<RefreshToken> tokenRevoked = byUserId.stream().filter(t->t.revoked).toList();
         List<RefreshToken> tokenNotRevoked = byUserId.stream().filter(t-> !t.revoked).toList();

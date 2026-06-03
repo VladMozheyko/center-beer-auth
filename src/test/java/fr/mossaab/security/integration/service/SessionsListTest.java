@@ -8,6 +8,7 @@ import fr.mossaab.security.dto.SessionInfoResponse;
 import fr.mossaab.security.dto.auth.AuthenticationRequest;
 import fr.mossaab.security.dto.auth.AuthenticationResponseDto;
 import fr.mossaab.security.entities.RefreshToken;
+import fr.mossaab.security.integration.AbstractIntegrationTest;
 import fr.mossaab.security.repository.RefreshTokenRepository;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -39,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class SessionsListTest {
+public class SessionsListTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
