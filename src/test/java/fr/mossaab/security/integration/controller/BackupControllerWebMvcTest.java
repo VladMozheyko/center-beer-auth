@@ -1,5 +1,6 @@
-package fr.mossaab.security.backup.core.controller;
+package fr.mossaab.security.integration.controller;
 
+import fr.mossaab.security.backup.core.controller.BackupController;
 import fr.mossaab.security.backup.core.dto.response.BackupReportSummaryResponse;
 import fr.mossaab.security.backup.core.enums.BackupOperationStatus;
 import fr.mossaab.security.backup.core.enums.BackupOperationType;
