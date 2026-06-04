@@ -1,14 +1,15 @@
-package fr.mossaab.security.integration.backup.service;
+package fr.mossaab.security.integration.backup.service.impl;
 
 import fr.mossaab.security.SecurityApplication;
 import fr.mossaab.security.backup.core.config.BackupProperties;
 import fr.mossaab.security.backup.core.config.BackupRetentionProperties;
 import fr.mossaab.security.backup.core.enums.BackupTier;
 import fr.mossaab.security.backup.core.service.BackupFileService;
+import fr.mossaab.security.backup.core.service.impl.BackupRetentionService;
+import fr.mossaab.security.integration.AbstractIntegrationTest;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
@@ -22,9 +23,8 @@ import java.time.ZoneOffset;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(classes = SecurityApplication.class)
-@ActiveProfiles("test")
 @DisplayName("IntegrationTest - BackupRetentionService")
-class BackupRetentionServiceIT {
+class BackupRetentionServiceIT extends AbstractIntegrationTest {
 
     private static Path tempBaseDir;
 

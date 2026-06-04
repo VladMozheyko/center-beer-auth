@@ -1,9 +1,11 @@
-package fr.mossaab.security.integration.backup.service;
+package fr.mossaab.security.integration.backup.service.impl;
 
 import fr.mossaab.security.backup.core.config.BackupProperties;
 import fr.mossaab.security.backup.core.enums.BackupFileExtension;
 import fr.mossaab.security.backup.core.enums.BackupTier;
+import fr.mossaab.security.backup.core.service.impl.BackupPromotionService;
 import fr.mossaab.security.backup.core.utils.BackupFileNameGenerator;
+import fr.mossaab.security.integration.AbstractIntegrationTest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,9 +30,8 @@ import static org.mockito.Mockito.doReturn;
 
 
 @SpringBootTest
-@ActiveProfiles("test")
 @DisplayName("IntegrationTest - BackupPromotionService")
-class BackupPromotionServiceIT {
+class BackupPromotionServiceIT extends AbstractIntegrationTest {
 
     @Autowired
     private BackupFileNameGenerator fileNameGenerator;

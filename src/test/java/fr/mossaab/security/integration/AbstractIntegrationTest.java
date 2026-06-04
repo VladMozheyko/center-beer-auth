@@ -1,5 +1,6 @@
 package fr.mossaab.security.integration;
 
+import lombok.Getter;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -13,6 +14,7 @@ import org.testcontainers.containers.MySQLContainer;
 @ExtendWith(SpringExtension.class)
 public abstract class AbstractIntegrationTest {
 
+    @Getter
     private static final MODE _MODE = MODE.H2;
 
     // Не аннотируем @Container, чтобы Testcontainers сам его не трогал.

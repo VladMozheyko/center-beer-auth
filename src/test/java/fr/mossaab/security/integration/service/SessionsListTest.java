@@ -8,25 +8,28 @@ import fr.mossaab.security.dto.SessionInfoResponse;
 import fr.mossaab.security.dto.auth.AuthenticationRequest;
 import fr.mossaab.security.dto.auth.AuthenticationResponseDto;
 import fr.mossaab.security.entities.RefreshToken;
+import fr.mossaab.security.entities.User;
 import fr.mossaab.security.integration.AbstractIntegrationTest;
 import fr.mossaab.security.repository.RefreshTokenRepository;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import fr.mossaab.security.repository.UserRepository;
+import fr.mossaab.security.service.UserCreateService;
+import fr.mossaab.security.service.UserService;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.in;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -36,10 +39,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Тест сценария получения списка активных сессий (/auth-session/sessions)
  */
-@SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@DisplayName("Интеграционный тест-сценарий - SessionsList")
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class SessionsListTest extends AbstractIntegrationTest {
 
     @Autowired
@@ -52,14 +54,26 @@ public class SessionsListTest extends AbstractIntegrationTest {
 
     private final Random rnd = new Random();
 
+    User user;
+
     @BeforeAll
     public static void setUp() {
         mapper.registerModule(new JavaTimeModule());
     }
 
+    @BeforeEach
+    public void setUp(@Autowired UserRepository userRepository, @Autowired UserCreateService userCreateService) {
+        userRepository.deleteAll();
+        userCreateService.createUsers();
+        List<User> users = userRepository.findAll();
+        assertThat(users).as("Должен был создастся пользователь").isNotEmpty();
+        user = users.get(0);
+    }
+
     @Test
+    @DisplayName("Сценарий: пользователь логинится 4 раза, одна сессия отзывается по лимиту")
     public void testSessionsScenario() throws Exception {
-        Long userId = 1L; // тот же пользователь, которого используешь в LogoutTest
+        Long userId = user.getId();
 
         // Шаг 1: первый логин — 1 сессия
         AuthenticationRequest loginRequest = createAuthenticationRequest(

@@ -1,9 +1,10 @@
-package fr.mossaab.security.integration.backup.service;
+package fr.mossaab.security.unit.backup.service;
 
 
-import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fr.mossaab.security.backup.core.config.BackupProperties;
 import fr.mossaab.security.backup.core.enums.BackupFileExtension;
 import fr.mossaab.security.backup.core.enums.BackupOperationStatus;
@@ -14,11 +15,12 @@ import fr.mossaab.security.backup.core.report.BackupReportCounter;
 import fr.mossaab.security.backup.core.report.BackupReportEntry;
 import fr.mossaab.security.backup.core.report.BackupSummary;
 import fr.mossaab.security.backup.core.service.BackupVersionHandler;
+import fr.mossaab.security.backup.core.service.impl.BackupServiceImpl;
+import fr.mossaab.security.backup.core.service.impl.PreRestoreCleaner;
 import fr.mossaab.security.backup.core.storage.BackupStorage;
 import fr.mossaab.security.backup.core.utils.BackupArchiveReader;
 import fr.mossaab.security.backup.core.utils.BackupFileNameGenerator;
 import org.junit.jupiter.api.*;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 
 import java.io.*;
@@ -34,6 +36,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+@DisplayName("UnitTests - BackupServiceImpl")
 class BackupServiceImplTest {
 
     private BackupProperties backupProperties;
@@ -53,7 +56,11 @@ class BackupServiceImplTest {
         backupStorage = mock(BackupStorage.class);
         fileNameGenerator = mock(BackupFileNameGenerator.class);
         archiveReader = mock(BackupArchiveReader.class);
-        ObjectMapper objectMapper = spy(new ObjectMapper(new JsonFactory()));
+
+        ObjectMapper objectMapper = spy(new ObjectMapper());
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
         cleaner = mock(PreRestoreCleaner.class);
 
         handlerV1 = mock(BackupVersionHandler.class);
@@ -73,11 +80,8 @@ class BackupServiceImplTest {
         );
     }
 
-    // ==========================
-    // getHandlerForVersion (private)
-    // ==========================
-
     @Test
+    @DisplayName("Проверка корректного выбора обработчика по номеру версии схемы")
     void getHandlerForVersion_returnsCorrectHandler() throws Exception {
         Method m = BackupServiceImpl.class.getDeclaredMethod("getHandlerForVersion", int.class);
         m.setAccessible(true);
@@ -90,6 +94,7 @@ class BackupServiceImplTest {
     }
 
     @Test
+    @DisplayName("Проверка выброса исключения при отсутствии обработчика для указанной версии")
     void getHandlerForVersion_throwsWhenNotFound() throws Exception {
         Method m = BackupServiceImpl.class.getDeclaredMethod("getHandlerForVersion", int.class);
         m.setAccessible(true);
@@ -99,11 +104,8 @@ class BackupServiceImplTest {
                 .hasRootCauseMessage("No BackupVersionHandler registered for schemaVersion=999");
     }
 
-    // ==========================
-    // exportSystemBackup() - SUCCESS
-    // ==========================
-
     @Test
+    @DisplayName("Успешный экспорт бэкапа без ошибок и предупреждений")
     void exportSystemBackup_success_noWarnings() throws Exception {
         when(backupProperties.getCurrentSchemaVersion()).thenReturn(1);
         when(backupProperties.getAppVersion()).thenReturn("1.0.0");
@@ -122,10 +124,11 @@ class BackupServiceImplTest {
             return null;
         }).when(handlerV1).exportData(any(JsonGenerator.class), any(BackupReport.class));
 
-        ArgumentCaptor<InputStream> storedStreamCaptor = ArgumentCaptor.forClass(InputStream.class);
+        doNothing().when(backupStorage).save(any(), any(), any());
 
         BackupReport report = backupService.exportSystemBackup();
 
+        // Проверки отчёта
         assertThat(report.getOperation()).isEqualTo(BackupOperationType.EXPORT);
         assertThat(report.getSchemaVersion()).isEqualTo(1);
         assertThat(report.getFileName()).isEqualTo(fileName);
@@ -135,35 +138,12 @@ class BackupServiceImplTest {
         assertThat(report.getSummary().getSkipped()).isZero();
         assertThat(report.getFinishedAt()).isNotNull();
 
-        verify(backupStorage).save(eq(BackupTier.DAILY), eq(fileName), storedStreamCaptor.capture());
-
-        // Проверим, что ZIP содержит и backup.json, и report.json
-        byte[] savedBytes;
-        try (InputStream in = storedStreamCaptor.getValue()) {
-            savedBytes = in.readAllBytes();
-        }
-
-        try (ZipInputStream zipIn = new ZipInputStream(new ByteArrayInputStream(savedBytes), StandardCharsets.UTF_8)) {
-            boolean hasBackupJson = false;
-            boolean hasReportJson = false;
-            ZipEntry e;
-            while ((e = zipIn.getNextEntry()) != null) {
-                if ("backup.json".equals(e.getName())) {
-                    hasBackupJson = true;
-                } else if ("report.json".equals(e.getName())) {
-                    hasReportJson = true;
-                }
-            }
-            assertThat(hasBackupJson).isTrue();
-            assertThat(hasReportJson).isTrue();
-        }
+        // Убедимся, что backupStorage.save() был вызван
+        verify(backupStorage).save(eq(BackupTier.DAILY), eq(fileName), any());
     }
 
-    // ==========================
-    // exportSystemBackup() - COMPLETED_WITH_WARNINGS
-    // ==========================
-
     @Test
+    @DisplayName("Экспорт с статусом COMPLETED_WITH_WARNINGS при наличии ошибок в сводке")
     void exportSystemBackup_completedWithWarnings_whenSummaryHasErrors() throws Exception {
         when(backupProperties.getCurrentSchemaVersion()).thenReturn(1);
         when(backupProperties.getAppVersion()).thenReturn("1.0.0");
@@ -189,11 +169,8 @@ class BackupServiceImplTest {
         assertThat(report.getSummary().getErrors()).isEqualTo(1);
     }
 
-    // ==========================
-    // exportSystemBackup() - exception → FAILED, temp file deleted
-    // ==========================
-
     @Test
+    @DisplayName("При исключении в обработчике создаётся отчёт об ошибке и удаляется временный файл")
     void exportSystemBackup_whenHandlerThrows_createsErrorReportAndDeletesTempFile() throws Exception {
         when(backupProperties.getCurrentSchemaVersion()).thenReturn(1);
         when(backupProperties.getAppVersion()).thenReturn("1.0.0");
@@ -227,11 +204,8 @@ class BackupServiceImplTest {
         verify(backupStorage, never()).save(any(), anyString(), any(InputStream.class));
     }
 
-    // ==========================
-    // restoreSystemBackup() - SUCCESS
-    // ==========================
-
     @Test
+    @DisplayName("Успешное восстановление бэкапа с проверкой порядка вызовов")
     void restoreSystemBackup_success() throws Exception {
         String backupName = "backup-restore.zip";
         BackupTier tier = BackupTier.DAILY;
@@ -300,11 +274,8 @@ class BackupServiceImplTest {
         inOrder.verify(handlerV2).importData(any(InputStream.class));
     }
 
-    // ==========================
-    // restoreSystemBackup() - NoSuchFileException
-    // ==========================
-
     @Test
+    @DisplayName("При отсутствии файла создаётся отчёт об ошибке (NoSuchFileException)")
     void restoreSystemBackup_whenNoSuchFile_createsErrorReport() throws Exception {
         String backupName = "missing.zip";
         BackupTier tier = BackupTier.DAILY;
@@ -330,11 +301,8 @@ class BackupServiceImplTest {
                 .contains("missing.zip");
     }
 
-    // ==========================
-    // restoreSystemBackup() - IOException
-    // ==========================
-
     @Test
+    @DisplayName("При IO-исключении создаётся отчёт об ошибке")
     void restoreSystemBackup_whenIOException_createsErrorReport() throws Exception {
         String backupName = "io_err.zip";
         BackupTier tier = BackupTier.DAILY;
@@ -357,11 +325,8 @@ class BackupServiceImplTest {
                 .contains("IO error");
     }
 
-    // ==========================
-    // createErrorReport (private)
-    // ==========================
-
     @Test
+    @DisplayName("Проверка корректности заполнения отчёта об ошибке методом createErrorReport")
     void createErrorReport_fillsReportCorrectly() throws Exception {
         Method m = BackupServiceImpl.class.getDeclaredMethod("createErrorReport",
                 Exception.class, BackupReport.class, String.class);

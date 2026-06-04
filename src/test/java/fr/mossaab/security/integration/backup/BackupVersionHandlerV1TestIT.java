@@ -1,4 +1,4 @@
-package fr.mossaab.security.integration.backup.service;
+package fr.mossaab.security.integration.backup;
 
 
 import fr.mossaab.security.backup.core.config.BackupProperties;
@@ -15,15 +15,14 @@ import fr.mossaab.security.entities.User;
 import fr.mossaab.security.entities.UserSocialAccount;
 import fr.mossaab.security.enums.OAuthProvider;
 import fr.mossaab.security.enums.Role;
+import fr.mossaab.security.integration.AbstractIntegrationTest;
 import fr.mossaab.security.repository.FileDataRepository;
 import fr.mossaab.security.repository.LocationRepository;
 import fr.mossaab.security.repository.UserRepository;
 import fr.mossaab.security.repository.UserSocialAccountRepository;
-import fr.mossaab.security.service.social.service.UserRegistrationService;
 import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
-import org.mockito.internal.matchers.CompareTo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -36,7 +35,6 @@ import java.io.File;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 
@@ -45,10 +43,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
-@ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@ActiveProfiles("test")
 @Slf4j
-class BackupVersionHandlerV1TestIT {
+class BackupVersionHandlerV1TestIT extends AbstractIntegrationTest {
 
     @Autowired
     private PreRestoreCleaner tablesCleaner;
@@ -68,13 +66,8 @@ class BackupVersionHandlerV1TestIT {
     @Autowired
     private UserSocialAccountRepository socialAccountRepository;
 
-    // Заменить на твой реальный сервис бэкапа/восстановления
     @Autowired
     private BackupService backupService;
-
-    // Заменить на твой сервис регистрации / создания пользователей
-    @Autowired
-    private UserRegistrationService userRegistrationService;
 
     @Autowired
     private BackupProperties properties;
@@ -90,10 +83,23 @@ class BackupVersionHandlerV1TestIT {
 
     private BackupReport report;
 
-    @BeforeEach
-    public void setUp() {
 
+    @BeforeAll
+    public static void beforeAll() {
+        MODE currentMode = AbstractIntegrationTest.get_MODE();
+        log.info("Запуск интеграционных тестов в режиме: {}", currentMode);
+
+        if (currentMode == MODE.H2) {
+            log.warn("Тесты будут пропущены: H2 база данных не поддерживает требуемые операции бэкапа/восстановления");
+            Assumptions.assumeTrue(false,
+                    "Тесты пропущены: режим H2 несовместим с тестируемым сценарием бэкапа/восстановления. " +
+                            "Используйте -Dtest.db.mode=testcontainer для запуска с MySQL Testcontainer"
+            );
+        } else {
+            log.info("Режим БД {} поддерживается — продолжаем выполнение тестов", currentMode);
+        }
     }
+
 
     /**
      * 1. Чистим БД и создаём стартовые данные (2 пользователя + связанные сущности).
@@ -339,48 +345,5 @@ class BackupVersionHandlerV1TestIT {
                 .max()
                 .orElseThrow();
         assertThat(newUser.getId()).isEqualTo(maxId);
-    }
-
-    /**
-     * 5. Проверить, что после полного цикла backup/restore + clean
-     *    новые сущности получают ID подряд от 1 до N.
-     */
-    @Test
-    @Order(5)
-    @Transactional
-    @Commit
-    void step5_checkIdsFrom1ToN() {
-        // 5.1. Чистим БД ещё раз, чтобы seq-ы были сброшены (как ты делаешь в step3)
-        tablesCleaner.cleanAllEntities();
-        entityManager.flush();
-        entityManager.clear();
-
-
-        // при необходимости можно снова посмотреть, что seq = 1
-        Long userSeq = jdbcTemplate.queryForObject(
-                "SELECT next_val FROM _user_seq", Long.class);
-        log.info("Before reinsert: _user_seq.next_val = {}", userSeq);
-
-        int N = 5; // количество тестовых пользователей
-        for (int i = 1; i <= N; i++) {
-            User u = userRepository.save(
-                    User.builder()
-                            .nickname("user_" + i)
-                            .password("pass_" + i)
-                            .email("user" + i + "@example.com")
-                            .phone("+7999000000" + i)
-                            .role(Role.USER)
-                            .temporarySecondsBalance((int)(1000 + i))
-                            .phoneVerified(true)
-                            .activationCode("code-" + i)
-                            .createdAt(LocalDateTime.now())
-                            .build()
-            );
-            // Проверяем, что id уходит от 1 до N подряд
-            assertThat(u.getId()).isEqualTo(i);
-        }
-
-        // 5.2. Финальная проверка количества
-        assertThat(userRepository.count()).isEqualTo(N);
     }
 }

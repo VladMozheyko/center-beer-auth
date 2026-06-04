@@ -6,6 +6,7 @@ import fr.mossaab.security.backup.core.enums.BackupTier;
 import fr.mossaab.security.backup.core.report.BackupReport;
 import fr.mossaab.security.backup.core.report.BackupSummary;
 import fr.mossaab.security.backup.core.service.BackupFileService;
+import fr.mossaab.security.backup.core.service.impl.BackupHistoryService;
 import fr.mossaab.security.backup.core.utils.BackupArchiveReader;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

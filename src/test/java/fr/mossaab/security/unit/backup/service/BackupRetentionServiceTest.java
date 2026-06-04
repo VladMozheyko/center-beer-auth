@@ -4,6 +4,8 @@ package fr.mossaab.security.unit.backup.service;
 import fr.mossaab.security.backup.core.config.BackupRetentionProperties;
 import fr.mossaab.security.backup.core.enums.BackupTier;
 import fr.mossaab.security.backup.core.service.BackupFileService;
+import fr.mossaab.security.backup.core.service.impl.BackupPromotionService;
+import fr.mossaab.security.backup.core.service.impl.BackupRetentionService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
