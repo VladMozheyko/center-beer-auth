@@ -95,7 +95,7 @@ public class BackupPromotionService {
      * @param tier     уровень хранения
      * @return {@code true}, если бэкап помечен как успешный; иначе {@code false}
      */
-    protected boolean isSuccessful(String fileName, BackupTier tier) {
+    public boolean isSuccessful(String fileName, BackupTier tier) {
         try (InputStream in = backupFileService.load(fileName, tier)) {
             boolean success = backupArchiveReader.isBackupSuccessful(in);
             if (!success) {

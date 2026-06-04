@@ -19,14 +19,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @Tag(
-        name = "Backup",
+        name = " 🚨(new) Backup",
         description = "Эндпоинты для ручного управления бэкапами: запуск, восстановление и просмотр истории."
 )
 @RequestMapping("/backups")
 public interface BackupControllerApi {
 
     @Operation(
-            summary = "Запустить создание резервной копии",
+            summary = "Запустить создание резервной копии  🚨(new)",
             description = """
                     POST /backups/run
                     
@@ -158,7 +158,7 @@ public interface BackupControllerApi {
     ResponseEntity<BackupReport> run();
 
     @Operation(
-            summary = "Восстановить систему из резервной копии",
+            summary = "Восстановить систему из резервной копии  🚨(new)",
             description = """
                     POST /backups/restore
                     
@@ -362,7 +362,7 @@ public interface BackupControllerApi {
     );
 
     @Operation(
-            summary = "Получить историю бэкапов",
+            summary = "Получить историю бэкапов  🚨(new)",
             description = """
                     GET /backups/history
                     
@@ -441,7 +441,7 @@ public interface BackupControllerApi {
     );
 
     @Operation(
-            summary = "Получить полный отчёт по конкретному бэкапу",
+            summary = "Получить полный отчёт по конкретному бэкапу  🚨(new)",
             description = """
                     GET /backups/report/{tier}
                     

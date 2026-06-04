@@ -13,7 +13,7 @@ public class UserBackupDtoV1 {
     private String nickname;
     private String email;
     private String password;
-    private String phoneNumber;
+    private String phone;
     private String role;
     private boolean phoneVerified;
     private LocalDateTime createdAt;
