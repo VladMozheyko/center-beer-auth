@@ -13,7 +13,7 @@ import java.util.List;
 @Configuration
 public class OpenApiConfig {
 
-    @Value("${app.server.base-url:https://api.center.beer/auth_service}")
+    @Value("${app.server.base-url:http://localhost:8080}")
     private String serverUrl;
 
     @Bean

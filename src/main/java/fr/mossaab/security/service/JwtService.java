@@ -51,8 +51,8 @@ public class JwtService {
      * @param userDetails Информация о пользователе
      * @return Сгенерированный JWT токен
      */
-    public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
+    public String generateToken(UserDetails userDetails, String deviceId) {
+        return generateToken(new HashMap<>(), userDetails, deviceId);
     }
 
     /**
@@ -94,8 +94,8 @@ public class JwtService {
      * @param userDetails Информация о пользователе
      * @return Сгенерированный JWT токен
      */
-    private String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
-        return buildToken(extraClaims, userDetails, jwtExpiration);
+    private String generateToken(Map<String, Object> extraClaims, UserDetails userDetails, String deviceId) {
+        return buildToken(extraClaims, userDetails, jwtExpiration, deviceId);
     }
 
     /**
@@ -153,13 +153,15 @@ public class JwtService {
     private String buildToken(
             Map<String, Object> extraClaims,
             UserDetails userDetails,
-            long expiration
+            long expiration,
+            String deviceId
     ) {
         String role = userDetails.getAuthorities().stream()
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Role not found"))
                 .getAuthority();
         extraClaims.put("role", role);
+        extraClaims.put("deviceId", deviceId);
 
         logger.debug("Building token with claims: {}", extraClaims);
         return Jwts
@@ -207,10 +209,9 @@ public class JwtService {
 
 
     public String extractRole(String token) {
-        logger.debug("Extracted role: {}");
+        logger.debug("Extracted role");
         return extractClaim(token, claims -> claims.get("role", String.class));
     }
-
     /**
      * Получает ключ для подписи JWT токена на основе секретного ключа.
      *

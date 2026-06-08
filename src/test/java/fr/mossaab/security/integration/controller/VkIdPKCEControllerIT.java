@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.mossaab.security.dto.social.SocialUserInfo;
 import fr.mossaab.security.enums.OAuthProvider;
 import fr.mossaab.security.enums.SocialAuthStatus;
+import fr.mossaab.security.integration.AbstractIntegrationTest;
 import fr.mossaab.security.service.social.service.OAuthUserInfoService;
 import fr.mossaab.security.service.social.service.SocialUserFlowService;
 import fr.mossaab.security.service.social.service.VkTokenService;
@@ -17,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 
@@ -29,12 +31,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Интеграционные тесты для VkIdPKCEController.
- *
+ * <p>
  * Поднимается веб-контекст, используем MockMvc и мокаем внешние сервисы.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-class VkIdPKCEControllerIT extends AbstractIntegrationTest{
+@Transactional
+class VkIdPKCEControllerIT extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;

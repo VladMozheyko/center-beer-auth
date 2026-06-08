@@ -2,6 +2,7 @@ package fr.mossaab.security.integration.controller;
 
 import fr.mossaab.security.entities.FileData;
 import fr.mossaab.security.entities.User;
+import fr.mossaab.security.integration.AbstractIntegrationTest;
 import fr.mossaab.security.repository.FileDataRepository;
 import fr.mossaab.security.repository.UserRepository;
 import fr.mossaab.security.service.StorageService;
@@ -28,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-class FileControllerIT extends AbstractIntegrationTest{
+class FileControllerIT extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
