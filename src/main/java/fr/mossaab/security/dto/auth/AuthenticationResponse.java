@@ -1,11 +1,10 @@
 package fr.mossaab.security.dto.auth;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import lombok.*;
 import java.util.List;
 
 @Data
@@ -14,39 +13,39 @@ import java.util.List;
 @AllArgsConstructor
 public class AuthenticationResponse {
 
-    /**
-     * Уникальный идентификатор пользователя.
-     */
+    @NotNull
+    @Schema(description = "Уникальный идентификатор пользователя в системе")
     private Long id;
 
-    /**
-     * Электронная почта пользователя.
-     */
+    @NotNull
+    @Schema(description = "Электронная почта пользователя (основной идентификатор для входа)")
     private String email;
 
-    /**
-     * Список ролей пользователя.
-     */
+    @NotEmpty
+    @Schema(description = "Список ролей пользователя, определяющих его права доступа")
     private List<String> roles;
 
-    /**
-     * Токен доступа.
-     */
     @JsonProperty("access_token")
+    @NotNull
+    @Schema(description = "Токен доступа (JWT) для авторизации запросов")
     private String accessToken;
 
-    /**
-     * Токен обновления.
-     */
     @JsonProperty("refresh_token")
+    @NotNull
+    @Schema(description = "Токен обновления для получения нового access token")
     private String refreshToken;
 
-    /**
-     * Тип токена.
-     */
     @JsonProperty("token_type")
+    @NotNull
+    @Schema(description = "Тип токена (обычно 'Bearer')", example = "Bearer")
     private String tokenType;
 
+    @Schema(description = "Значение JWT‑cookie для автоматической авторизации")
     private String jwtCookie;
+
+    @Schema(description = "Значение cookie с refresh token")
     private String refreshTokenCookie;
+
+    @Schema(description = "ID устройства, с которого выполнен вход. Используется для привязки сессии")
+    private String deviceId;
 }

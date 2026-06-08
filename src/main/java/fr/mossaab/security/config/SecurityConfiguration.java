@@ -53,7 +53,7 @@ public class SecurityConfiguration {
         CorsConfiguration cfg = new CorsConfiguration();
         cfg.setAllowCredentials(true);
         cfg.setAllowedOrigins(Arrays.asList(
-                "https://new.center.beer/",
+                "https://new.center.beer",
                 "http://localhost:5173",
                 "https://api.center.beer",
 //только для локали
@@ -79,7 +79,7 @@ public class SecurityConfiguration {
 
         UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
         src.registerCorsConfiguration("/**", cfg);
-        src.registerCorsConfiguration("/oauth2/**", cfg);
+//        src.registerCorsConfiguration("/oauth2/**", cfg);  выше уже применено ко всем, этот уже не будет использоватся
         return src;
     }
 
@@ -92,11 +92,10 @@ public class SecurityConfiguration {
      * – неавторизованный доступ отдаёт 401, а не редирект
      */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   CorsConfigurationSource corsSource) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsSource))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .oauth2Login(oauth2 -> oauth2

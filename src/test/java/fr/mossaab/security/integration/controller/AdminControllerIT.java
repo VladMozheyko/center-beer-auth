@@ -1,6 +1,6 @@
 package fr.mossaab.security.integration.controller;
 
-import fr.mossaab.security.repository.UserRepository;
+import fr.mossaab.security.integration.AbstractIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
