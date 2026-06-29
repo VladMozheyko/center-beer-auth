@@ -12,4 +12,5 @@ import java.util.Optional;
 public interface FileDataRepository extends JpaRepository<FileData,Long> {
     Optional<FileData> findByName(String fileName);
 
+    Optional<FileData> findByUserId(Long id);
 }
