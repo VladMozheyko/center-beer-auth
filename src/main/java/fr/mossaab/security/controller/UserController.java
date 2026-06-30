@@ -1,12 +1,14 @@
 package fr.mossaab.security.controller;
 
 
+import fr.mossaab.security.dto.UserIpTempDto;
 import fr.mossaab.security.dto.user.LocationDto;
 import fr.mossaab.security.dto.user.UserProfileResponse;
 import fr.mossaab.security.entities.*;
 import fr.mossaab.security.exception.DuplicateResourceException;
 import fr.mossaab.security.repository.*;
 import fr.mossaab.security.service.MailSender;
+import fr.mossaab.security.service.UserIpTempService;
 import fr.mossaab.security.service.UserService;
 import fr.mossaab.security.validation.annotation.ValidEmail;
 import fr.mossaab.security.validation.annotation.ValidRuEnNicknameLengthMin4Max50;
@@ -22,6 +24,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +42,7 @@ public class UserController {
     private final MailSender mailSender;
     private final UserService userService;
     private final LocationRepository locationRepository;
+    private final UserIpTempService userIpTempService;
 
     @Value("${app.server.public-url:https://api.center.beer/auth_service}")
     private String publicUrl;
@@ -155,5 +159,12 @@ public class UserController {
         user.setLocation(loc);
         userRepository.save(user);
         return ResponseEntity.ok("Геолокация успешно сохранена longitude: " + loc.getLongitude() + " / latitude: " + loc.getLatitude());
+    }
+
+    @Operation(summary = "Получить последние IPs пользователя", description = "Получение всех ip c которых пользователь совершал регистрации")
+    @GetMapping("/{id}/registration/ips")
+    public ResponseEntity<List<UserIpTempDto>> getListIpForUser(@PathVariable Long id) {
+        List<UserIpTempDto> listIPs = userIpTempService.getTrackedIpForUser(id);
+        return ResponseEntity.ok(listIPs);
     }
 }
