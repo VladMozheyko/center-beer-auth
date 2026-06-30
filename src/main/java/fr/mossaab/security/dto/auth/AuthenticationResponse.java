@@ -1,10 +1,14 @@
 package fr.mossaab.security.dto.auth;
 
+import fr.mossaab.security.dto.UserIpTempDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.springframework.http.ResponseCookie;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -41,11 +45,14 @@ public class AuthenticationResponse {
     private String tokenType;
 
     @Schema(description = "Значение JWT‑cookie для автоматической авторизации")
-    private String jwtCookie;
+    private ResponseCookie jwtCookie;
 
     @Schema(description = "Значение cookie с refresh token")
-    private String refreshTokenCookie;
+    private ResponseCookie refreshTokenCookie;
 
     @Schema(description = "ID устройства, с которого выполнен вход. Используется для привязки сессии")
     private String deviceId;
+
+    @Schema(description = "последние IP адрес пользователя")
+    private List<UserIpTempDto> userIPs;
 }
