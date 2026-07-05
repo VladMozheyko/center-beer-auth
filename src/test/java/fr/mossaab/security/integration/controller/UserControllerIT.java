@@ -1,13 +1,19 @@
 package fr.mossaab.security.integration.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.mossaab.security.dto.user.AllUserInfoResponse;
 import fr.mossaab.security.dto.user.LocationDto;
 import fr.mossaab.security.dto.user.UserProfileResponse;
+import fr.mossaab.security.entities.FileData;
 import fr.mossaab.security.entities.Location;
 import fr.mossaab.security.entities.User;
+import fr.mossaab.security.entities.UserSocialAccount;
+import fr.mossaab.security.enums.OAuthProvider;
 import fr.mossaab.security.integration.AbstractIntegrationTest;
+import fr.mossaab.security.repository.FileDataRepository;
 import fr.mossaab.security.repository.LocationRepository;
 import fr.mossaab.security.repository.UserRepository;
+import fr.mossaab.security.repository.UserSocialAccountRepository;
 import fr.mossaab.security.service.MailSender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -54,6 +60,12 @@ class UserControllerIT extends AbstractIntegrationTest {
     private LocationRepository locationRepository;
 
     @Autowired
+    private FileDataRepository fileDataRepository;
+
+    @Autowired
+    private UserSocialAccountRepository userSocialAccountRepository;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     @MockBean
@@ -74,6 +86,77 @@ class UserControllerIT extends AbstractIntegrationTest {
                 .createdAt(LocalDateTime.now())
                 .build();
         existingUser = userRepository.save(existingUser);
+
+        // Создаём FileData для пользователя
+        FileData fileData = FileData.builder()
+                .name("avatar.png")
+                .type("image/png")
+                .filePath("/uploads/avatars/avatar.png")
+                .user(existingUser)
+                .build();
+        fileData = fileDataRepository.save(fileData);
+        existingUser.setFileData(fileData);
+
+        // Создаём UserSocialAccount для пользователя
+        UserSocialAccount vkAccount = UserSocialAccount.builder()
+                .user(existingUser)
+                .provider(OAuthProvider.VK)
+                .externalId("123456")
+                .socialEmail("vk_user@example.com")
+                .user(existingUser)
+                .build();
+        userSocialAccountRepository.save(vkAccount);
+    }
+
+    // ==========================
+    // GET /user/profile/{id}
+    // ==========================
+
+    @Nested
+    @DisplayName("GET /user/profile/{id}")
+    class GetProfileByIdTests {
+
+        @Test
+        @WithMockUser(username = "user@example.com")
+        @DisplayName("возвращает полную информацию о пользователе с файлом и соцсетью")
+        void getProfileById_success() throws Exception {
+            Long userId = existingUser.getId();
+
+            String responseJson = mockMvc.perform(get("/user/profile/{id}", userId))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.userName").value("oldNick"))
+                    .andExpect(jsonPath("$.email").value("user@example.com"))
+                    .andExpect(jsonPath("$.phone").isEmpty())
+                    .andExpect(jsonPath("$.fileData.name").value("avatar.png"))
+                    .andExpect(jsonPath("$.fileData.path").value("/uploads/avatars/avatar.png"))
+                    .andExpect(jsonPath("$.socialAccounts").isArray())
+                    .andExpect(jsonPath("$.socialAccounts.length()").value(1))
+                    .andExpect(jsonPath("$.socialAccounts[0].provider").value("VK"))
+                    .andExpect(jsonPath("$.socialAccounts[0].socialEmail").value("vk_user@example.com"))
+                    .andReturn()
+                    .getResponse()
+                    .getContentAsString();
+
+            // Парсим JSON в объект для дополнительной проверки
+            AllUserInfoResponse response = objectMapper.readValue(responseJson, AllUserInfoResponse.class);
+            assertThat(response.getUserName()).isEqualTo("oldNick");
+            assertThat(response.getEmail()).isEqualTo("user@example.com");
+            assertThat(response.getFileData().getName()).isEqualTo("avatar.png");
+            assertThat(response.getSocialAccounts()).hasSize(1);
+        }
+
+        @Test
+        @WithMockUser(username = "unknown@example.com")
+        @DisplayName("если пользователь не найден → ошибка в правильном формате")
+        void getProfileById_userNotFound_errorFormat() throws Exception {
+            mockMvc.perform(get("/user/profile/{id}", 999999L))
+                    .andExpect(status().isNotFound())
+                    .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.message").exists())
+                    .andExpect(jsonPath("$.timestamp").exists())
+                    .andExpect(jsonPath("$.status").exists());
+        }
     }
 
     // ==========================
