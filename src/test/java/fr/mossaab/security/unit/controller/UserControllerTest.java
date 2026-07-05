@@ -1,6 +1,7 @@
 package fr.mossaab.security.unit.controller;
 
 import fr.mossaab.security.controller.UserController;
+import fr.mossaab.security.dto.UserIpTempDto;
 import fr.mossaab.security.dto.user.LocationDto;
 import fr.mossaab.security.dto.user.UserProfileResponse;
 import fr.mossaab.security.entities.Location;
@@ -9,8 +10,10 @@ import fr.mossaab.security.exception.DuplicateResourceException;
 import fr.mossaab.security.repository.LocationRepository;
 import fr.mossaab.security.repository.UserRepository;
 import fr.mossaab.security.service.MailSender;
+import fr.mossaab.security.service.UserIpTempService;
 import fr.mossaab.security.service.UserService;
 import net.bytebuddy.asm.Advice;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,10 +27,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -53,6 +59,9 @@ class UserControllerTest {
     private LocationRepository locationRepository;
 
     @Mock
+    private UserIpTempService userIpTempService;
+
+    @Mock
     private SecurityContext securityContext;
 
     @Mock
@@ -63,6 +72,57 @@ class UserControllerTest {
         SecurityContextHolder.setContext(securityContext);
         lenient().when(securityContext.getAuthentication()).thenReturn(authentication);
         lenient().when(authentication.getName()).thenReturn("test@example.com");
+    }
+
+    @Test
+    @DisplayName("Получение IP-адресов пользователя - успешное")
+    void getListIpForUser_Success() {
+        // Given
+        Long userId = 1L;
+        UserIpTempDto dto1 = UserIpTempDto.builder()
+                .ipAddress("192.168.1.100")
+                .createdAt(LocalDateTime.now())
+                .build();
+        
+        UserIpTempDto dto2 = UserIpTempDto.builder()
+                .ipAddress("10.0.0.50")
+                .createdAt(LocalDateTime.now().minusSeconds(100))
+                .build();
+
+        // Mocking
+        when(userIpTempService.getTrackedIpForUser(userId))
+                .thenReturn(List.of(dto1, dto2));
+
+        // When
+        ResponseEntity<List<UserIpTempDto>> response = userController.getListIpForUser(userId);
+
+        // Then
+        assertEquals(200, response.getStatusCode().value());
+        Assertions.assertNotNull(response.getBody());
+        assertEquals(2, response.getBody().size());
+        assertEquals("192.168.1.100", response.getBody().get(0).getIpAddress());
+        assertEquals("10.0.0.50", response.getBody().get(1).getIpAddress());
+        verify(userIpTempService, times(1)).getTrackedIpForUser(userId);
+    }
+
+    @Test
+    @DisplayName("Получение IP-адресов пользователя - пустой список")
+    void getListIpForUser_EmptyList() {
+        // Given
+        Long userId = 1L;
+
+        // Mocking
+        when(userIpTempService.getTrackedIpForUser(userId))
+                .thenReturn(List.of());
+
+        // When
+        ResponseEntity<List<UserIpTempDto>> response = userController.getListIpForUser(userId);
+
+        // Then
+        assertEquals(200, response.getStatusCode().value());
+        Assertions.assertNotNull(response.getBody());
+        assertEquals(0, response.getBody().size());
+        verify(userIpTempService, times(1)).getTrackedIpForUser(userId);
     }
 
     @Test

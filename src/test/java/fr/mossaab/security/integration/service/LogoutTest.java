@@ -7,6 +7,7 @@ import fr.mossaab.security.dto.auth.AuthenticationResponseDto;
 import fr.mossaab.security.entities.RefreshToken;
 import fr.mossaab.security.integration.AbstractIntegrationTest;
 import fr.mossaab.security.repository.RefreshTokenRepository;
+import fr.mossaab.security.unit.builder.Replacer;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,10 +43,14 @@ public class LogoutTest extends AbstractIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    @Autowired
+    private ObjectMapper mapper;
 
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
+
+    @Autowired
+    private Replacer replacer;
 
     Random rnd = new Random();
 
@@ -117,6 +122,9 @@ public class LogoutTest extends AbstractIntegrationTest {
                 .andReturn();
 
         String responseJson = result.getResponse().getContentAsString();
+
+        responseJson = replacer.replaceLocalDateTimeToInstant(responseJson);
+
         return mapper.readValue(responseJson, AuthenticationResponseDto.class);
     }
 
