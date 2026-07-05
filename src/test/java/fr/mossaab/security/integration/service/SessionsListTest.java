@@ -47,7 +47,8 @@ public class SessionsListTest extends AbstractIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
-    private static final ObjectMapper mapper = new ObjectMapper();
+    @Autowired
+    private ObjectMapper mapper;
 
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
@@ -55,11 +56,6 @@ public class SessionsListTest extends AbstractIntegrationTest {
     private final Random rnd = new Random();
 
     User user;
-
-    @BeforeAll
-    public static void setUp() {
-        mapper.registerModule(new JavaTimeModule());
-    }
 
     @BeforeEach
     public void setUp(@Autowired UserRepository userRepository, @Autowired UserCreateService userCreateService) {

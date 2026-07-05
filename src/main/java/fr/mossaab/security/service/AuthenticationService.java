@@ -2,14 +2,11 @@ package fr.mossaab.security.service;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.mossaab.security.builder.AuthenticationResponseBuilder;
 import fr.mossaab.security.dto.SessionInfoResponse;
-import fr.mossaab.security.dto.auth.AuthenticationRequest;
-import fr.mossaab.security.dto.auth.AuthenticationResponse;
-import fr.mossaab.security.dto.auth.RegisterRequest;
-import fr.mossaab.security.dto.auth.ResetPasswordRequest;
+import fr.mossaab.security.dto.auth.*;
 import fr.mossaab.security.entities.RefreshToken;
 import fr.mossaab.security.enums.Role;
-import fr.mossaab.security.enums.TokenType;
 import fr.mossaab.security.exception.DuplicateResourceException;
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.repository.UserRepository;
@@ -27,17 +24,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.security.SecureRandom;
-import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -47,7 +41,9 @@ import java.util.*;
 @RequiredArgsConstructor
 public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationResponseBuilder responseBuilder;
     private final JwtService jwtService;
+    private final UserIpTempService userIpTempService;
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshTokenService;
@@ -57,7 +53,7 @@ public class AuthenticationService {
     @Value("${app.server.public-url:https://api.center.beer/auth_service}")
     private String publicUrl;
 
-    public AuthenticationResponse register(RegisterRequest request, String deviceInfo)  {
+    public void register(RegisterRequest request, HttpServletRequest httpServletRequest)  {
         log.info("[BASE REGISTER] - Процесс регистрации через логин и пароль, email:{}", request.getEmail());
 
         // Проверка существования пользователя с таким же email и activationCode == null
@@ -106,35 +102,13 @@ public class AuthenticationService {
 
         try {
             user = userRepository.save(user);
-
-            // 1. для НОВОГО пользователя всегда генерируем новый deviceId
-            String deviceId = UUID.randomUUID().toString();
-
-            // 2. создаём refresh-токен для этого deviceId
-            RefreshToken refreshToken =
-                    refreshTokenService.createOrReuseRefreshToken(user.getId(), deviceId, deviceInfo);
-
-            // 3. генерируем access-токен с deviceId в claim
-            String jwt = jwtService.generateToken(user, deviceId);
-
-            var roles = user.getRole().getAuthorities()
-                    .stream()
-                    .map(SimpleGrantedAuthority::getAuthority)
-                    .toList();
-
-            return AuthenticationResponse.builder()
-                    .accessToken(jwt)
-                    .email(user.getEmail())
-                    .id(user.getId())
-                    .refreshToken(refreshToken.getToken())
-                    .roles(roles)
-                    .tokenType(TokenType.BEARER.name())
-                    .deviceId(deviceId)
-                    .build();
         } catch (Exception e) {
             log.error("[BASE REGISTER] - Ошибка при сохранении пользователя {}", e.getMessage(), e);
             throw new RuntimeException(e);
         }
+
+        String ip = responseBuilder.getIpHelper().getClientIp(httpServletRequest);
+        userIpTempService.saveIpTemp(user.getId(), ip);
     }
 
     public void requestPasswordReset(String email) {
@@ -239,7 +213,7 @@ public class AuthenticationService {
      * @param request Запрос на аутентификацию.
      * @return Ответ с данными пользователя и токенами.
      */
-    public AuthenticationResponse authenticate(AuthenticationRequest request, String deviceInfo) {
+    public AuthenticationResponse authenticate(AuthenticationRequest request, HttpServletRequest httpRequest) {
         log.info("[AUTHENTICATION] - Аутентификация пользователя");
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
@@ -254,41 +228,12 @@ public class AuthenticationService {
             throw new IllegalStateException("EMAIL_NOT_CONFIRMED");
         }
 
-        var roles = user.getRole().getAuthorities()
-                .stream()
-                .map(SimpleGrantedAuthority::getAuthority)
-                .toList();
-
         String deviceIdFromClient = request.getDeviceId(); // может быть null/пустой
 
-        // создаём/переиспользуем refresh-токен
-        RefreshToken refreshToken = refreshTokenService.createOrReuseRefreshToken(
-                user.getId(),
-                deviceIdFromClient,
-                deviceInfo
-        );
-
-        String deviceId = refreshToken.getDeviceId();
-
-        //генерируем JWT c deviceId в claim
-        var jwt = jwtService.generateToken(user, deviceId);
-
-        ResponseCookie jwtCookie = jwtService.generateJwtCookie(jwt);
-        ResponseCookie refreshTokenCookie = refreshTokenService.generateRefreshTokenCookie(refreshToken.getToken());
-
+        var authResponse = responseBuilder.buildAuthenticationResponse(user, deviceIdFromClient, httpRequest);
         log.info("[AUTHENTICATION] - успешная аутентификация для email:{}", user.getEmail());
 
-        return AuthenticationResponse.builder()
-                .accessToken(jwt)
-                .roles(roles)
-                .email(user.getEmail())
-                .id(user.getId())
-                .refreshToken(refreshToken.getToken())
-                .tokenType(TokenType.BEARER.name())
-                .jwtCookie(jwtCookie.toString())
-                .refreshTokenCookie(refreshTokenCookie.toString())
-                .deviceId(deviceId)
-                .build();
+        return authResponse;
     }
 
     @Transactional
@@ -397,6 +342,4 @@ public class AuthenticationService {
         private String tokenType;
 
     }
-
-
 }

@@ -156,7 +156,7 @@ class OAuth2ControllerIT extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.accessToken").exists())
                     .andExpect(jsonPath("$.refreshToken").exists())
                     .andExpect(jsonPath("$.email").value("social2@example.com"))
-                    .andExpect(jsonPath("$.message").value("Успешный вход"))
+                    .andExpect(jsonPath("$.message").value("Успешный вход через соцсеть GOOGLE"))
                     .andExpect(jsonPath("$.deviceId").exists());
         }
 
@@ -225,7 +225,7 @@ class OAuth2ControllerIT extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.accessToken").exists())
                     .andExpect(jsonPath("$.refreshToken").exists())
                     .andExpect(jsonPath("$.email").value("newuser@example.com"))
-                    .andExpect(jsonPath("$.message").value("Регистрация успешна"));
+                    .andExpect(jsonPath("$.message").value("Регистрация успешна через соцсеть VK"));
 
             // Дополнительно можно проверить, что пользователь реально создался в БД
             Optional<User> created = userRepository.findByEmail("newuser@example.com");
@@ -309,7 +309,7 @@ class OAuth2ControllerIT extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.accessToken").exists())
                     .andExpect(jsonPath("$.refreshToken").exists())
                     .andExpect(jsonPath("$.email").value("current@example.com"))
-                    .andExpect(jsonPath("$.message").value("Соцсеть привязана"));
+                    .andExpect(jsonPath("$.message").value("Соцсеть GOOGLE привязана"));
 
             // Дополнительно можно проверить, что у пользователя появилась соц.учётка
             User reloaded = userRepository.findByEmail("current@example.com").orElseThrow();

@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -76,6 +77,7 @@ public class VkIdConfigController {
 
     @Data
     @AllArgsConstructor
+    @NoArgsConstructor
     @Schema(description = "Конфигурация VK ID для фронтенда")
     public static class VkIdConfigResponse {
 

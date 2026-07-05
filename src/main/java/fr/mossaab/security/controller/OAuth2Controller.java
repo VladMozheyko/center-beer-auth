@@ -1,16 +1,16 @@
 package fr.mossaab.security.controller;
 
+import fr.mossaab.security.builder.AuthenticationResponseBuilder;
 import fr.mossaab.security.dto.auth.AuthenticationResponseDto;
 import fr.mossaab.security.dto.social.SocialExchangeRequest;
 import fr.mossaab.security.dto.social.SocialUserInfo;
-import fr.mossaab.security.entities.RefreshToken;
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.enums.OAuthProvider;
 import fr.mossaab.security.enums.OAuthRequestStatus;
 import fr.mossaab.security.exception.SocialAuthException;
 import fr.mossaab.security.logger.AuditLogger;
 import fr.mossaab.security.repository.UserRepository;
-import fr.mossaab.security.repository.UserSocialAccountRepository;
+import fr.mossaab.security.service.AuthenticationService;
 import fr.mossaab.security.service.JwtService;
 import fr.mossaab.security.service.RefreshTokenService;
 import fr.mossaab.security.service.social.service.OneTimeAuthCodeService;
@@ -23,15 +23,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Контроллер для завершения OAuth2-аутентификации:
@@ -46,11 +43,10 @@ public class OAuth2Controller {
 
     private final OneTimeAuthCodeService oneTimeAuthCodeService;
     private final UserRepository userRepository;
-    private final JwtService jwtService;
-    private final RefreshTokenService refreshTokenService;
     private final UserRegistrationService registration;
     private final SocialAccountLinkingService linkingService;
     private final AuditLogger logger;
+    private final AuthenticationResponseBuilder responseBuilder;
 
     @Operation(summary = "\uD83D\uDD27 Пошаговое руководство: регистрация, авторизация и привязка соцсетей (Google, Yandex)",
             description = """
@@ -477,8 +473,7 @@ public class OAuth2Controller {
             logger.logError("Код auth устарел или не верен", req.getProvider().name(), validCurrentUser);
             throw new SocialAuthException("Код устарел или неверен", 400);
         }
-
-        String userAgent = httpRequest.getHeader("User-Agent");
+        
         String deviceId = req.getDeviceId();
 
         Optional<User> user;
@@ -487,7 +482,8 @@ public class OAuth2Controller {
                 user = userRepository.findBySocialId(info.getId(), provider);
                 if (user.isPresent()) {
                     logger.logAction(AuditLogger.ActionType.LOGIN_SUCCESS, req.getProvider().name(), validCurrentUser, "Пользователь успешно найден email:" + info.getEmail());
-                    return buildTokenResponse(user.get(), "Успешный вход", deviceId, userAgent);
+
+                    return responseBuilder.buildResponseWithCookies(user.get(), "Успешный вход через соцсеть " + provider.name(), httpRequest, deviceId);
                 }
                 logger.logError("Пользователь не найден", req.getProvider().name(), validCurrentUser);
                 throw new SocialAuthException("Пользователь не найден", 404);
@@ -499,7 +495,7 @@ public class OAuth2Controller {
                 }
                 User newUser = registration.registerNewUser(provider, info);
                 logger.logAction(AuditLogger.ActionType.REGISTER_SUCCESS, req.getProvider().name(), validCurrentUser, "Успешная регистрация");
-                return buildTokenResponse(newUser, "Регистрация успешна", deviceId, userAgent);
+                return responseBuilder.buildResponseWithCookies(newUser, "Регистрация успешна через соцсеть " + provider.name(), httpRequest, deviceId);
             case LINK:
                 if (currentUser == null) {
                     logger.logError("Привязка аккаунта, пользователь не авторизован", req.getProvider().name(), validCurrentUser);
@@ -513,35 +509,11 @@ public class OAuth2Controller {
                 linkingService.linkSocialAccount(user.get(), info, provider);
                 logger.logAction(AuditLogger.ActionType.LINK_SUCCESS, req.getProvider().name(), validCurrentUser, "Социальная сеть успешно привязана");
                 log.info("Социальная сеть {} успешно привязана к пользователю с ID: {}", provider, user.get().getId());
-                return buildTokenResponse(user.get(), "Соцсеть привязана", deviceId, userAgent);
+                return responseBuilder.buildResponseWithCookies(user.get(), "Соцсеть " + provider.name() + " привязана", httpRequest, deviceId);
             default:
                 log.debug("Неизвестное действие в запросе");
                 logger.logError("Неизвестное действие", req.getProvider().name(), validCurrentUser);
                 throw new SocialAuthException("Неизвестное действие", 400);
         }
-    }
-
-    private ResponseEntity<?> buildTokenResponse(User user, String message, String deviceId, String deviceInfo) {
-        if (deviceId == null || deviceId.isBlank()) {
-            deviceId = UUID.randomUUID().toString();
-        }
-
-        RefreshToken refresh = refreshTokenService.createOrReuseRefreshToken(user.getId(), deviceId, deviceInfo);
-        String jwt = jwtService.generateToken(user, refresh.getDeviceId());
-
-        // Создание тела ответа с токенами
-        AuthenticationResponseDto dto = AuthenticationResponseDto.builder()
-                .accessToken(jwt)
-                .refreshToken(refresh.getToken())
-                .message(message)
-                .deviceId(refresh.getDeviceId())
-                .status(String.valueOf(HttpStatus.OK.value()))
-                .email(user.getEmail())
-                .build();
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, jwtService.generateJwtCookie(jwt).toString())
-                .header(HttpHeaders.SET_COOKIE, refreshTokenService.generateRefreshTokenCookie(refresh.getToken()).toString())
-                .body(dto);
     }
 }
