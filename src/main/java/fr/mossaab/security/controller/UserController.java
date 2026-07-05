@@ -2,8 +2,6 @@ package fr.mossaab.security.controller;
 
 
 import fr.mossaab.security.dto.UserIpTempDto;
-import fr.mossaab.security.dto.FileDataDto;
-import fr.mossaab.security.dto.social.SocialAccountResponse;
 import fr.mossaab.security.dto.user.AllUserInfoResponse;
 import fr.mossaab.security.dto.user.LocationDto;
 import fr.mossaab.security.dto.user.UserProfileResponse;
@@ -28,9 +26,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -49,8 +44,6 @@ public class UserController {
     private final UserService userService;
     private final LocationRepository locationRepository;
     private final UserIpTempService userIpTempService;
-    private final FileDataRepository fileDataRepository;
-    private final UserSocialAccountRepository userSocialAccountRepository;
 
     @Value("${app.server.public-url:https://api.center.beer/auth_service}")
     private String publicUrl;
