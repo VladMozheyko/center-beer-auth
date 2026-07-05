@@ -1,7 +1,11 @@
 package fr.mossaab.security.integration.service;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.mossaab.security.dto.UserIpTempDto;
 import fr.mossaab.security.dto.auth.AuthenticationRequest;
 import fr.mossaab.security.dto.auth.AuthenticationResponseDto;
 import fr.mossaab.security.entities.RefreshToken;
@@ -10,6 +14,7 @@ import fr.mossaab.security.integration.AbstractIntegrationTest;
 import fr.mossaab.security.repository.RefreshTokenRepository;
 import fr.mossaab.security.repository.UserRepository;
 import fr.mossaab.security.service.UserCreateService;
+import fr.mossaab.security.unit.builder.Replacer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +26,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -56,6 +65,9 @@ public class AuthenticationDeviceManagementTest extends AbstractIntegrationTest 
 
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
+
+    @Autowired
+    private Replacer replacer;
 
     Random rnd = new Random(3);
 
@@ -160,7 +172,7 @@ public class AuthenticationDeviceManagementTest extends AbstractIntegrationTest 
 
     private AuthenticationResponseDto request(AuthenticationRequest request) throws Exception {
 
-        List<String> device = new ArrayList<>(List.of("Android" +  rnd.nextInt(4,17), "Windows" +  rnd.nextInt(7, 12)));
+        List<String> device = new ArrayList<>(List.of("Android" + rnd.nextInt(4, 17), "Windows" + rnd.nextInt(7, 12)));
         String requestJson = mapper.writeValueAsString(request);
 
         MvcResult result = mockMvc.perform(post("/authentication/login")
@@ -173,6 +185,10 @@ public class AuthenticationDeviceManagementTest extends AbstractIntegrationTest 
                 .andReturn();
 
         String responseJson = result.getResponse().getContentAsString();
+
+        responseJson = replacer.replaceLocalDateTimeToInstant(responseJson);
+
         return mapper.readValue(responseJson, AuthenticationResponseDto.class);
     }
+
 }

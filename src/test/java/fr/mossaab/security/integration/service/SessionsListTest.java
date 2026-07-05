@@ -14,6 +14,7 @@ import fr.mossaab.security.repository.RefreshTokenRepository;
 import fr.mossaab.security.repository.UserRepository;
 import fr.mossaab.security.service.UserCreateService;
 import fr.mossaab.security.service.UserService;
+import fr.mossaab.security.unit.builder.Replacer;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -52,6 +53,8 @@ public class SessionsListTest extends AbstractIntegrationTest {
 
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
+
+    @Autowired private Replacer replacer;
 
     private final Random rnd = new Random();
 
@@ -136,6 +139,9 @@ public class SessionsListTest extends AbstractIntegrationTest {
                 .andReturn();
 
         String responseJson = result.getResponse().getContentAsString();
+
+        responseJson = replacer.replaceLocalDateTimeToInstant(responseJson);
+
         return mapper.readValue(responseJson, AuthenticationResponseDto.class);
     }
 

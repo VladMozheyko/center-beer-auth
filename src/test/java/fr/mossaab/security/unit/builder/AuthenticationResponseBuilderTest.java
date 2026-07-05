@@ -22,6 +22,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -73,7 +74,7 @@ class AuthenticationResponseBuilderTest {
                 .userIPs(List.of(
                         UserIpTempDto.builder()
                                 .ipAddress("192.168.1.1")
-                                .createdAt(Instant.now())
+                                .createdAt(LocalDateTime.now())
                                 .build()
                 ))
                 .jwtCookie(ResponseCookie.from("jwt", "jwt-token").build())
@@ -133,7 +134,7 @@ class AuthenticationResponseBuilderTest {
 
         UserIpTempDto ipDto = UserIpTempDto.builder()
                 .ipAddress(clientIp)
-                .createdAt(Instant.now())
+                .createdAt(LocalDateTime.now())
                 .build();
 
         // Mocking
@@ -205,7 +206,7 @@ class AuthenticationResponseBuilderTest {
 
         UserIpTempDto ipDto = UserIpTempDto.builder()
                 .ipAddress(clientIp)
-                .createdAt(Instant.now())
+                .createdAt(LocalDateTime.now())
                 .build();
 
         AuthenticationResponse expectedResponse = AuthenticationResponse.builder()
@@ -331,7 +332,7 @@ class AuthenticationResponseBuilderTest {
 
         UserIpTempDto ipDto = UserIpTempDto.builder()
                 .ipAddress(clientIp)
-                .createdAt(Instant.now())
+                .createdAt(LocalDateTime.now())
                 .build();
 
         // Mocking

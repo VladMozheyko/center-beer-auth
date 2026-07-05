@@ -27,6 +27,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -80,12 +81,12 @@ class UserControllerTest {
         Long userId = 1L;
         UserIpTempDto dto1 = UserIpTempDto.builder()
                 .ipAddress("192.168.1.100")
-                .createdAt(java.time.Instant.now())
+                .createdAt(LocalDateTime.now())
                 .build();
         
         UserIpTempDto dto2 = UserIpTempDto.builder()
                 .ipAddress("10.0.0.50")
-                .createdAt(java.time.Instant.now().minusSeconds(100))
+                .createdAt(LocalDateTime.now().minusSeconds(100))
                 .build();
 
         // Mocking
