@@ -51,7 +51,8 @@ public class AuthenticationDeviceManagementTest extends AbstractIntegrationTest 
     @Autowired
     private MockMvc mockMvc;
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    @Autowired
+    private ObjectMapper mapper;
 
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;

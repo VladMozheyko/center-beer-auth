@@ -1,11 +1,9 @@
 package fr.mossaab.security.controller;
 
+import fr.mossaab.security.builder.AuthenticationResponseBuilder;
 import fr.mossaab.security.dto.auth.*;
 import fr.mossaab.security.dto.user.UserProfileResponse;
-import fr.mossaab.security.service.AuthenticationService;
-import fr.mossaab.security.service.PhoneRegistrationFacade;
-import fr.mossaab.security.service.RefreshTokenService;
-import fr.mossaab.security.service.StorageService;
+import fr.mossaab.security.service.*;
 import fr.mossaab.security.validation.annotation.ValidPdfFileName;
 import fr.mossaab.security.validation.annotation.ValidSmsCode;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,7 +18,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.text.ParseException;
 
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.repository.UserRepository;
@@ -36,6 +33,7 @@ public class AuthController {
     private final RefreshTokenService refreshTokenService;
     private final PhoneRegistrationFacade phoneRegistrationFacade;
     private final UserRepository userRepository;
+    private final AuthenticationResponseBuilder responseBuilder;
 
     @Operation(summary = "Получить пользователя по идентификатору")
     @GetMapping("/by-id/{id}")
@@ -62,8 +60,8 @@ public class AuthController {
     }
 
     @PostMapping("/register-phone")
-    public ResponseEntity<?> registerByPhone(@Valid @RequestBody PhoneRegisterRequest dto) {
-        phoneRegistrationFacade.start(dto);
+    public ResponseEntity<?> registerByPhone(@Valid @RequestBody PhoneRegisterRequest dto, HttpServletRequest request) {
+        phoneRegistrationFacade.start(dto, request);
         return ResponseEntity.ok("Код отправлен");
     }
 
@@ -88,11 +86,9 @@ public class AuthController {
 
     @Operation(summary = "Регистрация пользователя", description = "Позволяет новому пользователю зарегистрироваться в системе.")
     @PostMapping(value = "/register")
-    public ResponseEntity<Object> register(@Valid @RequestBody RegisterRequest request, HttpServletRequest httpServletRequest) {
-        String deviceInfo = httpServletRequest.getHeader("User-Agent");
-        authenticationService.register(request, deviceInfo);
-        return ResponseEntity.ok().body("Код активации для активации аккаунта успешно отправлен на почтовый адрес");
-    }
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request, HttpServletRequest httpServletRequest) {
+        authenticationService.register(request, httpServletRequest);
+        return ResponseEntity.ok().body("Код активации для активации аккаунта успешно отправлен на почтовый адрес");    }
 
 
     @Operation(summary = "Активация пользователя", description = "Позволяет отправить код активации для регистрации.")
@@ -106,23 +102,9 @@ public class AuthController {
 
     @Operation(summary = "Вход пользователя 🚨(modify)", description = "Этот endpoint позволяет пользователю войти в систему.")
     @PostMapping("/login")
-    public ResponseEntity<Object> authenticate(@Valid @RequestBody AuthenticationRequest request, HttpServletRequest httpServletRequest) {
-        String deviceInfo = httpServletRequest.getHeader("User-Agent");
-        AuthenticationResponse authenticationResponse = authenticationService.authenticate(request, deviceInfo);
-
-        // Создание тела ответа с токенами
-        AuthenticationResponseDto dto = AuthenticationResponseDto.builder()
-                .accessToken(authenticationResponse.getAccessToken())
-                .refreshToken(authenticationResponse.getRefreshToken())
-                .message("Вход в систему пользователя успешно совершен")
-                .deviceId(authenticationResponse.getDeviceId())
-                .status(String.valueOf(HttpStatus.OK.value()))
-                .build();
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, authenticationResponse.getJwtCookie())
-                .header(HttpHeaders.SET_COOKIE, authenticationResponse.getRefreshTokenCookie())
-                .body(dto);
+    public ResponseEntity<AuthenticationResponseDto> authenticate(@Valid @RequestBody AuthenticationRequest request, HttpServletRequest httpServletRequest) {
+        AuthenticationResponse authenticationResponse = authenticationService.authenticate(request, httpServletRequest);
+        return responseBuilder.buildResponseWithCookies(authenticationResponse, "Успешная аутентификация через логин и пароль");
     }
 
 
@@ -130,7 +112,7 @@ public class AuthController {
     @PostMapping("/resend-activation-code")
     public ResponseEntity<Object> resendActivationCode(
             @Valid @RequestBody EmailRequest request
-    ) throws ParseException {
+    ) {
         authenticationService.resendActivationCode(request.getEmail());
         return new ResponseEntity<>("Код подтверждения аккаунта успешно отправлен на почту", HttpStatus.OK);
     }

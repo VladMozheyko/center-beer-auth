@@ -1,10 +1,12 @@
 package fr.mossaab.security.unit.controller;
 
+import fr.mossaab.security.builder.AuthenticationResponseBuilder;
 import fr.mossaab.security.controller.AuthController;
 import fr.mossaab.security.dto.auth.*;
 import fr.mossaab.security.dto.user.UserProfileResponse;
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.enums.RegistrationMethod;
+import fr.mossaab.security.helper.IpHelper;
 import fr.mossaab.security.service.AuthenticationService;
 import fr.mossaab.security.service.PhoneRegistrationFacade;
 import fr.mossaab.security.service.RefreshTokenService;
@@ -54,6 +56,12 @@ class AuthControllerTest {
     @Mock
     private HttpServletRequest request;
 
+    @Mock
+    private IpHelper helper;
+
+    @Mock
+    private AuthenticationResponseBuilder authResponseBuilder;
+
     @Test
     @DisplayName("Получение пользователя по id - успешное")
     void getUserById_Success() {
@@ -77,11 +85,12 @@ class AuthControllerTest {
                 .phone("123456789")
                 .method(RegistrationMethod.SMS)
                 .build();
+        HttpServletRequest httpRequestMock = Mockito.mock(HttpServletRequest.class);
 
-        ResponseEntity<?> response = authController.registerByPhone(request);
+        ResponseEntity<?> response = authController.registerByPhone(request, httpRequestMock);
 
         assertEquals(200, response.getStatusCode().value());
-        verify(phoneRegistrationFacade, times(1)).start(request);
+        verify(phoneRegistrationFacade, times(1)).start(request, httpRequestMock);
     }
 
     @Test
@@ -115,11 +124,10 @@ class AuthControllerTest {
     void register_Success() {
         RegisterRequest request = new RegisterRequest("email@example.com", "password", "nickname");
         HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
-        when(httpServletRequest.getHeader("User-Agent")).thenReturn("AndroidX");
-        ResponseEntity<Object> response = authController.register(request, httpServletRequest);
+        ResponseEntity<?> response = authController.register(request, httpServletRequest);
 
         assertEquals(200, response.getStatusCode().value());
-        verify(authenticationService, times(1)).register(request, "AndroidX");
+        verify(authenticationService, times(1)).register(request, httpServletRequest);
     }
 
     @Test
@@ -146,19 +154,29 @@ class AuthControllerTest {
                 .roles(List.of("ROLE_USER"))
                 .build();
 
+        AuthenticationResponseDto authResponseDto = AuthenticationResponseDto.builder()
+                .accessToken("accessToken")
+                .email("email@example.com")
+                .refreshToken("refreshToken")
+                .message("Успешная аутентификация через логин и пароль")
+                .build();
+
+        ResponseEntity<AuthenticationResponseDto> resultAuthResp = ResponseEntity.ok(authResponseDto);
+
         HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
-        when(httpServletRequest.getHeader("User-Agent")).thenReturn("AndroidX");
 
-        when(authenticationService.authenticate(eq(authRequest), anyString()))
+        when(authenticationService.authenticate(eq(authRequest),eq(httpServletRequest)))
                 .thenReturn(authResponse);
+        when(authResponseBuilder.buildResponseWithCookies(authResponse, "Успешная аутентификация через логин и пароль"))
+                .thenReturn(resultAuthResp);
 
-        ResponseEntity<Object> response =
+        ResponseEntity<?> response =
                 authController.authenticate(authRequest, httpServletRequest);
 
         assertEquals(200, response.getStatusCode().value());
 
         verify(authenticationService, times(1))
-                .authenticate(eq(authRequest), eq("AndroidX"));
+                .authenticate(eq(authRequest), eq(httpServletRequest));
     }
 
     @Test
