@@ -1,6 +1,9 @@
 package fr.mossaab.security.controller;
 
 
+import fr.mossaab.security.dto.FileDataDto;
+import fr.mossaab.security.dto.social.SocialAccountResponse;
+import fr.mossaab.security.dto.user.AllUserInfoResponse;
 import fr.mossaab.security.dto.user.LocationDto;
 import fr.mossaab.security.dto.user.UserProfileResponse;
 import fr.mossaab.security.entities.*;
@@ -22,6 +25,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +45,8 @@ public class UserController {
     private final MailSender mailSender;
     private final UserService userService;
     private final LocationRepository locationRepository;
+    private final FileDataRepository fileDataRepository;
+    private final UserSocialAccountRepository userSocialAccountRepository;
 
     @Value("${app.server.public-url:https://api.center.beer/auth_service}")
     private String publicUrl;
@@ -155,5 +163,16 @@ public class UserController {
         user.setLocation(loc);
         userRepository.save(user);
         return ResponseEntity.ok("Геолокация успешно сохранена longitude: " + loc.getLongitude() + " / latitude: " + loc.getLatitude());
+    }
+
+    @Operation(
+            summary = "Получить профиль по id",
+            description = "Получение всех данных о пользователе")
+    @GetMapping("/profile/{id}")
+    public ResponseEntity<AllUserInfoResponse> getProfile(
+            @Valid @PathVariable Long id) {
+        AllUserInfoResponse fullInfo = userService.getFullUserInfo(id);
+
+        return ResponseEntity.ok(fullInfo);
     }
 }
