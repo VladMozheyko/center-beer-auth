@@ -66,6 +66,7 @@ public class User implements UserDetails {
     // ------------ социальные сети ------------
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @Builder.Default
     private Set<UserSocialAccount> socialAccounts = new HashSet<>();
     //------------------_____--------------------
 

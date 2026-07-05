@@ -66,11 +66,11 @@ class AuthControllerIT extends AbstractIntegrationTest {
     @MockBean
     private MailSender mailSender;
 
+    @Autowired
     private ObjectMapper objectMapper;
 
     @BeforeEach
     void setup() {
-        objectMapper = new ObjectMapper();
         Mockito.when(phoneVerificationService.sendCode(anyString(), any())).thenReturn("1234");
     }
 
@@ -108,7 +108,7 @@ class AuthControllerIT extends AbstractIntegrationTest {
                 .andExpect(content().string("Код отправлен"));
 
         ArgumentCaptor<PhoneRegisterRequest> captor = ArgumentCaptor.forClass(PhoneRegisterRequest.class);
-        Mockito.verify(phoneRegistrationFacade).start(captor.capture());
+        Mockito.verify(phoneRegistrationFacade).start(captor.capture(), any(HttpServletRequest.class));
         assertThat(captor.getValue().getEmail()).isEqualTo("test@example.com");
     }
 
@@ -131,11 +131,11 @@ class AuthControllerIT extends AbstractIntegrationTest {
                 .accessToken("mocked-access-token")
                 .refreshToken("mocked-refresh-token")
                 .deviceId("device-123")
-                .jwtCookie(ResponseCookie.from("jwt-cookie", "mocked-access-token").build().toString())
-                .refreshTokenCookie(ResponseCookie.from("refresh-jwt-cookie", "mocked-refresh-token").build().toString())
+                .jwtCookie(ResponseCookie.from("jwt-cookie", "mocked-access-token").build())
+                .refreshTokenCookie(ResponseCookie.from("refresh-jwt-cookie", "mocked-refresh-token").build())
                 .build();
 
-        when(authenticationService.authenticate(any(AuthenticationRequest.class), anyString()))
+        when(authenticationService.authenticate(any(AuthenticationRequest.class), any(HttpServletRequest.class)))
                 .thenReturn(mockAuthResponse);
 
         mockMvc.perform(post("/authentication/login")
@@ -143,7 +143,7 @@ class AuthControllerIT extends AbstractIntegrationTest {
                         .header("User-Agent", "JUnit Test Agent")
                         .content(objectMapper.writeValueAsString(authRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Вход в систему пользователя успешно совершен"))
+                .andExpect(jsonPath("$.message").value("Успешная аутентификация через логин и пароль"))
                 .andExpect(jsonPath("$.accessToken").value("mocked-access-token"))
                 .andExpect(jsonPath("$.refreshToken").value("mocked-refresh-token"))
                 .andExpect(jsonPath("$.deviceId").value("device-123"))
