@@ -33,8 +33,6 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
     private final SocialUserFlowService flowService;
     private final OAuthStateStorage stateStorage;
 
-    @Value("${frontend.server.address}")
-    private String frontendUrl;
     @Value("${mobile.server.address}")
     private String mobileUrl;
 
@@ -103,7 +101,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
             return webUrl;
         } else {
             // По умолчанию редиректим на фронтенд (web)
-            return frontendUrl;
+            return webUrl;
         }
     }
 

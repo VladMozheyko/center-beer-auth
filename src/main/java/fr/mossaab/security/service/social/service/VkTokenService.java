@@ -24,7 +24,7 @@ public class VkTokenService {
 
     private final RestTemplate restTemplate;
 
-    @Value("${frontend.server.address}")
+    @Value("${app.server.base-url}")
     private String frontendUrl;
 
     @Value("${spring.security.oauth2.client.registration.vk.client-id}")
