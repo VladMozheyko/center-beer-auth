@@ -116,11 +116,7 @@ public class UserController {
         try {
             userService.confirmEmailChange(code);
             return ResponseEntity.ok("E-mail успешно изменён");
-        } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (DuplicateResourceException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalStateException | DuplicateResourceException | IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Ошибка при подтверждении: " + e.getMessage());

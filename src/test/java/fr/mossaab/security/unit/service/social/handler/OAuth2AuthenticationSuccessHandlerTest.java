@@ -87,9 +87,6 @@ class OAuth2AuthenticationSuccessHandlerTest {
         ReflectionTestUtils.setField(successHandler, "mobileUrl", mobileUrl);
         
         OAuth2User oAuth2User = mock(OAuth2User.class);
-        Map<String, Object> attributes = new HashMap<>();
-        attributes.put("id", "12345");
-        attributes.put("email", "user@example.com");
 
         when(authentication.getAuthorizedClientRegistrationId()).thenReturn("google");
         when(authentication.getPrincipal()).thenReturn(oAuth2User);
@@ -168,9 +165,6 @@ class OAuth2AuthenticationSuccessHandlerTest {
         ReflectionTestUtils.setField(successHandler, "mobileUrl", mobileUrl);
         
         OAuth2User oAuth2User = mock(OAuth2User.class);
-        Map<String, Object> attributes = new HashMap<>();
-        attributes.put("id", "12345");
-        attributes.put("email", "user@example.com");
 
         when(authentication.getAuthorizedClientRegistrationId()).thenReturn("google");
         when(authentication.getPrincipal()).thenReturn(oAuth2User);

@@ -98,11 +98,6 @@ class AuthenticationServiceTest {
                 .nickname(request.getNickname())
                 .build();
 
-        // Создаем мок для нового клиента RefreshToken
-        RefreshToken mockRefreshToken = RefreshToken.builder()
-                .token("mockRefreshToken")
-                .build();
-
         // Настройка mock объектов
         when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.empty());
         when(userRepository.findByNickname(request.getNickname())).thenReturn(Optional.empty());
