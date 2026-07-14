@@ -369,8 +369,8 @@ class AuthenticationServiceTest {
             SecurityContextHolder.getContext().setAuthentication(auth);
 
             Long userId = 1L;
-            fr.mossaab.security.entities.User userEntity =
-                    fr.mossaab.security.entities.User.builder()
+            User userEntity =
+                    User.builder()
                             .id(userId)
                             .email(email)
                             .build();

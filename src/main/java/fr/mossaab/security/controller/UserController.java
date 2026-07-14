@@ -45,7 +45,7 @@ public class UserController {
     private final LocationRepository locationRepository;
     private final UserIpTempService userIpTempService;
 
-    @Value("${app.server.public-url:https://api.center.beer/auth_service}")
+    @Value("${app.server.base-url:https://api.center.beer/auth_service}")
     private String publicUrl;
 
     @Operation(summary = "Получить профиль пользователя")
