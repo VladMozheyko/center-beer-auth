@@ -1,6 +1,7 @@
 package fr.mossaab.security.config;
 
 import fr.mossaab.security.service.social.hendler.OAuth2AuthenticationSuccessHandler;
+import fr.mossaab.security.config.OAuth2StateFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,6 +33,7 @@ import org.springframework.context.annotation.Primary;
 public class SecurityConfiguration {
 
     private final OAuth2AuthenticationSuccessHandler authenticationSuccessHandler;
+    private final OAuth2StateFilter oAuth2StateFilter;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final AuthenticationProvider authenticationProvider;
 
@@ -98,6 +100,7 @@ public class SecurityConfiguration {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .formLogin(AbstractHttpConfigurer::disable)
+                .addFilterBefore(oAuth2StateFilter, UsernamePasswordAuthenticationFilter.class)
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/oauth2/authorization/vk")
                         .successHandler(authenticationSuccessHandler)

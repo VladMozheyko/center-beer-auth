@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -31,6 +32,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
     private final OAuthUserInfoService userInfoService;
     private final SocialUserFlowService flowService;
+    private final OAuthStateStorage stateStorage;
 
     @Value("${frontend.server.address}")
     private String frontendUrl;
@@ -56,6 +58,19 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         OAuth2User oAuth2User = token.getPrincipal();
         SocialUserInfo userInfo = userInfoService.getUserInfo(oAuth2User, null, provider);
         SocialUserFlowService.SocialAuthResult result = flowService.analyzeUser(userInfo, provider);
+
+        // Проверка state параметра для защиты от CSRF (опционально, для обратной совместимости)
+        String springState = request.getParameter("state");
+        if (springState != null) {
+            String storedState = stateStorage.get(springState);
+            if (storedState == null) {
+                log.warn("[OAuth2 Handler] - Недействительный state параметр, возможна CSRF атака");
+                sendErrorRedirect(response, SocialAuthStatus.ERROR, "Недействительный state параметр");
+                return;
+            }
+            // Удаляем использованный state
+            stateStorage.remove(springState);
+        }
 
         String redirectUrl = frontendUrl + "?" +
                 "auth_status=" + result.getStatus().name().toLowerCase() +
