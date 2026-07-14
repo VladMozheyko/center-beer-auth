@@ -23,11 +23,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -43,6 +46,8 @@ public class OAuth2Controller {
 
     private final OneTimeAuthCodeService oneTimeAuthCodeService;
     private final UserRepository userRepository;
+    private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
     private final UserRegistrationService registration;
     private final SocialAccountLinkingService linkingService;
     private final AuditLogger logger;
@@ -473,7 +478,7 @@ public class OAuth2Controller {
             logger.logError("Код auth устарел или не верен", req.getProvider().name(), validCurrentUser);
             throw new SocialAuthException("Код устарел или неверен", 400);
         }
-        
+
         String deviceId = req.getDeviceId();
 
         Optional<User> user;

@@ -36,6 +36,11 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
     @Value("${frontend.server.address}")
     private String frontendUrl;
+    @Value("${mobile.server.address}")
+    private String mobileUrl;
+
+    @Value("${web.server.address}")
+    private String webUrl;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
@@ -43,7 +48,8 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         log.info("[OAuth2 Handler] - Процесс обработки ответа аутентификации через соцсеть");
         if (!(authentication instanceof OAuth2AuthenticationToken token)) {
             log.error("[OAuth2 Handler] - Ошибка типа аутентификации");
-            sendErrorRedirect(response, SocialAuthStatus.ERROR, "Тип недействительной аутентификации");
+//            sendErrorRedirect(response, SocialAuthStatus.ERROR, "Тип недействительной аутентификации");
+            sendErrorRedirect(response, request, SocialAuthStatus.ERROR, "Тип недействительной аутентификации");
             return;
         }
 
@@ -51,7 +57,8 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         OAuthProvider provider = OAuthProvider.fromString(registrationId);
         if (provider == null) {
             log.error("[OAuth2 Handler] - Не удалось определить провайдера аутентификации или неподдерживаемый тип");
-            sendErrorRedirect(response, SocialAuthStatus.ERROR, "Неизвестный провайдер OAuth");
+//            sendErrorRedirect(response, SocialAuthStatus.ERROR, "Неизвестный провайдер OAuth");
+            sendErrorRedirect(response, request, SocialAuthStatus.ERROR, "Неизвестный провайдер OAuth");
             return;
         }
 
@@ -81,8 +88,8 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         log.info("[OAuth2 Handler] -  Успешная авторизация через {}", provider);
     }
 
-    private void sendErrorRedirect(HttpServletResponse response, SocialAuthStatus status, String message) throws IOException {
-        String url = frontendUrl + "?auth_status=" + status.name().toLowerCase() +
+    private void sendErrorRedirect(HttpServletResponse response, HttpServletRequest request, SocialAuthStatus status, String message) throws IOException {
+        String url = getRedirectUrl(request) + "?auth_status=" + status.name().toLowerCase() +
                 "&message=" + encode(message);
         response.sendRedirect(url);
     }

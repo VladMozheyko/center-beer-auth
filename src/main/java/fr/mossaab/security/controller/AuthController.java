@@ -4,6 +4,10 @@ import fr.mossaab.security.builder.AuthenticationResponseBuilder;
 import fr.mossaab.security.dto.auth.*;
 import fr.mossaab.security.dto.user.UserProfileResponse;
 import fr.mossaab.security.service.*;
+import fr.mossaab.security.service.AuthenticationService;
+import fr.mossaab.security.service.PhoneRegistrationFacade;
+import fr.mossaab.security.service.RefreshTokenService;
+import fr.mossaab.security.service.StorageService;
 import fr.mossaab.security.validation.annotation.ValidPdfFileName;
 import fr.mossaab.security.validation.annotation.ValidSmsCode;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,12 +16,17 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import org.springframework.http.*;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.util.HashMap;
+import java.util.Map;
 
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.repository.UserRepository;

@@ -1,0 +1,9 @@
+ALTER TABLE _user
+ADD COLUMN created_at DATETIME NULL;
+
+UPDATE _user
+SET created_at = NOW()
+WHERE created_at IS NULL;
+
+ALTER TABLE _user
+MODIFY COLUMN created_at DATETIME NOT NULL;
