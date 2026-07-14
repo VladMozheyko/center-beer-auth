@@ -27,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -219,7 +218,7 @@ class IpAddressTrackingIT extends AbstractIntegrationTest {
 
         @Test
         @DisplayName("Social Login: IP сохраняется при входе через соцсеть с X-Real-IP")
-        void socialLoginWithRealIp_ShouldSaveIp() throws Exception {
+        void socialLoginWithRealIp_ShouldSaveIp() {
             // Given
             String expectedIp = "203.0.113.100";
             testUser = createTestUser("socialuser@example.com", "password123");
@@ -267,7 +266,7 @@ class IpAddressTrackingIT extends AbstractIntegrationTest {
 
         @Test
         @DisplayName("Social Login: Вход через соцсеть с X-Real-IP (полный сценарий)")
-        void socialLoginFullScenario_ShouldSaveIpFromHeader() throws Exception {
+        void socialLoginFullScenario_ShouldSaveIpFromHeader() {
             // Given - Создаем пользователя с соцаккаунтом
             String email = "socialfull@example.com";
             String externalId = "social-full-123";
@@ -373,10 +372,7 @@ class IpAddressTrackingIT extends AbstractIntegrationTest {
             long userId = testUser.getId();
 
             Instant now = Instant.now();
-            Instant expired = now.minusSeconds(400); // Expired (TTL is 300s)
-            Instant notExpired = now.plusSeconds(100); // Not expired
 
-            // Save expired IP
             UserIpTemp expiredIp = UserIpTemp.builder()
                     .userId(userId)
                     .ipAddress("198.51.100.50")
@@ -617,7 +613,7 @@ class IpAddressTrackingIT extends AbstractIntegrationTest {
 
         @Test
         @DisplayName("Полный сценарий: Соцсеть -> Регистрация/Вход -> Проверка IP")
-        void socialLoginFullScenario() throws Exception {
+        void socialLoginFullScenario() {
             // Шаг 1: Создаем пользователя с соцаккаунтом
             String email = "sociallogin@example.com";
             String externalId = "social-login-123";
