@@ -1,8 +1,10 @@
-package fr.mossaab.security.service.social.hendler;
+package fr.mossaab.security.unit.service.social.handler;
 
 import fr.mossaab.security.dto.social.SocialUserInfo;
 import fr.mossaab.security.enums.OAuthProvider;
 import fr.mossaab.security.enums.SocialAuthStatus;
+import fr.mossaab.security.service.social.hendler.OAuth2AuthenticationSuccessHandler;
+import fr.mossaab.security.service.social.hendler.OAuthStateStorage;
 import fr.mossaab.security.service.social.service.OAuthUserInfoService;
 import fr.mossaab.security.service.social.service.SocialUserFlowService;
 import org.junit.jupiter.api.Assertions;
@@ -29,7 +31,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,6 +45,9 @@ class OAuth2AuthenticationSuccessHandlerTest {
 
     @Mock
     private SocialUserFlowService flowService;
+
+    @Mock
+    private OAuthStateStorage stateStorage;
 
     @Mock
     private HttpServletRequest request;
@@ -72,9 +76,16 @@ class OAuth2AuthenticationSuccessHandlerTest {
     }
 
     @Test
-    @DisplayName("Redirects to frontend on successful authentication")
-    void onAuthenticationSuccess_shouldRedirectOnSuccess() throws IOException {
+    @DisplayName("Redirects to correct URL based on device type")
+    void onAuthenticationSuccess_shouldRedirectBasedOnDeviceType() throws IOException {
+        String frontendUrl = "http://localhost:3000";
+        String webUrl = "http://localhost:3001";
+        String mobileUrl = "http://localhost:3002";
+        
         ReflectionTestUtils.setField(successHandler, "frontendUrl", frontendUrl);
+        ReflectionTestUtils.setField(successHandler, "webUrl", webUrl);
+        ReflectionTestUtils.setField(successHandler, "mobileUrl", mobileUrl);
+        
         OAuth2User oAuth2User = mock(OAuth2User.class);
         Map<String, Object> attributes = new HashMap<>();
         attributes.put("id", "12345");
@@ -82,6 +93,9 @@ class OAuth2AuthenticationSuccessHandlerTest {
 
         when(authentication.getAuthorizedClientRegistrationId()).thenReturn("google");
         when(authentication.getPrincipal()).thenReturn(oAuth2User);
+        when(request.getParameter("state")).thenReturn("mock-state");
+        when(stateStorage.get("mock-state")).thenReturn("stored");
+        when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
 
         when(userInfoService.getUserInfo(
                 eq(oAuth2User),
@@ -94,7 +108,8 @@ class OAuth2AuthenticationSuccessHandlerTest {
 
         successHandler.onAuthenticationSuccess(request, response, authentication);
 
-        verify(response).sendRedirect(startsWith("http://localhost?auth_status=new_account"));
+        verify(stateStorage).remove("mock-state");
+        verify(response).sendRedirect(startsWith(webUrl + "?auth_status=new_account"));
     }
 
     @Test
@@ -132,11 +147,49 @@ class OAuth2AuthenticationSuccessHandlerTest {
 
         when(authentication.getPrincipal()).thenReturn(oAuth2User);
         when(authentication.getAuthorizedClientRegistrationId()).thenReturn("google");
+        when(request.getParameter("state")).thenReturn("mock-state");
+        when(stateStorage.get("mock-state")).thenReturn("stored");
         when(userInfoService.getUserInfo(any(OAuth2User.class), any(), any())).thenReturn(new SocialUserInfo());
         when(flowService.analyzeUser(any(), any())).thenReturn(authResult);
 
         successHandler.onAuthenticationSuccess(request, response, authentication);
 
+        verify(stateStorage).remove("mock-state");
         verify(response).sendRedirect(contains(URLEncoder.encode(specialMessage, StandardCharsets.UTF_8)));
+    }
+    
+    @Test
+    @DisplayName("Redirects to mobile URL for mobile devices")
+    void onAuthenticationSuccess_shouldRedirectToMobileForMobileDevice() throws IOException {
+        String mobileUrl = "http://localhost:3002";
+        
+        ReflectionTestUtils.setField(successHandler, "frontendUrl", "http://localhost:3000");
+        ReflectionTestUtils.setField(successHandler, "webUrl", "http://localhost:3001");
+        ReflectionTestUtils.setField(successHandler, "mobileUrl", mobileUrl);
+        
+        OAuth2User oAuth2User = mock(OAuth2User.class);
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put("id", "12345");
+        attributes.put("email", "user@example.com");
+
+        when(authentication.getAuthorizedClientRegistrationId()).thenReturn("google");
+        when(authentication.getPrincipal()).thenReturn(oAuth2User);
+        when(request.getParameter("state")).thenReturn("mock-state");
+        when(stateStorage.get("mock-state")).thenReturn("stored");
+        when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15");
+
+        when(userInfoService.getUserInfo(
+                eq(oAuth2User),
+                eq(null),
+                eq(OAuthProvider.GOOGLE)
+        )).thenReturn(new SocialUserInfo());
+
+        when(flowService.analyzeUser(any(SocialUserInfo.class), any(OAuthProvider.class)))
+                .thenReturn(authResult);
+
+        successHandler.onAuthenticationSuccess(request, response, authentication);
+
+        verify(stateStorage).remove("mock-state");
+        verify(response).sendRedirect(startsWith(mobileUrl + "?auth_status=new_account"));
     }
 }

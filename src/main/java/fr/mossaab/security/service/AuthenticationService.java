@@ -50,7 +50,7 @@ public class AuthenticationService {
     private final MailSender mailSender;
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
 
-    @Value("${app.server.public-url:https://api.center.beer/auth_service}")
+    @Value("${app.server.base-url:https://api.center.beer/auth_service}")
     private String publicUrl;
 
     public void register(RegisterRequest request, HttpServletRequest httpServletRequest)  {

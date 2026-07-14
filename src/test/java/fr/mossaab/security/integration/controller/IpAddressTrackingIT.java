@@ -502,7 +502,7 @@ class IpAddressTrackingIT extends AbstractIntegrationTest {
             testUser = createTestUser("noips@example.com", "password123");
 
             // When
-            List<fr.mossaab.security.dto.UserIpTempDto> dtos = userIpTempService.getTrackedIpForUser(testUser.getId());
+            List<UserIpTempDto> dtos = userIpTempService.getTrackedIpForUser(testUser.getId());
 
             // Then
             assertThat(dtos).isEmpty();

@@ -1,4 +1,4 @@
-package fr.mossaab.security.unit.service.social.hendler;
+package fr.mossaab.security.unit.service.social.handler;
 
 import fr.mossaab.security.service.social.hendler.OAuthStateStorage;
 import org.junit.jupiter.api.BeforeEach;
