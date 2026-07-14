@@ -4,6 +4,7 @@ import fr.mossaab.security.dto.social.SocialUserInfo;
 import fr.mossaab.security.enums.OAuthProvider;
 import fr.mossaab.security.enums.SocialAuthStatus;
 import fr.mossaab.security.service.social.hendler.OAuth2AuthenticationSuccessHandler;
+import fr.mossaab.security.service.social.hendler.OAuthStateStorage;
 import fr.mossaab.security.service.social.service.OAuthUserInfoService;
 import fr.mossaab.security.service.social.service.SocialUserFlowService;
 import org.junit.jupiter.api.Assertions;
@@ -30,7 +31,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -45,6 +45,9 @@ class OAuth2AuthenticationSuccessHandlerTest {
 
     @Mock
     private SocialUserFlowService flowService;
+
+    @Mock
+    private OAuthStateStorage stateStorage;
 
     @Mock
     private HttpServletRequest request;
@@ -83,6 +86,8 @@ class OAuth2AuthenticationSuccessHandlerTest {
 
         when(authentication.getAuthorizedClientRegistrationId()).thenReturn("google");
         when(authentication.getPrincipal()).thenReturn(oAuth2User);
+        when(request.getParameter("state")).thenReturn("mock-state");
+        when(stateStorage.get("mock-state")).thenReturn("stored");
 
         when(userInfoService.getUserInfo(
                 eq(oAuth2User),
@@ -95,6 +100,7 @@ class OAuth2AuthenticationSuccessHandlerTest {
 
         successHandler.onAuthenticationSuccess(request, response, authentication);
 
+        verify(stateStorage).remove("mock-state");
         verify(response).sendRedirect(startsWith("http://localhost?auth_status=new_account"));
     }
 
@@ -133,11 +139,14 @@ class OAuth2AuthenticationSuccessHandlerTest {
 
         when(authentication.getPrincipal()).thenReturn(oAuth2User);
         when(authentication.getAuthorizedClientRegistrationId()).thenReturn("google");
+        when(request.getParameter("state")).thenReturn("mock-state");
+        when(stateStorage.get("mock-state")).thenReturn("stored");
         when(userInfoService.getUserInfo(any(OAuth2User.class), any(), any())).thenReturn(new SocialUserInfo());
         when(flowService.analyzeUser(any(), any())).thenReturn(authResult);
 
         successHandler.onAuthenticationSuccess(request, response, authentication);
 
+        verify(stateStorage).remove("mock-state");
         verify(response).sendRedirect(contains(URLEncoder.encode(specialMessage, StandardCharsets.UTF_8)));
     }
 }
