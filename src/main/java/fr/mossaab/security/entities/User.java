@@ -33,6 +33,7 @@ public class User implements UserDetails {
     private Long id;
 
     @Column(nullable = false, columnDefinition = "bigint default 0")
+    @Builder.Default
     private Integer temporarySecondsBalance = 0;
 
     @NotBlank(message = "Никнейм не может быть пустым.")
@@ -56,6 +57,7 @@ public class User implements UserDetails {
     @Column(length = 6)
     private String phoneActivationCode;
 
+    @Builder.Default
     private Boolean phoneVerified = false;
 
     private String activationCode;

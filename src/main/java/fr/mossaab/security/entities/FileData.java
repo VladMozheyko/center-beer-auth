@@ -30,7 +30,6 @@ public class FileData {
     @JoinColumn(name = "_user_id", referencedColumnName = "id", unique = true)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonBackReference
-    @EqualsAndHashCode.Exclude
     private User user;
 
 }

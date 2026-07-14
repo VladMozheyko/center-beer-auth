@@ -41,6 +41,7 @@ public class UserIpTemp {
 
     @Column(nullable = false)
     @JsonIgnore
+    @Builder.Default
     private Boolean isPrivateOrLoopback = false;
 
     @Column(nullable = false)
