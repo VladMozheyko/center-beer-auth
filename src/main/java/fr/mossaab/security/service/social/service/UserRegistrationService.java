@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Сервис для регистрации нового пользователя через соцсеть.
@@ -35,6 +36,7 @@ public class UserRegistrationService {
                 .email(email)
                 .nickname(nickname)
                 .role(Role.USER)
+                .uuid(UUID.randomUUID().toString())
                 .createdAt(LocalDateTime.now())
                 .temporarySecondsBalance(0)
                 .phoneVerified(false)

@@ -7,9 +7,6 @@ import fr.mossaab.security.helper.IpHelper;
 import fr.mossaab.security.repository.UserIpTempRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,19 +16,17 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@EnableScheduling
 public class UserIpTempService {
+
+    private static final int MAX_IPS_TO_KEEP = 5;
 
     private final UserIpTempRepository repository;
     private final ObjectMapper objectMapper;
     private final IpHelper ipHelper;
 
-    @Value("${user.ip.ttl-seconds:300}")
-    private long ttlSeconds;
-
     /**
      * Сохраняет IP-адрес пользователя во временную таблицу.
-     * Всегда сохраняет IP, помечая его как приватный/loopback с помощью IpHelper.
+     * Хранит только последние 5 IP-адресов. Если их больше 5, удаляет самый старый.
      */
     @Transactional
     public void saveIpTemp(Long userId, String ipAddress) {
@@ -46,38 +41,35 @@ public class UserIpTempService {
         // Всегда логируем IP-адрес
         log.info("IP-адрес {} для пользователя {} (приватный: {})", ipAddress, userId, isPrivateOrLoopback);
 
-        Instant now = Instant.now();
-        Instant expiresAt = now.plusSeconds(ttlSeconds);
+        // Удаляем самый старый IP, если их уже 5
+        List<UserIpTemp> existingIps = repository.findAllByUserIdOrderByCreatedAtDesc(userId);
+        if (existingIps.size() >= MAX_IPS_TO_KEEP) {
+            UserIpTemp oldestIp = existingIps.get(existingIps.size() - 1);
+            repository.delete(oldestIp);
+            log.debug("Удален самый старый IP {} для userId={}, так как лимит ({}) исчерпан", 
+                    oldestIp.getIpAddress(), userId, MAX_IPS_TO_KEEP);
+        }
 
+        // Создаем новую запись
         UserIpTemp newEntry = new UserIpTemp();
         newEntry.setUserId(userId);
         newEntry.setIpAddress(ipAddress);
         newEntry.setIsPrivateOrLoopback(isPrivateOrLoopback);
-        newEntry.setCreatedAt(now);
-        newEntry.setExpiresAt(expiresAt);
+        newEntry.setCreatedAt(Instant.now());
 
         repository.save(newEntry);
-        log.debug("IP {} успешно сохранён для userId={}, expiresAt={}", ipAddress, userId, expiresAt);
+        log.debug("IP {} успешно сохранён для userId={}", ipAddress, userId);
     }
 
     /**
-     * Возвращает список IP-адресов пользователя, упорядоченных по времени создания (от новых к старым).
+     * Возвращает список IP-адресов пользователя (не более 5), упорядоченных по времени создания (от новых к старым).
      */
     @Transactional(readOnly = true)
     public List<UserIpTempDto> getTrackedIpForUser(Long userId) {
         return repository.findAllByUserIdOrderByCreatedAtDesc(userId)
                 .stream()
+                .limit(MAX_IPS_TO_KEEP)
                 .map(ip -> objectMapper.convertValue(ip, UserIpTempDto.class))
                 .toList();
-    }
-
-    /**
-     * Удаляет устаревшие записи IP-адресов из базы данных.
-     * Выполняется автоматически каждые 5 минут (настраивается через user.ip.cleanup-interval-ms).
-     */
-    @Transactional
-    @Scheduled(fixedDelayString = "${user.ip.cleanup-interval-ms:300000}") // 5 минут по умолчанию
-    public void cleanupExpired() {
-        repository.deleteExpired(Instant.now());
     }
 }

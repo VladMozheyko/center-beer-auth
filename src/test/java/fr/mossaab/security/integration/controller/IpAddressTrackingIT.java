@@ -24,7 +24,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -40,7 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * 3. Запасной вариант для получения RemoteAddr (прямое соединение)
  * 4. Сохранение IP в базе данных
  * 5. Извлечение всех пользовательских IP-адресов
- * 6. Плановая очистка просроченных IP
+ * 6. Ограничение хранения последних 5 IP-адресов
  * 7. IP-данные в ответе аутентификации
  */
 @SpringBootTest
@@ -132,7 +131,6 @@ class IpAddressTrackingIT extends AbstractIntegrationTest {
             assertThat(ipRecords.get(0).getIpAddress()).isEqualTo(expectedIp);
             assertThat(ipRecords.get(0).getUserId()).isEqualTo(testUser.getId());
             assertThat(ipRecords.get(0).getCreatedAt()).isNotNull();
-            assertThat(ipRecords.get(0).getExpiresAt()).isNotNull();
         }
 
         @Test
@@ -305,7 +303,93 @@ class IpAddressTrackingIT extends AbstractIntegrationTest {
     }
 
     // ============================================================================
-    // 3: IP-адрес в ответ
+    // 3: Ограничение хранения — последние 5 IP
+    // ============================================================================
+
+    @Nested
+    @DisplayName("Тесты ограничения хранения последних 5 IP-адресов")
+    class IpLimitTests {
+
+        @Test
+        @DisplayName("При 6-м входе самый старый IP удаляется")
+        void saveSixthIp_ShouldDeleteOldest() {
+            // Given
+            testUser = createTestUser("limituser@example.com", "password123");
+            long userId = testUser.getId();
+
+            String[] ips = {"192.0.2.1", "192.0.2.2", "192.0.2.3", "192.0.2.4", "192.0.2.5"};
+            for (String ip : ips) {
+                userIpTempService.saveIpTemp(userId, ip);
+            }
+
+            // Проверяем, что сохранено ровно 5 IP
+            List<UserIpTemp> ipRecords = userIpTempRepository.findAllByUserIdOrderByCreatedAtDesc(userId);
+            assertThat(ipRecords).hasSize(5);
+
+            // When: 6-й вход
+            userIpTempService.saveIpTemp(userId, "192.0.2.6");
+
+            // Then: Все еще 5 IP, самый старый удален
+            ipRecords = userIpTempRepository.findAllByUserIdOrderByCreatedAtDesc(userId);
+            assertThat(ipRecords).hasSize(5);
+            assertThat(ipRecords.get(0).getIpAddress()).isEqualTo("192.0.2.6"); // Newest first
+            assertThat(ipRecords.get(4).getIpAddress()).isEqualTo("192.0.2.5"); // Oldest remaining
+
+            // Старый IP (192.0.2.1) должен быть удален
+            boolean hasOldest = ipRecords.stream().anyMatch(ip -> "192.0.2.1".equals(ip.getIpAddress()));
+            assertThat(hasOldest).isFalse();
+        }
+
+        @Test
+        @DisplayName("При многократных входах всегда хранится только 5 последних IP")
+        void saveManyIps_ShouldAlwaysKeepLastFive() {
+            // Given
+            testUser = createTestUser("manyipsuser@example.com", "password123");
+            long userId = testUser.getId();
+
+            // When: 10 входов с разными IP
+            for (int i = 1; i <= 10; i++) {
+                userIpTempService.saveIpTemp(userId, "192.0.2." + i);
+            }
+
+            // Then: Всегда только 5 IP
+            List<UserIpTemp> ipRecords = userIpTempRepository.findAllByUserIdOrderByCreatedAtDesc(userId);
+            assertThat(ipRecords).hasSize(5);
+
+            // Должны остаться последние 5: 6, 7, 8, 9, 10
+            List<String> ipAddresses = ipRecords.stream()
+                    .map(UserIpTemp::getIpAddress)
+                    .toList();
+            assertThat(ipAddresses).containsExactly("192.0.2.10", "192.0.2.9", "192.0.2.8", "192.0.2.7", "192.0.2.6");
+        }
+
+        @Test
+        @DisplayName("Один и тот же IP при повторном входе добавляется как новый")
+        void saveDuplicateIp_ShouldAddAsNew() {
+            // Given
+            testUser = createTestUser("duplicateipuser@example.com", "password123");
+            long userId = testUser.getId();
+
+            String[] ips = {"192.0.2.1", "192.0.2.2", "192.0.2.3", "192.0.2.4", "192.0.2.5"};
+            for (String ip : ips) {
+                userIpTempService.saveIpTemp(userId, ip);
+            }
+
+            // When: Повторный вход с первым IP
+            userIpTempService.saveIpTemp(userId, "192.0.2.1");
+
+            // Then: 192.0.2.1 снова в списке, но как самый новый
+            List<UserIpTemp> ipRecords = userIpTempRepository.findAllByUserIdOrderByCreatedAtDesc(userId);
+            assertThat(ipRecords).hasSize(5);
+            assertThat(ipRecords.get(0).getIpAddress()).isEqualTo("192.0.2.1");
+            // Самый старый (192.0.2.2) удален
+            boolean hasOldest = ipRecords.stream().anyMatch(ip -> "192.0.2.2".equals(ip.getIpAddress()));
+            assertThat(hasOldest).isFalse();
+        }
+    }
+
+    // ============================================================================
+    // 4: IP-адрес в ответ
     // ============================================================================
 
     @Nested
@@ -357,109 +441,6 @@ class IpAddressTrackingIT extends AbstractIntegrationTest {
     }
 
     // ============================================================================
-    // 4: Очистка IP (запланированная задача)
-    // ============================================================================
-
-    @Nested
-    @DisplayName("Тесты очистки просроченных IP-адресов")
-    class IpCleanupTests {
-
-        @Test
-        @DisplayName("Cleanup: Просроченные IP удаляются при запуске планировщика")
-        void cleanupExpiredIps_ShouldDeleteExpired() {
-            // Given
-            testUser = createTestUser("cleanupuser@example.com", "password123");
-            long userId = testUser.getId();
-
-            Instant now = Instant.now();
-
-            UserIpTemp expiredIp = UserIpTemp.builder()
-                    .userId(userId)
-                    .ipAddress("198.51.100.50")
-                    .isPrivateOrLoopback(false)
-                    .createdAt(now.minusSeconds(400))
-                    .expiresAt(now.minusSeconds(100))
-                    .build();
-            userIpTempRepository.save(expiredIp);
-
-            // Save non-expired IP
-            UserIpTemp validIp = UserIpTemp.builder()
-                    .userId(userId)
-                    .ipAddress("203.0.113.75")
-                    .isPrivateOrLoopback(false)
-                    .createdAt(now)
-                    .expiresAt(now.plusSeconds(100))
-                    .build();
-            userIpTempRepository.save(validIp);
-
-            // Проверьте, что оба IP существуют до очистки
-            List<UserIpTemp> allIpsBefore = userIpTempRepository.findAllByUserIdOrderByCreatedAtDesc(userId);
-            assertThat(allIpsBefore).hasSize(2);
-
-            // Когда: Запустить очистку вручную (как и в запланированной задаче)
-            userIpTempService.cleanupExpired();
-
-            // Тогда: Должны оставаться только неистрокшие IP
-            List<UserIpTemp> allIpsAfter = userIpTempRepository.findAllByUserIdOrderByCreatedAtDesc(userId);
-            assertThat(allIpsAfter).hasSize(1);
-            assertThat(allIpsAfter.get(0).getIpAddress()).isEqualTo("203.0.113.75");
-        }
-
-        @Test
-        @DisplayName("Cleanup: Несколько пользователей, удаляются только просроченные их IP")
-        void cleanupMultipleUsers_ShouldOnlyDeleteExpired() {
-            // Given
-            User user1 = createTestUser("user1cleanup@example.com", "password123");
-            User user2 = createTestUser("user2cleanup@example.com", "password123");
-
-            Instant now = Instant.now();
-
-            // User1: один просрочен, один действительный
-            userIpTempRepository.save(UserIpTemp.builder()
-                    .userId(user1.getId())
-                    .ipAddress("10.0.0.1")
-                    .isPrivateOrLoopback(true)
-                    .createdAt(now.minusSeconds(400))
-                    .expiresAt(now.minusSeconds(100))
-                    .build());
-            userIpTempRepository.save(UserIpTemp.builder()
-                    .userId(user1.getId())
-                    .ipAddress("10.0.0.2")
-                    .isPrivateOrLoopback(true)
-                    .createdAt(now)
-                    .expiresAt(now.plusSeconds(100))
-                    .build());
-
-            // User2:два из них истекли
-            userIpTempRepository.save(UserIpTemp.builder()
-                    .userId(user2.getId())
-                    .ipAddress("10.0.0.3")
-                    .isPrivateOrLoopback(true)
-                    .createdAt(now.minusSeconds(500))
-                    .expiresAt(now.minusSeconds(200))
-                    .build());
-            userIpTempRepository.save(UserIpTemp.builder()
-                    .userId(user2.getId())
-                    .ipAddress("10.0.0.4")
-                    .isPrivateOrLoopback(true)
-                    .createdAt(now.minusSeconds(350))
-                    .expiresAt(now.minusSeconds(50))
-                    .build());
-
-            // Проверка подсчета перед удалением
-            assertThat(userIpTempRepository.findAllByUserIdOrderByCreatedAtDesc(user1.getId())).hasSize(2);
-            assertThat(userIpTempRepository.findAllByUserIdOrderByCreatedAtDesc(user2.getId())).hasSize(2);
-
-            // When: Очистка
-            userIpTempService.cleanupExpired();
-
-            // Then: У пользователя 1 остался 1 IP, у пользователя 2 — 0 IP
-            assertThat(userIpTempRepository.findAllByUserIdOrderByCreatedAtDesc(user1.getId())).hasSize(1);
-            assertThat(userIpTempRepository.findAllByUserIdOrderByCreatedAtDesc(user2.getId())).isEmpty();
-        }
-    }
-
-    // ============================================================================
     // 5: Извлечение IP (getAllIpsForUser)
     // ============================================================================
 
@@ -468,8 +449,8 @@ class IpAddressTrackingIT extends AbstractIntegrationTest {
     class IpRetrievalTests {
 
         @Test
-        @DisplayName("Получение всех IP пользователя - возвращает все записи сортированные по дате")
-        void getAllIpsForUser_ShouldReturnAllSorted() {
+        @DisplayName("Получение всех IP пользователя - возвращает не более 5 записей")
+        void getAllIpsForUser_ShouldReturnMaxFive() {
             // Given
             testUser = createTestUser("retrieveall@example.com", "password123");
             long userId = testUser.getId();
@@ -514,8 +495,8 @@ class IpAddressTrackingIT extends AbstractIntegrationTest {
     class FullFlowTests {
 
         @Test
-        @DisplayName("Полный сценарий: Регистрация -> Вход -> Проверка IP -> Просрочка -> Очистка")
-        void fullScenario_RegisterLoginCheckIpCleanup() throws Exception {
+        @DisplayName("Полный сценарий: Регистрация -> Вход -> Проверка IP -> Лимит 5")
+        void fullScenario_RegisterLoginCheckIpLimit() throws Exception {
             // Шаг 1: Зарегистрировать пользователя с данными
             String email = "fullscenario@example.com";
             String password = "SecurePass123!";
@@ -583,23 +564,46 @@ class IpAddressTrackingIT extends AbstractIntegrationTest {
             assertThat(newestIpDto.getIpAddress()).isEqualTo(loginIp);
             assertThat(newestIpDto.getCreatedAt()).isNotNull();
 
-            // Шаг 4: Вручную истечь один IP и выполнить очистку
-            Instant now = Instant.now();
-            
-            // Истекает старый IP (clientIp)
-            UserIpTemp oldIpRecord = ipRecords.stream()
-                    .filter(ip -> ip.getIpAddress().equals(clientIp))
-                    .findFirst()
-                    .orElseThrow();
-            oldIpRecord.setExpiresAt(now.minusSeconds(100));
-            userIpTempRepository.save(oldIpRecord);
+            // Шаг 4: Делаем еще 3 входа, чтобы достичь лимита в 5
+            mockMvc.perform(post("/authentication/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(loginRequest))
+                            .header("X-Real-IP", "2.2.2.2"))
+                    .andExpect(status().isOk());
 
-            userIpTempService.cleanupExpired();
+            mockMvc.perform(post("/authentication/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(loginRequest))
+                            .header("X-Real-IP", "3.3.3.3"))
+                    .andExpect(status().isOk());
 
-            // Проверка, что остался только один IP (новый)
+            mockMvc.perform(post("/authentication/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(loginRequest))
+                            .header("X-Real-IP", "4.4.4.4"))
+                    .andExpect(status().isOk());
+
+            // Шаг 5: Проверяем, что осталось только 5 IP
             ipRecords = userIpTempRepository.findAllByUserIdOrderByCreatedAtDesc(registeredUser.getId());
-            assertThat(ipRecords).hasSize(1);
-            assertThat(ipRecords.get(0).getIpAddress()).isEqualTo(loginIp);
+            assertThat(ipRecords).hasSize(5);
+
+            // Должны остаться: 4.4.4.4, 3.3.3.3, 2.2.2.2, 1.1.1.1, 8.8.8.8
+            List<String> ipAddresses = ipRecords.stream()
+                    .map(UserIpTemp::getIpAddress)
+                    .toList();
+            assertThat(ipAddresses).containsExactly("4.4.4.4", "3.3.3.3", "2.2.2.2", "1.1.1.1", "8.8.8.8");
+
+            // Шаг 6: Еще один вход — должен удалиться самый старый (8.8.8.8)
+            mockMvc.perform(post("/authentication/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(loginRequest))
+                            .header("X-Real-IP", "5.5.5.5"))
+                    .andExpect(status().isOk());
+
+            ipRecords = userIpTempRepository.findAllByUserIdOrderByCreatedAtDesc(registeredUser.getId());
+            assertThat(ipRecords).hasSize(5);
+            ipAddresses = ipRecords.stream().map(UserIpTemp::getIpAddress).toList();
+            assertThat(ipAddresses).containsExactly("5.5.5.5", "4.4.4.4", "3.3.3.3", "2.2.2.2", "1.1.1.1");
         }
     }
 
@@ -664,21 +668,6 @@ class IpAddressTrackingIT extends AbstractIntegrationTest {
             assertThat(allIps).hasSize(2);
             assertThat(allIps.get(0).getIpAddress()).isEqualTo(secondIp);
             assertThat(allIps.get(1).getIpAddress()).isEqualTo(clientIp);
-
-            // Шаг 7: Удаляем старый IP и проверяем очистку
-            Instant now = Instant.now();
-            UserIpTemp oldRecord = ipRecords.stream()
-                    .filter(ip -> ip.getIpAddress().equals(clientIp))
-                    .findFirst()
-                    .orElseThrow();
-            oldRecord.setExpiresAt(now.minusSeconds(100));
-            userIpTempRepository.save(oldRecord);
-
-            userIpTempService.cleanupExpired();
-
-            ipRecords = userIpTempRepository.findAllByUserIdOrderByCreatedAtDesc(userWithSocial.getId());
-            assertThat(ipRecords).hasSize(1);
-            assertThat(ipRecords.get(0).getIpAddress()).isEqualTo(secondIp);
         }
     }
 }

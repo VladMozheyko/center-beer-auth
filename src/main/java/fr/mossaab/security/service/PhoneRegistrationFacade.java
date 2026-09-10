@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -83,6 +84,7 @@ public class PhoneRegistrationFacade {
                 .phone(dto.getPhone())
                 .role(Role.USER)
                 .temporarySecondsBalance(0)
+                .uuid(UUID.randomUUID().toString())
                 .activationCode(code)
                 .build();
 

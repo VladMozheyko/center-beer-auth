@@ -14,7 +14,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -54,6 +56,7 @@ class UserIpTempServiceTest {
 
         // Mocking
         when(ipHelper.isInternalIp(ipAddress)).thenReturn(isPrivateOrLoopback);
+        when(repository.findAllByUserIdOrderByCreatedAtDesc(userId)).thenReturn(List.of());
         when(repository.save(any(UserIpTemp.class))).thenReturn(expectedEntry);
 
         // When
@@ -61,7 +64,77 @@ class UserIpTempServiceTest {
 
         // Then
         verify(repository, times(1)).save(any(UserIpTemp.class));
+        verify(repository, times(1)).findAllByUserIdOrderByCreatedAtDesc(userId);
         verify(ipHelper, times(1)).isInternalIp(ipAddress);
+    }
+
+    @Test
+    @DisplayName("Проверка удаления самого старого IP при превышении лимита в 5")
+    void testSaveIpTemp_DeleteOldestWhenLimitExceeded() {
+        // Given
+        Long userId = 1L;
+        String newIpAddress = "203.0.113.5";
+        boolean isPrivateOrLoopback = false;
+
+        // Создаем 5 существующих IP-адресов
+        List<UserIpTemp> existingIps = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            UserIpTemp ip = new UserIpTemp();
+            ip.setUserId(userId);
+            ip.setIpAddress("192.168.1." + i);
+            ip.setCreatedAt(Instant.now().minusSeconds(i * 60));
+            existingIps.add(ip);
+        }
+
+        UserIpTemp newEntry = new UserIpTemp();
+        newEntry.setUserId(userId);
+        newEntry.setIpAddress(newIpAddress);
+
+        // Mocking
+        when(ipHelper.isInternalIp(newIpAddress)).thenReturn(isPrivateOrLoopback);
+        when(repository.findAllByUserIdOrderByCreatedAtDesc(userId)).thenReturn(existingIps);
+        when(repository.save(any(UserIpTemp.class))).thenReturn(newEntry);
+
+        // When
+        userIpTempService.saveIpTemp(userId, newIpAddress);
+
+        // Then
+        verify(repository, times(1)).delete(existingIps.get(0)); // удаляем самый старый
+        verify(repository, times(1)).save(any(UserIpTemp.class));
+    }
+
+    @Test
+    @DisplayName("Проверка сохранения без удаления, если меньше 5 IP")
+    void testSaveIpTemp_NoDeleteWhenLessThanFive() {
+        // Given
+        Long userId = 1L;
+        String newIpAddress = "203.0.113.5";
+        boolean isPrivateOrLoopback = false;
+
+        // Создаем 3 существующих IP-адреса
+        List<UserIpTemp> existingIps = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            UserIpTemp ip = new UserIpTemp();
+            ip.setUserId(userId);
+            ip.setIpAddress("192.168.1." + i);
+            existingIps.add(ip);
+        }
+
+        UserIpTemp newEntry = new UserIpTemp();
+        newEntry.setUserId(userId);
+        newEntry.setIpAddress(newIpAddress);
+
+        // Mocking
+        when(ipHelper.isInternalIp(newIpAddress)).thenReturn(isPrivateOrLoopback);
+        when(repository.findAllByUserIdOrderByCreatedAtDesc(userId)).thenReturn(existingIps);
+        when(repository.save(any(UserIpTemp.class))).thenReturn(newEntry);
+
+        // When
+        userIpTempService.saveIpTemp(userId, newIpAddress);
+
+        // Then
+        verify(repository, never()).delete(any());
+        verify(repository, times(1)).save(any(UserIpTemp.class));
     }
 
     @Test
@@ -74,6 +147,7 @@ class UserIpTempServiceTest {
 
         // Mocking
         when(ipHelper.isInternalIp(ipAddress)).thenReturn(isPrivateOrLoopback);
+        when(repository.findAllByUserIdOrderByCreatedAtDesc(userId)).thenReturn(List.of());
         when(repository.save(any(UserIpTemp.class))).thenReturn(new UserIpTemp());
 
         // When
@@ -96,6 +170,7 @@ class UserIpTempServiceTest {
 
         // Mocking
         when(ipHelper.isInternalIp(ipAddress)).thenReturn(isPrivateOrLoopback);
+        when(repository.findAllByUserIdOrderByCreatedAtDesc(userId)).thenReturn(List.of());
         when(repository.save(any(UserIpTemp.class))).thenReturn(new UserIpTemp());
 
         // When
@@ -117,6 +192,7 @@ class UserIpTempServiceTest {
 
         // Mocking
         when(ipHelper.isInternalIp(ipAddress)).thenReturn(isPrivateOrLoopback);
+        when(repository.findAllByUserIdOrderByCreatedAtDesc(userId)).thenReturn(List.of());
         when(repository.save(any(UserIpTemp.class))).thenReturn(new UserIpTemp());
 
         // When
@@ -140,6 +216,7 @@ class UserIpTempServiceTest {
 
         // Then
         verify(repository, never()).save(any(UserIpTemp.class));
+        verify(repository, never()).findAllByUserIdOrderByCreatedAtDesc(anyLong());
         verify(ipHelper, never()).isInternalIp(anyString());
     }
 
@@ -155,6 +232,7 @@ class UserIpTempServiceTest {
 
         // Then
         verify(repository, never()).save(any(UserIpTemp.class));
+        verify(repository, never()).findAllByUserIdOrderByCreatedAtDesc(anyLong());
         verify(ipHelper, never()).isInternalIp(anyString());
     }
 
@@ -170,6 +248,7 @@ class UserIpTempServiceTest {
 
         // Then
         verify(repository, never()).save(any(UserIpTemp.class));
+        verify(repository, never()).findAllByUserIdOrderByCreatedAtDesc(anyLong());
         verify(ipHelper, never()).isInternalIp(anyString());
     }
 
@@ -231,16 +310,38 @@ class UserIpTempServiceTest {
     }
 
     @Test
-    @DisplayName("Проверка очистки устаревших записей")
-    void testCleanupExpired() {
+    @DisplayName("Проверка ограничения возвращаемых IP до 5 штук")
+    void testGetTrackedIpForUser_LimitToFive() {
         // Given
-        Instant now = Instant.now();
+        Long userId = 1L;
+        List<UserIpTemp> existingIps = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            UserIpTemp ip = new UserIpTemp();
+            ip.setUserId(userId);
+            ip.setIpAddress("192.168.1." + i);
+            ip.setCreatedAt(Instant.now().minusSeconds(i * 60));
+            existingIps.add(ip);
+        }
+
+        List<UserIpTempDto> dtos = existingIps.stream()
+                .map(ip -> UserIpTempDto.builder().ipAddress(ip.getIpAddress()).build())
+                .toList();
+
+        // Mocking
+        when(repository.findAllByUserIdOrderByCreatedAtDesc(userId))
+                .thenReturn(existingIps);
+        when(objectMapper.convertValue(any(UserIpTemp.class), eq(UserIpTempDto.class)))
+                .thenAnswer(invocation -> {
+                    UserIpTemp ip = invocation.getArgument(0);
+                    return UserIpTempDto.builder().ipAddress(ip.getIpAddress()).build();
+                });
 
         // When
-        userIpTempService.cleanupExpired();
+        List<UserIpTempDto> result = userIpTempService.getTrackedIpForUser(userId);
 
         // Then
-        verify(repository, times(1)).deleteExpired(now);
+        assertNotNull(result);
+        assertEquals(5, result.size()); // должно быть не больше 5
     }
 
     @Test
@@ -253,6 +354,7 @@ class UserIpTempServiceTest {
 
         // Mocking
         when(ipHelper.isInternalIp(ipAddress)).thenReturn(isPrivateOrLoopback);
+        when(repository.findAllByUserIdOrderByCreatedAtDesc(userId)).thenReturn(List.of());
         when(repository.save(any(UserIpTemp.class))).thenReturn(new UserIpTemp());
 
         // When
@@ -274,6 +376,7 @@ class UserIpTempServiceTest {
 
         // Mocking
         when(ipHelper.isInternalIp(ipAddress)).thenReturn(isPrivateOrLoopback);
+        when(repository.findAllByUserIdOrderByCreatedAtDesc(userId)).thenReturn(List.of());
         when(repository.save(any(UserIpTemp.class))).thenReturn(new UserIpTemp());
 
         // When
@@ -295,6 +398,7 @@ class UserIpTempServiceTest {
 
         // Mocking
         when(ipHelper.isInternalIp(ipAddress)).thenReturn(isPrivateOrLoopback);
+        when(repository.findAllByUserIdOrderByCreatedAtDesc(userId)).thenReturn(List.of());
         when(repository.save(any(UserIpTemp.class))).thenReturn(new UserIpTemp());
 
         // When
@@ -316,6 +420,7 @@ class UserIpTempServiceTest {
 
         // Mocking
         when(ipHelper.isInternalIp(ipAddress)).thenReturn(isPrivateOrLoopback);
+        when(repository.findAllByUserIdOrderByCreatedAtDesc(userId)).thenReturn(List.of());
         when(repository.save(any(UserIpTemp.class))).thenReturn(new UserIpTemp());
 
         // When

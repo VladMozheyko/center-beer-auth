@@ -83,6 +83,7 @@ public class AuthenticationService {
                 .temporarySecondsBalance(0)
                 .tempEmail(null)
                 .nickname(request.getNickname())
+                .uuid(UUID.randomUUID().toString())
                 .createdAt(LocalDateTime.now())
                 .build();
 

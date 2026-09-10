@@ -8,7 +8,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.springframework.http.ResponseCookie;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -52,6 +51,9 @@ public class AuthenticationResponse {
 
     @Schema(description = "ID устройства, с которого выполнен вход. Используется для привязки сессии")
     private String deviceId;
+
+    @Schema(description = "Уникальный идентификатор пользователя (UUID)")
+    private String userUuid;
 
     @Schema(description = "последние IP адрес пользователя")
     private List<UserIpTempDto> userIPs;

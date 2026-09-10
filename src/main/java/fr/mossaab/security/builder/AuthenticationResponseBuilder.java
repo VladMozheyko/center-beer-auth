@@ -72,7 +72,7 @@ public class AuthenticationResponseBuilder {
         deviceId = refreshToken.getDeviceId();
 
         // Генерируем access-токен
-        String jwt = jwtService.generateToken(user, deviceId);
+        String jwt = jwtService.generateToken(user, user.getUuid(), deviceId);
 
         // Получаем роли пользователя
         List<String> roles = user.getRole().getAuthorities()
@@ -82,7 +82,7 @@ public class AuthenticationResponseBuilder {
 
         return AuthenticationResponse.builder()
                 .jwtCookie(jwtService.generateJwtCookie(jwt))
-                .refreshTokenCookie(refreshTokenService.generateRefreshTokenCookie(jwt))
+                .refreshTokenCookie(refreshTokenService.generateRefreshTokenCookie(refreshToken.getToken()))
                 .accessToken(jwt)
                 .email(user.getEmail())
                 .id(user.getId())
@@ -90,6 +90,7 @@ public class AuthenticationResponseBuilder {
                 .roles(roles)
                 .tokenType(TokenType.BEARER.name())
                 .deviceId(deviceId)
+                .userUuid(user.getUuid())
                 .userIPs(ips)
                 .build();
     }
@@ -109,6 +110,7 @@ public class AuthenticationResponseBuilder {
                 .refreshToken(response.getRefreshToken())
                 .message(message)
                 .deviceId(response.getDeviceId())
+                .userUuid(response.getUserUuid())
                 .status(String.valueOf(HttpStatus.OK.value()))
                 .lastIpAddress(response.getUserIPs())
                 .build();

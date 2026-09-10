@@ -1,5 +1,6 @@
 package fr.mossaab.security.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -10,15 +11,14 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 
 /**
- * Сущность для временного хранения IP-адресов пользователей.
- * IP-адреса хранятся с TTL и пометкой, являются ли они приватными.
+ * Сущность для хранения последних IP-адресов пользователей.
+ * Хранится не более 5 последних IP-адресов.
  */
 @Entity
 @Table(
         name = "user_ip_temp",
         indexes = {
-                @Index(name = "idx_user_ip_temp_user_id", columnList = "userId"),
-                @Index(name = "idx_user_ip_temp_expires_at", columnList = "expiresAt")
+                @Index(name = "idx_user_ip_temp_user_id", columnList = "userId")
         }
 )
 @Data
@@ -46,8 +46,4 @@ public class UserIpTemp {
 
     @Column(nullable = false)
     private Instant createdAt;
-
-    @Column(nullable = false)
-    @JsonIgnore
-    private Instant expiresAt;
 }

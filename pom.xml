@@ -15,6 +15,9 @@
     <description>security</description>
     <properties>
         <java.version>17</java.version>
+        <!-- Override Testcontainers for Docker Desktop 29.x compatibility -->
+        <!-- See: https://github.com/testcontainers/testcontainers-java/issues/11422 -->
+        <testcontainers.version>1.21.4</testcontainers.version>
     </properties>
     <dependencies>
         <dependency>
@@ -170,6 +173,20 @@
             <version>3.2.0</version>
         </dependency>
     </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Override Testcontainers version for Docker Desktop 29.x compatibility -->
+            <!-- Must be imported BEFORE spring-boot-starter-parent BOM to take precedence -->
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>${testcontainers.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <plugins>

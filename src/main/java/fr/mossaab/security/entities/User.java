@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import static jakarta.persistence.FetchType.EAGER;
 
@@ -61,6 +62,9 @@ public class User implements UserDetails {
     private Boolean phoneVerified = false;
 
     private String activationCode;
+
+    @Column(nullable = false, unique = true, updatable = false)
+    private String uuid;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

@@ -49,6 +49,17 @@ public class JwtService {
      * Генерирует JWT токен на основе информации о пользователе.
      *
      * @param userDetails Информация о пользователе
+     * @param userUuid      ID пользователя
+     * @return Сгенерированный JWT токен
+     */
+    public String generateToken(UserDetails userDetails, String userUuid, String deviceId) {
+        return generateToken(new HashMap<>(), userDetails, userUuid, deviceId);
+    }
+
+    /**
+     * Генерирует JWT токен на основе информации о пользователе.
+     *
+     * @param userDetails Информация о пользователе
      * @return Сгенерированный JWT токен
      */
     public String generateToken(UserDetails userDetails, String deviceId) {
@@ -85,6 +96,19 @@ public class JwtService {
      */
     private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
+    }
+
+    /**
+     * Генерирует JWT токен на основе информации о пользователе и дополнительных параметров.
+     *
+     * @param extraClaims  Дополнительные данные для включения в токен
+     * @param userDetails Информация о пользователе
+     * @param userUuid       ID пользователя
+     * @param deviceId     Идентификатор устройства
+     * @return Сгенерированный JWT токен
+     */
+    private String generateToken(Map<String, Object> extraClaims, UserDetails userDetails, String userUuid, String deviceId) {
+        return buildToken(extraClaims, userDetails, jwtExpiration, userUuid, deviceId);
     }
 
     /**
@@ -148,12 +172,15 @@ public class JwtService {
      * @param extraClaims  Дополнительные данные для включения в токен
      * @param userDetails Информация о пользователе
      * @param expiration   Срок действия токена в миллисекундах
+     * @param userUuid       ID пользователя
+     * @param deviceId     Идентификатор устройства
      * @return Построенный JWT токен
      */
     private String buildToken(
             Map<String, Object> extraClaims,
             UserDetails userDetails,
             long expiration,
+            String userUuid,
             String deviceId
     ) {
         String role = userDetails.getAuthorities().stream()
@@ -161,6 +188,7 @@ public class JwtService {
                 .orElseThrow(() -> new IllegalArgumentException("Role not found"))
                 .getAuthority();
         extraClaims.put("role", role);
+        extraClaims.put("userUuid", userUuid);
         extraClaims.put("deviceId", deviceId);
 
         logger.debug("Building token with claims: {}", extraClaims);
@@ -172,6 +200,23 @@ public class JwtService {
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    /**
+     * Строит JWT токен на основе предоставленных данных.
+     *
+     * @param extraClaims  Дополнительные данные для включения в токен
+     * @param userDetails Информация о пользователе
+     * @param expiration   Срок действия токена в миллисекундах
+     * @return Построенный JWT токен
+     */
+    private String buildToken(
+            Map<String, Object> extraClaims,
+            UserDetails userDetails,
+            long expiration,
+            String deviceId
+    ) {
+        return buildToken(extraClaims, userDetails, expiration, null, deviceId);
     }
 
     /**
@@ -212,6 +257,7 @@ public class JwtService {
         logger.debug("Extracted role");
         return extractClaim(token, claims -> claims.get("role", String.class));
     }
+
     /**
      * Получает ключ для подписи JWT токена на основе секретного ключа.
      *

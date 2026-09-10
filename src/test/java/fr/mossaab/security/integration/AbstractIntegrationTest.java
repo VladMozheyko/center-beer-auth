@@ -15,7 +15,7 @@ import org.testcontainers.containers.MySQLContainer;
 public abstract class AbstractIntegrationTest {
 
     @Getter
-    private static final MODE _MODE = MODE.H2;
+    private static final MODE _MODE = MODE.TEST_CONTAINER_MSQL;
 
     // Не аннотируем @Container, чтобы Testcontainers сам его не трогал.
     // Создаём лениво и только при режиме "tc".

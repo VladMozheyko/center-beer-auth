@@ -25,6 +25,9 @@ public class AuthenticationResponseDto {
     @Schema(description = "Идентификатор устройства, к которому привязаны токены", example = "device-8f7a1b2c-3d4e-5f6a-7b8c-9d0e1f2a3b4c")
     private String deviceId;
 
+    @Schema(description = "Уникальный идентификатор пользователя (UUID)", example = "550e8400-e29b-41d4-a716-446655440000")
+    private String userUuid;
+
     @Schema(description = "Служебное сообщение от сервера", example = "Успешный вход")
     private String message;
 
