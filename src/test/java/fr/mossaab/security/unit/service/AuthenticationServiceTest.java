@@ -9,7 +9,10 @@ import fr.mossaab.security.dto.auth.ResetPasswordRequest;
 import fr.mossaab.security.entities.RefreshToken;
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.enums.Role;
+import fr.mossaab.security.enums.UserStatus;
 import fr.mossaab.security.exception.DuplicateResourceException;
+import fr.mossaab.security.exception.BadRequestException;
+import fr.mossaab.security.exception.TooManyRequestsException;
 import fr.mossaab.security.helper.IpHelper;
 import fr.mossaab.security.repository.UserRepository;
 
@@ -36,6 +39,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDateTime;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -91,16 +95,19 @@ class AuthenticationServiceTest {
     @DisplayName("Регистрация нового пользователя")
     void register_NewUser_Success() {
         RegisterRequest request = new RegisterRequest("test@example.com", "password", "testNickname");
+        LocalDateTime now = LocalDateTime.now();
         User savedUser = User.builder()
                 .id(1L)
                 .role(Role.USER)
                 .email(request.getEmail())
                 .nickname(request.getNickname())
+                .status(UserStatus.PENDING)
+                .lastCodeSentAt(now)
                 .build();
 
         // Настройка mock объектов
-        when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.empty());
         when(userRepository.findByNickname(request.getNickname())).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.empty());
         when(passwordEncoder.encode(request.getPassword())).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
         HttpServletRequest mockRequest = mock(HttpServletRequest.class);
@@ -121,11 +128,14 @@ class AuthenticationServiceTest {
     }
 
     @Test
-    @DisplayName("Ошибка регистрации из-за существующего email")
-    void register_ExistingEmail_ThrowsException() {
+    @DisplayName("Ошибка регистрации из-за существующего email (активированный)")
+    void register_ExistingEmail_Activated_ThrowsException() {
         RegisterRequest request = new RegisterRequest("test@example.com", "password", "testNickname");
 
-        User existingUser = User.builder().email(request.getEmail()).activationCode(null).build();
+        User existingUser = User.builder()
+                .email(request.getEmail())
+                .status(UserStatus.ACTIVATED)
+                .build();
         when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(existingUser));
         HttpServletRequest mockRequest = mock(HttpServletRequest.class);
 
@@ -133,6 +143,73 @@ class AuthenticationServiceTest {
                 () -> authenticationService.register(request, mockRequest));
 
         assertEquals("Пользователь с таким email уже существует и активирован.", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Ошибка регистрации: никнейм занят активированным аккаунтом")
+    void register_NicknameTaken_Activated_ThrowsException() {
+        RegisterRequest request = new RegisterRequest("test@example.com", "password", "testNickname");
+
+        User existingUser = User.builder()
+                .nickname(request.getNickname())
+                .status(UserStatus.ACTIVATED)
+                .build();
+        when(userRepository.findByNickname(request.getNickname())).thenReturn(Optional.of(existingUser));
+        HttpServletRequest mockRequest = mock(HttpServletRequest.class);
+
+        DuplicateResourceException exception = assertThrows(DuplicateResourceException.class,
+                () -> authenticationService.register(request, mockRequest));
+
+        assertEquals("Пользователь с таким никнеймом уже существует и активирован.", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Ошибка регистрации: повторный вход с тем же никнеймом < 5 мин")
+    void register_NicknameTaken_Pending_TooManyRequests() {
+        RegisterRequest request = new RegisterRequest("new@example.com", "password", "testNickname");
+        LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(3);
+
+        User pendingUser = User.builder()
+                .nickname(request.getNickname())
+                .status(UserStatus.PENDING)
+                .lastCodeSentAt(fiveMinutesAgo)
+                .build();
+        when(userRepository.findByNickname(request.getNickname())).thenReturn(Optional.of(pendingUser));
+        HttpServletRequest mockRequest = mock(HttpServletRequest.class);
+
+        TooManyRequestsException exception = assertThrows(TooManyRequestsException.class,
+                () -> authenticationService.register(request, mockRequest));
+
+        assertEquals("Подождите 5 минут перед повторной регистрацией с этим никнеймом", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Регистрация с тем же никнеймом: прошло > 5 мин, перезапись")
+    void register_NicknameTaken_Pending_Over5Min_UpdatesUser() {
+        RegisterRequest request = new RegisterRequest("new@example.com", "password", "testNickname");
+        LocalDateTime tenMinutesAgo = LocalDateTime.now().minusMinutes(10);
+
+        User pendingUser = User.builder()
+                .id(1L)
+                .nickname(request.getNickname())
+                .email("old@example.com")
+                .status(UserStatus.PENDING)
+                .lastCodeSentAt(tenMinutesAgo)
+                .build();
+        when(userRepository.findByNickname(request.getNickname())).thenReturn(Optional.of(pendingUser));
+        when(userRepository.save(any(User.class))).thenReturn(pendingUser);
+        HttpServletRequest mockRequest = mock(HttpServletRequest.class);
+        when(helper.getClientIp(mockRequest)).thenReturn("127.0.0.1");
+        when(authResponseBuilder.getIpHelper()).thenReturn(helper);
+
+        authenticationService.register(request, mockRequest);
+
+        // Проверка: email обновлён, новый код сгенерирован
+        assertEquals("new@example.com", pendingUser.getEmail());
+        assertNotNull(pendingUser.getActivationCode());
+        verify(mailSender, times(1)).send(eq("new@example.com"), eq("Ссылка активации CENTER.BEER"), anyString());
+        verify(userRepository, times(1)).save(pendingUser);
+        verify(userIpTempService, times(1)).saveIpTemp(eq(1L), eq("127.0.0.1"));
     }
 
     @Test
@@ -204,7 +281,10 @@ class AuthenticationServiceTest {
     @DisplayName("Активировать пользователя: успех")
     void activateUser_Success() {
         String code = "activationCode";
-        User user = User.builder().activationCode(code).build();
+        User user = User.builder()
+                .activationCode(code)
+                .status(UserStatus.PENDING)
+                .build();
 
         when(userRepository.findByActivationCode(code)).thenReturn(Optional.of(user));
 
@@ -212,6 +292,7 @@ class AuthenticationServiceTest {
 
         assertTrue(isActivated);
         assertNull(user.getActivationCode());
+        assertEquals(UserStatus.ACTIVATED, user.getStatus());
         verify(userRepository, times(1)).save(user);
     }
 
@@ -222,7 +303,21 @@ class AuthenticationServiceTest {
 
         when(userRepository.findByActivationCode(code)).thenReturn(Optional.empty());
 
-        assertThrows(NullPointerException.class, () -> authenticationService.activateUser(code));
+        assertThrows(BadRequestException.class, () -> authenticationService.activateUser(code));
+    }
+
+    @Test
+    @DisplayName("Активировать пользователя: уже активирован")
+    void activateUser_AlreadyActivated() {
+        String code = "activationCode";
+        User user = User.builder()
+                .activationCode(code)
+                .status(UserStatus.ACTIVATED)
+                .build();
+
+        when(userRepository.findByActivationCode(code)).thenReturn(Optional.of(user));
+
+        assertThrows(BadRequestException.class, () -> authenticationService.activateUser(code));
     }
 
     @Test

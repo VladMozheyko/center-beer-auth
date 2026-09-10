@@ -2,6 +2,7 @@ package fr.mossaab.security.entities;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import fr.mossaab.security.enums.Role;
+import fr.mossaab.security.enums.UserStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -62,6 +63,14 @@ public class User implements UserDetails {
     private Boolean phoneVerified = false;
 
     private String activationCode;
+
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime lastCodeSentAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private UserStatus status = UserStatus.PENDING;
 
     @Column(nullable = false, unique = true, updatable = false)
     private String uuid;

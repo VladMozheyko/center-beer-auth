@@ -7,7 +7,10 @@ import fr.mossaab.security.dto.SessionInfoResponse;
 import fr.mossaab.security.dto.auth.*;
 import fr.mossaab.security.entities.RefreshToken;
 import fr.mossaab.security.enums.Role;
+import fr.mossaab.security.enums.UserStatus;
 import fr.mossaab.security.exception.DuplicateResourceException;
+import fr.mossaab.security.exception.BadRequestException;
+import fr.mossaab.security.exception.TooManyRequestsException;
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.repository.UserRepository;
 import fr.mossaab.security.validation.annotation.ValidRefreshToken;
@@ -33,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Slf4j
@@ -54,28 +58,69 @@ public class AuthenticationService {
     private String publicUrl;
 
     public void register(RegisterRequest request, HttpServletRequest httpServletRequest)  {
-        log.info("[BASE REGISTER] - Процесс регистрации через логин и пароль, email:{}", request.getEmail());
+        log.info("[BASE REGISTER] - Процесс регистрации через логин и пароль, email:{}, nickname:{}", 
+                request.getEmail(), request.getNickname());
 
-        // Проверка существования пользователя с таким же email и activationCode == null
-        var existingUserByEmail = userRepository.findByEmail(request.getEmail());
-        if (existingUserByEmail.isPresent() && existingUserByEmail.get().getActivationCode() == null) {
-            log.warn("[BASE REGISTER] - Данный Email {} занят другим пользователем ", request.getEmail());
-            throw new DuplicateResourceException(
-                    "Пользователь с таким email уже существует и активирован.",
-                    "email_exists"
-            );
-        }
+        LocalDateTime now = LocalDateTime.now();
 
+        // ========== 1. Проверка nickname ==========
         var existingUserByNickname = userRepository.findByNickname(request.getNickname());
-        if (existingUserByNickname.isPresent() && existingUserByNickname.get().getActivationCode() == null) {
-            log.warn("[BASE REGISTER] - Пользователь с таким никнеймом уже существует и активирован nickname={}",
-                    request.getNickname());
-            throw new DuplicateResourceException(
-                    "Пользователь с таким никнеймом уже существует и активирован.",
-                    "nickname_exists"
-            );
+        if (existingUserByNickname.isPresent()) {
+            User nicknameUser = existingUserByNickname.get();
+            if (nicknameUser.getStatus() == UserStatus.ACTIVATED) {
+                // Никнейм занят активированным аккаунтом
+                log.warn("[BASE REGISTER] - Никнейм {} занят активированным аккаунтом", request.getNickname());
+                throw new DuplicateResourceException(
+                        "Пользователь с таким никнеймом уже существует и активирован.",
+                        "nickname_exists"
+                );
+            }
+            // Никнейм занят неактивированным аккаунтом — проверяем таймаут
+            if (nicknameUser.getLastCodeSentAt() != null) {
+                long minutesSinceLastCode = ChronoUnit.MINUTES.between(nicknameUser.getLastCodeSentAt(), now);
+                if (minutesSinceLastCode < 5) {
+                    log.warn("[BASE REGISTER] - Повторная регистрация с никнеймом {} через {} мин (нужно 5)", 
+                            request.getNickname(), minutesSinceLastCode);
+                    throw new TooManyRequestsException(
+                            "Подождите 5 минут перед повторной регистрацией с этим никнеймом"
+                    );
+                }
+                // Прошло > 5 минут — разрешаем перезапись
+                log.info("[BASE REGISTER] - Перезапись неактивированного аккаунта с никнеймом {} (прошло {} мин)", 
+                        request.getNickname(), minutesSinceLastCode);
+                
+                // Обновляем email и генерируем новый код
+                nicknameUser.setEmail(request.getEmail());
+                nicknameUser.setActivationCode(UUID.randomUUID().toString());
+                nicknameUser.setLastCodeSentAt(now);
+                userRepository.save(nicknameUser);
+
+                // Отправляем письмо на новый email
+                sendActivationEmail(nicknameUser);
+
+                String ip = responseBuilder.getIpHelper().getClientIp(httpServletRequest);
+                userIpTempService.saveIpTemp(nicknameUser.getId(), ip);
+                return;
+            }
         }
 
+        // ========== 2. Проверка email ==========
+        var existingUserByEmail = userRepository.findByEmail(request.getEmail());
+        if (existingUserByEmail.isPresent()) {
+            User emailUser = existingUserByEmail.get();
+            if (emailUser.getStatus() == UserStatus.ACTIVATED) {
+                log.warn("[BASE REGISTER] - Email {} занят активированным аккаунтом", request.getEmail());
+                throw new DuplicateResourceException(
+                        "Пользователь с таким email уже существует и активирован.",
+                        "email_exists"
+                );
+            }
+            // Email занят неактивированным — можно разрешить перезапись (опционально)
+            // Сейчас просто продолжаем создание нового пользователя
+            log.info("[BASE REGISTER] - Email {} занят неактивированным аккаунтом, создаём нового", request.getEmail());
+        }
+
+        // ========== 3. Создание нового пользователя ==========
         var user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
@@ -84,22 +129,15 @@ public class AuthenticationService {
                 .tempEmail(null)
                 .nickname(request.getNickname())
                 .uuid(UUID.randomUUID().toString())
-                .createdAt(LocalDateTime.now())
+                .createdAt(now)
+                .status(UserStatus.PENDING)
+                .lastCodeSentAt(now)
                 .build();
 
         String activationCode = UUID.randomUUID().toString();
         user.setActivationCode(activationCode);
 
-        if (user.getEmail() != null && !user.getEmail().isEmpty() && !user.getEmail().isBlank()) {
-            String message = String.format(
-                    "Здравствуйте, %s! \n" +
-                            "Добро пожаловать в CENTER.BEER. Ваша ссылка для активации: "+publicUrl+"/authentication/activate/%s",
-                    user.getUsername(),
-                    user.getActivationCode()
-            );
-
-            mailSender.send(user.getEmail(), "Ссылка активации CENTER.BEER", message);
-        }
+        sendActivationEmail(user);
 
         try {
             user = userRepository.save(user);
@@ -110,6 +148,21 @@ public class AuthenticationService {
 
         String ip = responseBuilder.getIpHelper().getClientIp(httpServletRequest);
         userIpTempService.saveIpTemp(user.getId(), ip);
+    }
+
+    /**
+     * Отправляет письмо с кодом активации на указанный email.
+     */
+    private void sendActivationEmail(User user) {
+        if (user.getEmail() != null && !user.getEmail().isEmpty() && !user.getEmail().isBlank()) {
+            String message = String.format(
+                    "Здравствуйте, %s! \n" +
+                            "Добро пожаловать в CENTER.BEER. Ваша ссылка для активации: "+publicUrl+"/authentication/activate/%s",
+                    user.getUsername(),
+                    user.getActivationCode()
+            );
+            mailSender.send(user.getEmail(), "Ссылка активации CENTER.BEER", message);
+        }
     }
 
     public void requestPasswordReset(String email) {
@@ -291,17 +344,20 @@ public class AuthenticationService {
 
     public synchronized boolean activateUser(String code) {
         User userEntity = userRepository.findByActivationCode(code)
-                .orElse(null);
-        if (userEntity == null) {
-            throw new NullPointerException("Пользователь с таким кодом активации не найден ");
+                .orElseThrow(() -> new BadRequestException("Неверный или устаревший код активации. Запросите новый"));
+        
+        if (userEntity.getStatus() != UserStatus.PENDING) {
+            throw new BadRequestException("Аккаунт уже активирован");
         }
-        if (Objects.equals(code, userEntity.getActivationCode())) {
-            userEntity.setActivationCode(null);
-            userRepository.save(userEntity);
-            return true;
-        } else {
-            throw new NullPointerException("Введенный код не совпадает с истинным");
+        
+        if (!Objects.equals(code, userEntity.getActivationCode())) {
+            throw new BadRequestException("Введенный код не совпадает с истинным");
         }
+        
+        userEntity.setStatus(UserStatus.ACTIVATED);
+        userEntity.setActivationCode(null);
+        userRepository.save(userEntity);
+        return true;
     }
 
     @Data

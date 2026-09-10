@@ -63,6 +63,36 @@ public class ApiExceptionHandler {
     }
 
     /**
+     * Обработка исключения 429 Too Many Requests (повторная регистрация раньше 5 минут).
+     */
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<Map<String, Object>> handleTooManyRequestsException(TooManyRequestsException ex) {
+        log.warn("[ERROR] - TooManyRequestsException: message={}", ex.getMessage());
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now().toString());
+        body.put("status", HttpStatus.TOO_MANY_REQUESTS.value());
+        body.put("error", "Too Many Requests");
+        body.put("message", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(body);
+    }
+
+    /**
+     * Обработка исключения 400 Bad Request (неверный код активации и т.д.).
+     */
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<Map<String, Object>> handleBadRequestException(BadRequestException ex) {
+        log.warn("[ERROR] - BadRequestException: message={}", ex.getMessage());
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now().toString());
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("error", "Bad Request");
+        body.put("message", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    /**
      * Обработка исключения "Email не подтверждён" и других IllegalStateException.
      */
     @ExceptionHandler(IllegalStateException.class)
