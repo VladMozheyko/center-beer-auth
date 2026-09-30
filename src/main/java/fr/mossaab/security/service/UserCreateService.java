@@ -1,6 +1,7 @@
 package fr.mossaab.security.service;
 import fr.mossaab.security.entities.User;
 import fr.mossaab.security.enums.Role;
+import fr.mossaab.security.enums.UserStatus;
 import fr.mossaab.security.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +40,8 @@ public class UserCreateService {
                     .password(password) // Пароль уже зашифрован
                     .role(role)
                     .uuid(UUID.randomUUID().toString())
+                    .status(UserStatus.PENDING)
+                    .lastCodeSentAt(LocalDateTime.now())
                     .activationCode(activationCode)
                     .createdAt(LocalDateTime.now())
                     .build();
